@@ -63,3 +63,50 @@ final class FakeProbe: SessionProbing, @unchecked Sendable {
 
 func ownPID() -> Int32 { getpid() }
 func parentPID() -> Int32 { getppid() }
+
+// MARK: - Activity helpers
+
+final class TestClock: @unchecked Sendable {
+    var current = t0
+    func advance(_ seconds: Double) { current = current.addingTimeInterval(seconds) }
+}
+
+final class MemoryActivityStore: ActivityStoring, @unchecked Sendable {
+    var intervals: [HoldInterval] = []
+    var open: OpenInterval?
+    var rewrites = 0
+    func load() -> [HoldInterval] { intervals }
+    func append(_ interval: HoldInterval) { intervals.append(interval) }
+    func rewrite(_ intervals: [HoldInterval]) { self.intervals = intervals; rewrites += 1 }
+    func loadOpen() -> OpenInterval? { open }
+    func saveOpen(_ open: OpenInterval?) { self.open = open }
+}
+
+func utcCalendar() -> Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+    return calendar
+}
+
+func utc(_ year: Int, _ month: Int, _ day: Int, _ hour: Int = 0, _ minute: Int = 0) -> Date {
+    utcCalendar().date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+}
+
+func makeFileStore() -> (store: FileActivityStore, directory: URL) {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    return (FileActivityStore(directory: directory), directory)
+}
+
+func appendGarbageLine(to directory: URL) throws {
+    let url = directory.appendingPathComponent("activity.jsonl")
+    let handle = try FileHandle(forWritingTo: url)
+    try handle.seekToEnd()
+    try handle.write(contentsOf: Data("{ this is not json\n".utf8))
+    try handle.close()
+}
+
+func project(_ path: String) -> AgentEvent { AgentEvent(sessionID: "s", cwd: path, kind: .prompt) }
+
+func openInterval(start: Double, lastSeen: Double, projects: Set<String> = ["remain"]) -> OpenInterval {
+    OpenInterval(id: UUID(), start: at(start), sources: [.agent], projects: projects, lastSeen: at(lastSeen))
+}

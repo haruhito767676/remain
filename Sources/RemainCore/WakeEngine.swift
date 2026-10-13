@@ -183,12 +183,28 @@ public struct WakeEngine: Sendable {
         manual = mode
     }
 
-    /// Drops dead sessions and an elapsed manual timer.
-    public mutating func expire(at now: Date) {
-        sessions = sessions.filter { now.timeIntervalSince($0.value.lastSeen) < settings.sessionTimeout }
+    public struct Expiry: Equatable, Sendable {
+        public var sessionsTimedOut = 0
+        public var manualElapsed = false
+    }
+
+    /// Drops dead sessions and an elapsed manual timer, and reports what it dropped.
+    @discardableResult
+    public mutating func expire(at now: Date) -> Expiry {
+        var expiry = Expiry()
+        let alive = sessions.filter { now.timeIntervalSince($0.value.lastSeen) < settings.sessionTimeout }
+        expiry.sessionsTimedOut = sessions.count - alive.count
+        sessions = alive
         if case .until(let end) = manual, end <= now {
             manual = .off
+            expiry.manualElapsed = true
         }
+        return expiry
+    }
+
+    /// Sessions that currently keep the Mac awake (working, or waiting if so configured).
+    public var holdingSessions: [AgentSession] {
+        sessions.values.filter { $0.phase == .working || (settings.holdWhileWaiting && $0.phase == .waiting) }
     }
 
     public func snapshot() -> WakeSnapshot {

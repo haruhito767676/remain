@@ -14,6 +14,9 @@ public final class WakeCoordinator {
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private let probe: any SessionProbing
+    @ObservationIgnored public let activity: ActivityLog?
+    @ObservationIgnored private var endCause: HoldEndReason?
+    @ObservationIgnored private var heartbeatTask: Task<Void, Never>?
     @ObservationIgnored private let pollInterval: Duration
     /// Called for every effect the engine reports (notifications, completion actions).
     @ObservationIgnored public var onEffect: (@MainActor (WakeEffect) -> Void)?
@@ -22,10 +25,12 @@ public final class WakeCoordinator {
         settings: WakeSettings = WakeSettings(),
         assertions: any SleepAssertionProviding,
         probe: any SessionProbing = SystemSessionProbe(),
+        activity: ActivityLog? = nil,
         pollInterval: Duration = .seconds(3),
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.probe = probe
+        self.activity = activity
         self.pollInterval = pollInterval
         self.settings = settings
         self.engine = WakeEngine(settings: settings)
@@ -36,6 +41,7 @@ public final class WakeCoordinator {
 
     public func receive(_ event: AgentEvent) {
         let effects = engine.handle(event, at: now())
+        if event.kind == .finish { endCause = .finished }
         refresh()
         effects.forEach { onEffect?($0) }
     }
@@ -48,7 +54,14 @@ public final class WakeCoordinator {
 
     public func setManual(_ mode: ManualMode) {
         engine.setManual(mode)
+        if mode == .off { endCause = .released }
         refresh()
+    }
+
+    /// Closes the running activity interval; call when the app quits.
+    public func shutdown() {
+        activity?.end(at: now(), reason: .appQuit)
+        heartbeatTask?.cancel()
     }
 
     public func setManual(minutes: Int?) {
@@ -66,11 +79,52 @@ public final class WakeCoordinator {
     }
 
     private func refresh() {
-        engine.expire(at: now())
+        let expiry = engine.expire(at: now())
         snapshot = engine.snapshot()
         assertions.apply(snapshot.prevention)
+        recordActivity(expiry: expiry)
         scheduleExpiry()
         ensurePolling()
+    }
+
+    /// Opens, updates or closes the activity interval to mirror whether the Mac is being held awake.
+    private func recordActivity(expiry: WakeEngine.Expiry) {
+        defer { endCause = nil }
+        guard let activity else { return }
+        let time = now()
+        if snapshot.prevention != .none {
+            var sources: Set<HoldSource> = []
+            let holding = engine.holdingSessions
+            if !holding.isEmpty { sources.insert(.agent) }
+            if snapshot.manual != .off { sources.insert(.manual) }
+            let projects = Set(holding.compactMap { $0.cwd }.map { URL(fileURLWithPath: $0).lastPathComponent }.filter { !$0.isEmpty })
+            if activity.open == nil {
+                activity.begin(at: time, sources: sources, projects: projects)
+                startHeartbeat()
+            } else {
+                activity.update(at: time, sources: sources, projects: projects)
+            }
+        } else if activity.open != nil {
+            let reason = endCause
+                ?? (expiry.sessionsTimedOut > 0 ? .timedOut : nil)
+                ?? (expiry.manualElapsed ? .timerElapsed : nil)
+                ?? (snapshot.blockedBy != nil ? .powerGuard : .released)
+            activity.end(at: time, reason: reason)
+            heartbeatTask?.cancel()
+            heartbeatTask = nil
+        }
+    }
+
+    /// While an interval is open, remember "still alive" every minute so a crash loses at most that.
+    private func startHeartbeat() {
+        heartbeatTask?.cancel()
+        heartbeatTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60))
+                guard let self else { return }
+                activity?.heartbeat(at: now())
+            }
+        }
     }
 
     /// Looks for sessions that ended without telling us: the Claude Code process is gone,
@@ -80,11 +134,13 @@ public final class WakeCoordinator {
         for session in engine.sessions.values {
             if let pid = session.pid, !probe.isAlive(pid: pid) {
                 engine.end(session.id)
+                endCause = .processExited
                 ended = true
             } else if let path = session.transcriptPath, let offset = session.scanOffset {
                 let scan = probe.scanTranscript(path: path, from: offset)
                 if scan.interrupted {
                     engine.end(session.id)
+                    endCause = .interrupted
                     ended = true
                 } else if scan.newOffset != offset {
                     engine.setScanOffset(scan.newOffset, for: session.id)

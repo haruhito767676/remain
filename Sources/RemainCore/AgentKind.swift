@@ -32,9 +32,11 @@ public enum AgentKind: String, Codable, CaseIterable, Sendable {
         self = kind
     }
 
-    /// Tools remAIn can connect to. Codex's hooks are decoded already but stay off this list until they
-    /// have been checked against a real Codex; `command` (remain run) needs no integration.
-    public static var integrable: [AgentKind] { [.claudeCode, .antigravity] }
+    /// Tools remAIn can connect to; `command` (remain run) needs no integration.
+    public static var integrable: [AgentKind] { [.claudeCode, .antigravity, .codex] }
+
+    /// Supported from the documentation, still being checked against the real tool.
+    public var isExperimental: Bool { self == .codex }
 
     /// Does the conversation log reveal interruptions we know how to read?
     var scansTranscriptForInterruption: Bool { self == .claudeCode }
@@ -49,7 +51,7 @@ public enum AgentKind: String, Codable, CaseIterable, Sendable {
         let lower = name.lowercased()
         switch self {
         case .claudeCode: return lower == "claude" || lower == "claude.exe"
-        case .codex: return lower == "codex" || lower.hasPrefix("codex-")
+        case .codex: return lower.contains("codex") && !lower.contains("codexbar") // CodexBar only tracks usage
         case .antigravity: return lower.contains("antigravity") || lower.hasPrefix("language_server")
         case .command: return false
         }

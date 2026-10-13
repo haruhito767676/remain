@@ -2,10 +2,17 @@ import Foundation
 
 /// Adds / removes remAIn's entries in Claude Code's `settings.json` without touching anything else.
 public struct HookInstaller: Sendable {
-    public static let events = [
+    public static let claudeEvents = [
         "UserPromptSubmit", "PreToolUse", "PostToolUse",
         "Notification", "Stop", "StopFailure", "SessionEnd",
     ]
+    /// Codex shares the file layout; it adds `Interrupt` and `PermissionRequest`.
+    public static let codexEvents = [
+        "UserPromptSubmit", "PreToolUse", "PostToolUse",
+        "PermissionRequest", "Stop", "Interrupt", "SessionEnd",
+    ]
+    /// Kept for callers that mean Claude Code.
+    public static var events: [String] { claudeEvents }
 
     public enum InstallError: Error, CustomStringConvertible {
         case invalidSettings(String)
@@ -19,17 +26,26 @@ public struct HookInstaller: Sendable {
     public let settingsURL: URL
     /// Absolute path of the `remain` executable.
     public let executablePath: String
+    /// Claude Code and Codex use the same `{"hooks": {Event: [{hooks: [...]}]}}` file layout.
+    public let agent: AgentKind
 
-    public init(settingsURL: URL = RemainPaths.claudeSettingsURL, executablePath: String) {
+    public init(settingsURL: URL = RemainPaths.claudeSettingsURL, executablePath: String, agent: AgentKind = .claudeCode) {
         self.settingsURL = settingsURL
         self.executablePath = executablePath
+        self.agent = agent
     }
 
-    var command: String { Self.shellQuote(executablePath) + " hook" }
+    var events: [String] { agent == .codex ? Self.codexEvents : Self.claudeEvents }
+
+    /// Claude Code keeps its original `remain hook`; other tools name themselves.
+    var command: String {
+        let base = Self.shellQuote(executablePath) + " hook"
+        return agent == .claudeCode ? base : base + " " + agent.cliName
+    }
 
     public func isInstalled() -> Bool {
         guard let root = try? loadSettings(), let hooks = root["hooks"] as? [String: Any] else { return false }
-        return Self.events.allSatisfy { event in
+        return events.allSatisfy { event in
             groups(in: hooks, event).contains { group in
                 commands(in: group).contains(where: Self.isRemainCommand)
             }
@@ -39,7 +55,7 @@ public struct HookInstaller: Sendable {
     /// Installed, but pointing at a different executable than this app's (it was moved or replaced).
     public func needsRepair() -> Bool {
         guard let root = try? loadSettings(), let hooks = root["hooks"] as? [String: Any] else { return false }
-        let ours = Self.events.flatMap { event in
+        let ours = events.flatMap { event in
             groups(in: hooks, event).flatMap { commands(in: $0) }.filter(Self.isRemainCommand)
         }
         return !ours.isEmpty && ours.contains { $0 != command }
@@ -48,7 +64,7 @@ public struct HookInstaller: Sendable {
     public func install() throws {
         var root = try loadSettings()
         var hooks = root["hooks"] as? [String: Any] ?? [:]
-        for event in Self.events {
+        for event in events {
             var groups = Self.removingRemain(from: self.groups(in: hooks, event))
             groups.append([
                 "hooks": [["type": "command", "command": command, "timeout": 5]],
@@ -62,7 +78,7 @@ public struct HookInstaller: Sendable {
     public func uninstall() throws {
         var root = try loadSettings()
         guard var hooks = root["hooks"] as? [String: Any] else { return }
-        for event in Self.events {
+        for event in events {
             let cleaned = Self.removingRemain(from: groups(in: hooks, event))
             hooks[event] = cleaned.isEmpty ? nil : cleaned
         }
@@ -94,7 +110,8 @@ public struct HookInstaller: Sendable {
     }
 
     static func isRemainCommand(_ command: String) -> Bool {
-        command.hasSuffix(" hook") && command.lowercased().contains("remain")
+        let ours = command.hasSuffix(" hook") || command.hasSuffix(" hook codex")
+        return ours && command.lowercased().contains("remain")
     }
 
     static func shellQuote(_ path: String) -> String {

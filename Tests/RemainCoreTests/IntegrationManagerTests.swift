@@ -62,9 +62,4 @@ import Testing
         #expect(manager.repairAll().isEmpty)
         #expect(manager.state(of: .claudeCode) == .notInstalled) // repair never installs by itself
     }
-
-    @Test func codexIsNotOfferedYet() throws {
-        #expect(!AgentKind.integrable.contains(.codex))
-        #expect(throws: IntegrationError.self) { try FakeHome().manager().install(.codex) }
-    }
 }

@@ -15,11 +15,21 @@ public enum HookDecoder {
         }
     }
 
-    /// Antigravity expects JSON on stdout for its hooks (and a `decision` for `Stop`);
-    /// Claude Code would feed plain stdout into the model, so it must stay silent.
+    /// The event's name: Antigravity passes it as an argument, Claude Code and Codex inside the JSON.
+    public static func eventName(agent: AgentKind, argument: String?, stdin: Data) -> String? {
+        if let argument { return argument }
+        return (try? JSONDecoder().decode(HookPayload.self, from: stdin))?.eventName
+    }
+
+    /// What the hook must print. Claude Code feeds plain stdout into the model, so it stays silent;
+    /// Antigravity wants JSON for every hook (and a `decision` for `Stop`); Codex wants JSON from `Stop`
+    /// but treats stdout of `UserPromptSubmit` as context, so only `Stop` answers.
     public static func response(agent: AgentKind, eventName: String?) -> String? {
-        guard agent == .antigravity else { return nil }
-        return eventName == "Stop" ? #"{"decision":"allow"}"# : "{}"
+        switch agent {
+        case .antigravity: return eventName == "Stop" ? #"{"decision":"allow"}"# : "{}"
+        case .codex: return eventName == "Stop" ? "{}" : nil
+        case .claudeCode, .command: return nil
+        }
     }
 }
 

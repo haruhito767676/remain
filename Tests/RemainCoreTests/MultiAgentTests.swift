@@ -56,7 +56,7 @@ import Testing
 
     @Test func claudeCodeMustStaySilentAntigravityMustAnswer() {
         #expect(HookDecoder.response(agent: .claudeCode, eventName: "UserPromptSubmit") == nil)
-        #expect(HookDecoder.response(agent: .codex, eventName: "Stop") == nil)
+        #expect(HookDecoder.response(agent: .codex, eventName: "UserPromptSubmit") == nil)
         #expect(HookDecoder.response(agent: .antigravity, eventName: "PostToolUse") == "{}")
         #expect(HookDecoder.response(agent: .antigravity, eventName: "Stop") == #"{"decision":"allow"}"#)
     }
@@ -354,5 +354,103 @@ import Testing
         coordinator.update(settings: coordinator.settings) // any refresh notices the expiry
         #expect(log.intervals.first?.endReason == .timedOut)
         #expect(log.intervals.first?.agents == [.antigravity])
+    }
+}
+
+@Suite struct CodexIntegrationTests {
+    private func codexInstaller(existing: String? = nil, executable: String = "/Apps/remain") throws -> HookInstaller {
+        let base = try makeInstaller(existing: existing)
+        return HookInstaller(settingsURL: base.settingsURL, executablePath: executable, agent: .codex)
+    }
+
+    @Test func codexHooksUseTheCodexEventsAndAName() throws {
+        let installer = try codexInstaller()
+        try installer.install()
+        #expect(installer.isInstalled())
+        let hooks = try readJSON(installer.settingsURL)["hooks"] as! [String: Any]
+        #expect(Set(hooks.keys) == Set(HookInstaller.codexEvents))
+        let stop = (hooks["Stop"] as! [[String: Any]])[0]["hooks"] as! [[String: Any]]
+        #expect(stop[0]["command"] as? String == "/Apps/remain hook codex")
+        #expect(hooks["Interrupt"] != nil)
+        #expect(hooks["Notification"] == nil) // that is Claude Code's event
+    }
+
+    @Test func claudeKeepsItsOriginalCommand() throws {
+        let installer = try installerAt("/Apps/remain")
+        try installer.install()
+        let hooks = try readJSON(installer.settingsURL)["hooks"] as! [String: Any]
+        let stop = (hooks["Stop"] as! [[String: Any]])[0]["hooks"] as! [[String: Any]]
+        #expect(stop[0]["command"] as? String == "/Apps/remain hook") // unchanged: existing installs stay valid
+    }
+
+    @Test func bothCommandFormsAreRecognisedAsOurs() {
+        #expect(HookInstaller.isRemainCommand("/Apps/remain hook"))
+        #expect(HookInstaller.isRemainCommand("/Apps/remain hook codex"))
+        #expect(!HookInstaller.isRemainCommand("/Apps/other hook codex"))
+        #expect(!HookInstaller.isRemainCommand("echo done"))
+    }
+
+    @Test func installLeavesTheUsersOwnCodexHooksAlone() throws {
+        let installer = try codexInstaller(existing: #"{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"say done"}]}]}}"#)
+        try installer.install()
+        try installer.uninstall()
+        let hooks = try readJSON(installer.settingsURL)["hooks"] as! [String: Any]
+        #expect((hooks["Stop"] as! [Any]).count == 1)
+        #expect(hooks["Interrupt"] == nil)
+    }
+
+    @Test func aMovedAppNeedsRepair() throws {
+        let old = try codexInstaller(executable: "/old/remain")
+        try old.install()
+        let moved = HookInstaller(settingsURL: old.settingsURL, executablePath: "/new/remain", agent: .codex)
+        #expect(moved.needsRepair())
+        try moved.install()
+        #expect(!moved.needsRepair())
+    }
+
+    @Test func codexStopMustAnswerWithJSONButPromptsMustNotAnswer() {
+        #expect(HookDecoder.response(agent: .codex, eventName: "Stop") == "{}")
+        #expect(HookDecoder.response(agent: .codex, eventName: "UserPromptSubmit") == nil) // stdout would reach the model
+        #expect(HookDecoder.response(agent: .codex, eventName: "Interrupt") == nil)
+    }
+
+    @Test func eventNameComesFromTheArgumentOrThePayload() {
+        #expect(eventName(.codex, nil, #"{"session_id":"s","hook_event_name":"Interrupt"}"#) == "Interrupt")
+        #expect(eventName(.antigravity, "Stop", "{}") == "Stop")
+    }
+
+    @Test func codexProcessesAreRecognisedButNotTheUsageTracker() {
+        #expect(AgentKind.codex.ownsProcess(named: "codex"))
+        #expect(AgentKind.codex.ownsProcess(named: "Codex (Service)"))
+        #expect(!AgentKind.codex.ownsProcess(named: "CodexBar"))
+    }
+
+    @Test func codexIsDetectedByItsDataFolderOrTheChatGPTApp() throws {
+        let byFolder = try FakeHome()
+        try byFolder.makeDirectory(".codex")
+        #expect(byFolder.manager().state(of: .codex) == .notInstalled)
+
+        let byApp = try FakeHome()
+        try byApp.makeDirectory("Applications/ChatGPT.app")
+        #expect(byApp.manager().state(of: .codex) == .notInstalled)
+
+        #expect(try FakeHome().manager().state(of: .codex) == .notDetected)
+    }
+
+    @Test func codexRoundTripsThroughTheManager() throws {
+        let fake = try FakeHome()
+        try fake.makeDirectory(".codex")
+        let manager = fake.manager()
+        try manager.install(.codex)
+        #expect(manager.state(of: .codex) == .installed)
+        #expect(manager.state(of: .claudeCode) == .notDetected) // separate files: no cross-talk
+        try manager.uninstall(.codex)
+        #expect(manager.state(of: .codex) == .notInstalled)
+    }
+
+    @Test func codexIsFlaggedExperimental() {
+        #expect(AgentKind.codex.isExperimental)
+        #expect(!AgentKind.claudeCode.isExperimental)
+        #expect(!AgentKind.antigravity.isExperimental)
     }
 }

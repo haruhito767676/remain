@@ -158,7 +158,7 @@ struct GeneralSettingsView: View {
             }
 
             Section {
-                ForEach(AgentKind.integrable, id: \.self) { agent in
+                ForEach(model.visibleIntegrations, id: \.self) { agent in
                     IntegrationRow(model: model, agent: agent)
                 }
                 if let error = model.integrationError {
@@ -167,7 +167,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Integrations")
             } footer: {
-                Text("remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone.")
+                Text("remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone. Codex asks you to review and trust new hooks before they run (type /hooks in Codex).")
             }
 
             Section {
@@ -190,7 +190,7 @@ struct IntegrationRow: View {
 
     var body: some View {
         let state = model.integrations[agent] ?? .notDetected
-        LabeledContent(agent.displayName) {
+        LabeledContent {
             HStack {
                 Text(label(state))
                     .foregroundStyle(state == .needsRepair ? Color.orange : Color.secondary)
@@ -201,6 +201,13 @@ struct IntegrationRow: View {
                     Button("Repair") { model.installIntegration(agent) }
                 case .notInstalled, .notDetected:
                     Button("Install") { model.installIntegration(agent) }
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(agent.displayName)
+                if agent.isExperimental {
+                    Text("Experimental").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -226,7 +233,7 @@ struct WelcomeView: View {
             Text("remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:")
                 .fixedSize(horizontal: false, vertical: true)
             Form {
-                ForEach(AgentKind.integrable, id: \.self) { agent in
+                ForEach(model.visibleIntegrations, id: \.self) { agent in
                     IntegrationRow(model: model, agent: agent)
                 }
             }

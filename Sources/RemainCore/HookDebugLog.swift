@@ -32,12 +32,14 @@ public enum HookDebugLog {
     }
 
     /// Never throws and never blocks the tool that called the hook.
-    public static func record(agent: AgentKind, eventArgument: String?, stdin: Data, decoded: AgentEvent?, processes: [(pid: Int32, name: String)]) {
+    public static func record(agent: AgentKind, eventArgument: String?, eventName: String? = nil, stdin: Data,
+                              decoded: AgentEvent?, processes: [(pid: Int32, name: String)]) {
         guard isEnabled else { return }
         let entry: [String: Any] = [
             "time": ISO8601DateFormatter().string(from: Date()),
             "agent": agent.cliName,
             "eventArgument": eventArgument ?? NSNull(),
+            "eventName": eventName ?? NSNull(), // the event's name is not sensitive, unlike the prompt next to it
             "stdin": loggableInput(agent: agent, stdin: stdin),
             "decodedKind": decoded?.kind.rawValue ?? NSNull(),
             "decodedPID": decoded?.pid.map { Int($0) } as Any? ?? NSNull(),

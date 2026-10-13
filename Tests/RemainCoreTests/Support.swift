@@ -259,3 +259,7 @@ struct FakeHome {
 func loggable(_ agent: AgentKind, _ json: String) -> String {
     HookDebugLog.loggableInput(agent: agent, stdin: Data(json.utf8))
 }
+
+func eventName(_ agent: AgentKind, _ argument: String?, _ json: String) -> String? {
+    HookDecoder.eventName(agent: agent, argument: argument, stdin: Data(json.utf8))
+}

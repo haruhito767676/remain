@@ -35,12 +35,17 @@ public struct IntegrationManager: Sendable {
         switch agent {
         case .claudeCode: home.appendingPathComponent(".claude/settings.json")
         case .antigravity: home.appendingPathComponent(".gemini/config/hooks.json")
-        case .codex, .command: nil
+        case .codex: home.appendingPathComponent(".codex/hooks.json")
+        case .command: nil
         }
     }
 
     private func claudeInstaller() -> HookInstaller {
         HookInstaller(settingsURL: configURL(of: .claudeCode)!, executablePath: executablePath)
+    }
+
+    private func codexInstaller() -> HookInstaller {
+        HookInstaller(settingsURL: configURL(of: .codex)!, executablePath: executablePath, agent: .codex)
     }
 
     private func antigravityInstaller() -> AntigravityHookInstaller {
@@ -63,7 +68,9 @@ public struct IntegrationManager: Sendable {
                     ["Antigravity IDE.app", "Antigravity.app"].contains { exists(dir.appendingPathComponent($0)) }
                 }
         case .codex:
+            // Codex lives inside the ChatGPT desktop app and keeps its data in ~/.codex.
             return exists(home.appendingPathComponent(".codex"))
+                || applicationDirectories.contains { exists($0.appendingPathComponent("ChatGPT.app")) }
         case .command:
             return false
         }
@@ -78,7 +85,10 @@ public struct IntegrationManager: Sendable {
         case .antigravity:
             let installer = antigravityInstaller()
             (installed, repair) = (installer.isInstalled(), installer.needsRepair())
-        case .codex, .command:
+        case .codex:
+            let installer = codexInstaller()
+            (installed, repair) = (installer.isInstalled(), installer.needsRepair())
+        case .command:
             return .notDetected
         }
         if installed { return repair ? .needsRepair : .installed }
@@ -91,7 +101,8 @@ public struct IntegrationManager: Sendable {
         switch agent {
         case .claudeCode: try claudeInstaller().install()
         case .antigravity: try antigravityInstaller().install()
-        case .codex, .command: throw IntegrationError.unsupported(agent)
+        case .codex: try codexInstaller().install()
+        case .command: throw IntegrationError.unsupported(agent)
         }
     }
 
@@ -99,7 +110,8 @@ public struct IntegrationManager: Sendable {
         switch agent {
         case .claudeCode: try claudeInstaller().uninstall()
         case .antigravity: try antigravityInstaller().uninstall()
-        case .codex, .command: throw IntegrationError.unsupported(agent)
+        case .codex: try codexInstaller().uninstall()
+        case .command: throw IntegrationError.unsupported(agent)
         }
     }
 

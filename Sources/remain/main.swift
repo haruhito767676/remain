@@ -117,7 +117,7 @@ usage: remain <command>
   run [--] <command>     keep the Mac awake while a command runs
   on [minutes]           keep the Mac awake (indefinitely, or for N minutes)
   off                    release the manual hold
-  install-hooks [agent]  register remAIn with claude (default) or antigravity
+  install-hooks [agent]  register remAIn with claude (default), antigravity or codex
   uninstall-hooks [agent] remove remAIn from that tool
   debug [on|off]         record raw hook calls to a log (diagnostics)
 """
@@ -138,9 +138,10 @@ case "hook":
         decoded = event
         _ = try? IPCClient.send(.event(event))
     }
-    HookDebugLog.record(agent: agent, eventArgument: eventArgument, stdin: input, decoded: decoded, processes: ProcessTree.ancestors())
+    let eventName = HookDecoder.eventName(agent: agent, argument: eventArgument, stdin: input)
+    HookDebugLog.record(agent: agent, eventArgument: eventArgument, eventName: eventName, stdin: input, decoded: decoded, processes: ProcessTree.ancestors())
     // Some tools want JSON back; Claude Code must get nothing (its stdout reaches the model).
-    if let response = HookDecoder.response(agent: agent, eventName: eventArgument) { print(response) }
+    if let response = HookDecoder.response(agent: agent, eventName: eventName) { print(response) }
     exit(0)
 case "status":
     let response = request(.status)

@@ -247,7 +247,14 @@ final class AppModel {
 
     /// A tool that is on this Mac but not connected, or connected to a stale path.
     var needsAttention: Bool {
-        AgentKind.integrable.contains { integrations[$0] == .notInstalled || integrations[$0] == .needsRepair }
+        // Experimental tools are offered, never nagged about.
+        AgentKind.integrable.filter { !$0.isExperimental }
+            .contains { integrations[$0] == .notInstalled || integrations[$0] == .needsRepair }
+    }
+
+    /// Experimental tools only show up when they are on this Mac.
+    var visibleIntegrations: [AgentKind] {
+        AgentKind.integrable.filter { !$0.isExperimental || integrations[$0] != .notDetected }
     }
 
     /// The hooks remAIn wrote point at this app's helper. If the app moved, they quietly stop working,

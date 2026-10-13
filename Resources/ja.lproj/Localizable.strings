@@ -137,8 +137,10 @@
 "Not detected" = "見つかりません";
 "Needs repair" = "要修復";
 "Repair" = "修復";
-"remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone." = "remAInは、各ツールのhooksファイルに自分の項目だけを追加し、ツールの作業の開始と終了を知ります。ファイルのそれ以外の内容には手を加えません。";
+"remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone. Codex asks you to review and trust new hooks before they run (type /hooks in Codex)." = "remAInは、各ツールのhooksファイルに自分の項目だけを追加し、ツールの作業の開始と終了を知ります。ファイルのそれ以外の内容には手を加えません。Codexは、追加されたhooksを実行前に確認・信頼する必要があります(Codexで /hooks と入力してください)。";
 "Finish setting up your agents…" = "エージェントの連携を完了する…";
 "Welcome to remAIn" = "remAInへようこそ";
 "remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:" = "remAInは、AIエージェントが作業している間だけMacのスリープを防ぎ、作業が終わったらスリープできるようにします。使っているツールを連携してください:";
 "Done" = "完了";
+
+"Experimental" = "試験的";

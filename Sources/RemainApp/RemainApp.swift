@@ -31,6 +31,8 @@ private struct MenuBarIcon: View {
 
     var body: some View {
         Image(systemName: model.symbolName)
+            // VoiceOver would otherwise read the symbol's generic name ("sparkles", "moon").
+            .accessibilityLabel("remAIn: \(model.statusTitle)")
             .onAppear { SettingsOpener.open = { openSettings() } }
     }
 }

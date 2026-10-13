@@ -63,7 +63,7 @@ struct ActivityView: View {
                 Button("Clear Activity Log…", role: .destructive) { confirmingClear = true }
                     .disabled(log.intervals.isEmpty)
             } footer: {
-                Text("Stored only on this Mac. Only project folder names are kept, never full paths. Entries older than 90 days are removed.")
+                Text("Stored only on this Mac and deleted automatically after 90 days.")
             }
         }
         .formStyle(.grouped)
@@ -71,7 +71,7 @@ struct ActivityView: View {
         .confirmationDialog("Clear the activity log?", isPresented: $confirmingClear, titleVisibility: .visible) {
             Button("Clear", role: .destructive) { log.clear() }
         } message: {
-            Text("This removes all recorded history on this Mac. It cannot be undone.")
+            Text("This deletes all recorded activity. It cannot be undone.")
         }
     }
 

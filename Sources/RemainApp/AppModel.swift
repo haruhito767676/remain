@@ -266,7 +266,7 @@ final class AppModel {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = String(localized: "Keep running with the lid closed?")
-        alert.informativeText = String(localized: "While an agent is working, your Mac keeps running with the lid closed. It can get warm and use battery, so remAIn stops automatically on heat, low battery, the time limit, or when the work finishes.")
+        alert.informativeText = String(localized: "While an agent works, your Mac keeps running with the lid closed. Watch for heat and battery: it stops automatically on heat, low battery, the time limit, or when the work finishes.")
         alert.addButton(withTitle: String(localized: "Turn On"))
         alert.addButton(withTitle: String(localized: "Cancel"))
         NSApp.activate()

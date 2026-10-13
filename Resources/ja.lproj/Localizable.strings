@@ -5,7 +5,7 @@
 "1 Hour" = "1時間";
 "2 Hours" = "2時間";
 "4 Hours" = "4時間";
-"Keep Display On" = "ディスプレイを点灯したままにする";
+"Keep Display On" = "ディスプレイの消灯も防ぐ";
 "Settings…" = "設定…";
 "Quit remAIn" = "remAInを終了";
 
@@ -22,14 +22,14 @@
 /* Settings: agents */
 "Agents" = "エージェント";
 "Keep awake while an agent waits for me" = "入力待ちの間もスリープを防ぐ";
-"Keep the display on" = "ディスプレイを点灯したままにする";
-"Release automatically after no activity for" = "動きがない場合に自動で解除するまでの時間";
+"Keep the display on" = "ディスプレイの消灯も防ぐ";
+"Release automatically after no activity for" = "反応がなくなってから解除するまで";
 "5 minutes" = "5分";
 "30 minutes" = "30分";
 "1 hour" = "1時間";
 "2 hours" = "2時間";
 "4 hours" = "4時間";
-"Interruptions and closed sessions are detected automatically. This is only a safety net for when an agent goes quiet for any other reason." = "中断やセッションの終了は自動で検知します。この設定は、それ以外の原因でエージェントの動きが止まった場合の安全装置です。";
+"Interruptions and exits are detected automatically. This is only a safety net." = "中断や終了は自動で検知します。これは、それ以外のときの安全装置です。";
 
 /* Settings: finish */
 "When Agents Finish" = "エージェントの完了時";
@@ -43,7 +43,7 @@
 "Do nothing" = "何もしない";
 "Turn the display off" = "ディスプレイを消灯する";
 "Put the Mac to sleep" = "Macをスリープさせる";
-"The action runs 10 seconds after the last task ends. It is skipped if you start new work, or if the work was shorter than the time chosen above." = "最後の作業が終わって10秒後に実行します。新しい作業を始めた場合や、上で指定した時間より短い作業のあとは実行しません。";
+"Runs 10 seconds after the last task ends, unless you start new work." = "最後の作業が終わって10秒後に実行します。新しい作業を始めると実行されません。";
 
 /* Settings: Claude Code */
 "Installed" = "インストール済み";
@@ -71,12 +71,12 @@
 "The Mac is too hot" = "Macの温度が高くなっています";
 "Letting your Mac sleep" = "Macがスリープできるようにしました";
 "Power" = "電源";
-"Let the Mac sleep when the battery is below" = "バッテリー残量がこれを下回ったらスリープを許可";
+"Let the Mac sleep when the battery is below" = "バッテリー残量が次の値を下回ったらスリープを許可";
 "Never" = "オフ";
 "Only keep awake on AC power" = "電源接続中のみスリープを防ぐ";
 "Don't keep awake in Low Power Mode" = "低電力モード中はスリープを防がない";
 "Let the Mac sleep when it gets too hot" = "高温時はスリープを許可";
-"remAIn resumes automatically once the condition clears. The battery limit resumes 5 points above the threshold." = "条件が解消されると自動で再開します。バッテリー残量の制限は、設定値より5ポイント上回ると再開します。";
+"It resumes automatically once the condition clears." = "条件が解消されると、自動で再開します。";
 
 /* Activity */
 "General" = "一般";
@@ -88,59 +88,59 @@
 "Last 14 days" = "過去14日間";
 "Manual" = "手動";
 "By Project (last 30 days)" = "プロジェクト別(過去30日間)";
-"No activity yet. Run a task with an AI agent and it will show up here." = "まだ記録がありません。AIエージェントでタスクを実行すると、ここに表示されます。";
+"No activity yet. Run a task with an AI agent and it will show up here." = "まだ記録がありません。AIエージェントに作業を任せると、ここに表示されます。";
 "Recent" = "最近の履歴";
 "Less than a minute" = "1分未満";
 "Clear Activity Log…" = "アクティビティログを消去…";
 "Clear the activity log?" = "アクティビティログを消去しますか?";
-"This removes all recorded history on this Mac. It cannot be undone." = "このMacに記録された履歴がすべて削除されます。元に戻せません。";
+"This deletes all recorded activity. It cannot be undone." = "記録をすべて削除します。元に戻せません。";
 "Clear" = "消去";
-"Stored only on this Mac. Only project folder names are kept, never full paths. Entries older than 90 days are removed." = "このMacにだけ保存されます。プロジェクトはフォルダ名のみで、フルパスは保存しません。90日より古い記録は自動で削除されます。";
+"Stored only on this Mac and deleted automatically after 90 days." = "このMacの中だけに保存され、90日たつと自動で削除されます。";
 "Finished" = "完了";
 "Interrupted" = "中断";
-"Agent closed" = "エージェントを終了";
+"Agent closed" = "エージェントが終了";
 "Agent" = "エージェント";
 "Timed out" = "タイムアウト";
 "Turned off" = "手動で解除";
 "Timer ended" = "タイマー終了";
 "Power guard" = "電源・温度の保護";
-"remAIn quit" = "remAInを終了";
+"remAIn quit" = "remAInが終了";
 "remAIn stopped" = "remAInが停止";
 
 /* Lid closed */
-"Keep Running with Lid Closed" = "蓋を閉じても動かす";
-"Keeps running if you close the lid" = "蓋を閉じても動き続けます";
+"Keep Running with Lid Closed" = "蓋を閉じても動作を続ける";
+"Keeps running if you close the lid" = "蓋を閉じても動作が続きます";
 "Lid Closed" = "蓋を閉じたとき";
 "System permission" = "システムの許可";
 "Ready" = "利用可能";
 "Not set up" = "未設定";
 "Set Up…" = "セットアップ…";
-"Keep running with the lid closed" = "蓋を閉じても動かし続ける";
-"Stop after" = "自動で止めるまでの時間";
+"Keep running with the lid closed" = "蓋を閉じても動作を続ける";
+"Stop after" = "上限時間";
 "3 hours" = "3時間";
 "6 hours" = "6時間";
-"Needs a one-time administrator approval. Only the command pmset disablesleep is allowed, and a watchdog turns sleep back on if remAIn stops responding." = "管理者の承認が一度だけ必要です。許可されるのは pmset disablesleep だけで、remAInが応答しなくなった場合は、見張り役がスリープを元に戻します。";
-"Set up the system permission first." = "先にシステムの許可をセットアップしてください。";
+"Asks for your password once." = "パスワードの入力が一度だけ必要です。";
+"Set up the system permission first." = "先に許可をセットアップしてください。";
 "Setup failed: %@" = "セットアップに失敗しました: %@";
-"Keep running with the lid closed?" = "蓋を閉じても動かし続けますか?";
-"While an agent is working, your Mac keeps running with the lid closed. It can get warm and use battery, so remAIn stops automatically on heat, low battery, the time limit, or when the work finishes." = "作業中は、蓋を閉じてもMacが動き続けます。熱を持ったりバッテリーを消費したりするため、高温・バッテリー低下・時間の上限・作業の完了で自動的に止まります。";
+"Keep running with the lid closed?" = "蓋を閉じても動作を続けますか?";
+"While an agent works, your Mac keeps running with the lid closed. Watch for heat and battery: it stops automatically on heat, low battery, the time limit, or when the work finishes." = "作業中は、蓋を閉じてもMacが動き続けます。熱とバッテリーに注意してください。高温・バッテリー低下・上限時間・作業の完了で自動的に止まります。";
 "Turn On" = "オンにする";
 "Cancel" = "キャンセル";
-"Lid-closed limit reached" = "蓋を閉じたままの動作の上限に達しました";
+"Lid-closed limit reached" = "蓋を閉じた状態での動作が上限時間に達しました";
 "The Mac will sleep when you close the lid." = "蓋を閉じるとMacはスリープします。";
-"Could not keep running with the lid closed" = "蓋を閉じたままの動作を開始できませんでした";
-"The system permission is not set up. Open Settings to set it up." = "システムの許可が未設定です。設定画面でセットアップしてください。";
-"The system refused the change. Try setting it up again." = "システムが変更を受け付けませんでした。もう一度セットアップしてください。";
+"Could not keep running with the lid closed" = "蓋を閉じても動作を続けられませんでした";
+"The system permission is not set up. Open Settings to set it up." = "許可が未設定です。設定でセットアップしてください。";
+"The system refused the change. Try setting it up again." = "変更できませんでした。もう一度セットアップしてください。";
 
 /* Integrations */
 "Integrations" = "連携";
 "Not detected" = "見つかりません";
-"Needs repair" = "要修復";
+"Needs repair" = "修復が必要";
 "Repair" = "修復";
-"remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone." = "remAInは、各ツールのhooksファイルに自分の項目だけを追加し、ツールの作業の開始と終了を知ります。ファイルのそれ以外の内容には手を加えません。";
-"Finish setting up your agents…" = "エージェントの連携を完了する…";
+"remAIn adds only its own entries to each tool's hooks, to know when work starts and stops." = "各ツールのhooksに、remAInの項目だけを追加します。作業の開始と終了を知るためです。";
+"Finish setting up your agents…" = "エージェントの連携を設定する…";
 "Welcome to remAIn" = "remAInへようこそ";
-"remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:" = "remAInは、AIエージェントが作業している間だけMacのスリープを防ぎ、作業が終わったらスリープできるようにします。使っているツールを連携してください:";
+"remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:" = "remAInは、AIエージェントが作業している間だけ、Macのスリープを防ぎます。お使いのツールを連携しましょう:";
 "Done" = "完了";
 "remAIn has to be running to notice your agents." = "remAInが起動していないと、エージェントの作業を検知できません。";
 "About remAIn" = "remAInについて";

@@ -56,7 +56,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Agents")
             } footer: {
-                Text("Interruptions and closed sessions are detected automatically. This is only a safety net for when an agent goes quiet for any other reason.")
+                Text("Interruptions and exits are detected automatically. This is only a safety net.")
             }
 
             Section {
@@ -82,7 +82,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Power")
             } footer: {
-                Text("remAIn resumes automatically once the condition clears. The battery limit resumes 5 points above the threshold.")
+                Text("It resumes automatically once the condition clears.")
             }
 
             Section {
@@ -117,7 +117,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Lid Closed")
             } footer: {
-                Text("Needs a one-time administrator approval. Only the command pmset disablesleep is allowed, and a watchdog turns sleep back on if remAIn stops responding.")
+                Text("Asks for your password once.")
             }
 
             Section {
@@ -155,7 +155,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("When Agents Finish")
             } footer: {
-                Text("The action runs 10 seconds after the last task ends. It is skipped if you start new work, or if the work was shorter than the time chosen above.")
+                Text("Runs 10 seconds after the last task ends, unless you start new work.")
             }
 
             Section {
@@ -168,7 +168,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Integrations")
             } footer: {
-                Text("remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone.")
+                Text("remAIn adds only its own entries to each tool's hooks, to know when work starts and stops.")
             }
 
             Section {

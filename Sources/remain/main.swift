@@ -1,4 +1,5 @@
 import Foundation
+import os
 import RemainCore
 
 // `remain hook` is invoked by Claude Code. It must never fail loudly or print anything:
@@ -129,6 +130,11 @@ case "hook":
     // remain hook [claude|codex|antigravity <Event>]   (no argument = Claude Code, for older installs)
     let agent = args.dropFirst().first.flatMap { AgentKind(cliName: $0) } ?? .claudeCode
     let eventArgument = args.dropFirst(2).first
+    // A breadcrumb in the system log: it works even where files cannot be written (sandboxed launchers),
+    // so "was the hook run at all?" can be answered. `log show --predicate 'subsystem == "dev.remain.cli"'`.
+    // Names only, never the payload.
+    let trace = Logger(subsystem: "dev.remain.cli", category: "hook")
+    trace.notice("hook start agent=\(agent.cliName, privacy: .public) argument=\(eventArgument ?? "-", privacy: .public) ppid=\(getppid(), privacy: .public)")
     let input = FileHandle.standardInput.readDataToEndOfFile()
     var decoded = HookDecoder.decode(agent: agent, eventName: eventArgument, stdin: input)
     if var event = decoded {
@@ -136,7 +142,14 @@ case "hook":
         event.pid = ProcessTree.agentAncestor(for: agent)
         if let path = event.transcriptPath { event.transcriptSize = TranscriptScanner.fileSize(atPath: path) }
         decoded = event
-        _ = try? IPCClient.send(.event(event))
+        do {
+            _ = try IPCClient.send(.event(event))
+            trace.notice("hook delivered kind=\(event.kind.rawValue, privacy: .public)")
+        } catch {
+            trace.error("hook NOT delivered: \(String(describing: error), privacy: .public)")
+        }
+    } else {
+        trace.notice("hook ignored: input not understood (\(input.count, privacy: .public) bytes)")
     }
     let eventName = HookDecoder.eventName(agent: agent, argument: eventArgument, stdin: input)
     HookDebugLog.record(agent: agent, eventArgument: eventArgument, eventName: eventName, stdin: input, decoded: decoded, processes: ProcessTree.ancestors())

@@ -52,7 +52,7 @@ struct ActivityView: View {
                         } label: {
                             VStack(alignment: .leading) {
                                 Text(Self.name(of: interval))
-                                Text(Self.range(of: interval)).font(.caption).foregroundStyle(.secondary)
+                                Text(Self.range(of: interval) + Self.toolsSuffix(of: interval)).font(.caption).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -117,7 +117,15 @@ struct ActivityView: View {
 
     private static func name(of interval: HoldInterval) -> String {
         if !interval.projects.isEmpty { return interval.projects.sorted().joined(separator: ", ") }
+        // Some tools report no folder (Antigravity without an open workspace): name the tool instead.
+        if !interval.agents.isEmpty { return interval.agents.map(\.displayName).sorted().joined(separator: ", ") }
         return interval.sources.contains(.agent) ? String(localized: "Agent") : String(localized: "Manual")
+    }
+
+    /// " · Antigravity" when tools are known and the title does not already say it.
+    private static func toolsSuffix(of interval: HoldInterval) -> String {
+        guard !interval.agents.isEmpty, !interval.projects.isEmpty else { return "" }
+        return " · " + interval.agents.map(\.displayName).sorted().joined(separator: ", ")
     }
 
     private static func range(of interval: HoldInterval) -> String {

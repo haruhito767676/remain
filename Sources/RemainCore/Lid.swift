@@ -107,8 +107,10 @@ public final class LidSleepController: LidSleepControlling {
         heartbeatTask?.cancel()
         heartbeatTask = Task { [weak self, heartbeat, heartbeatInterval] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: heartbeatInterval)
-                guard self != nil else { return }
+                try? await Task.sleep(for: heartbeatInterval) // a cancelled sleep returns early, it does not throw out of the loop
+                // Re-check after waking: writing one last heartbeat after release would leave a stale
+                // file behind for the watchdog (and the next launch) to trip over.
+                guard !Task.isCancelled, let self, engaged else { return }
                 heartbeat.beat()
             }
         }

@@ -183,6 +183,19 @@ private func lidSettings() -> WakeSettings {
         #expect(controller.engaged)
     }
 
+    @Test func noHeartbeatIsWrittenAfterRelease() async throws {
+        let disabler = FakeDisabler(), heartbeat = FakeHeartbeat()
+        let controller = LidSleepController(disabler: disabler, heartbeat: heartbeat, heartbeatInterval: .milliseconds(20))
+        controller.apply(prevent: true, lidClosed: false)
+        try await Task.sleep(for: .milliseconds(70))
+        #expect(heartbeat.beats > 1) // it does keep beating while engaged
+        controller.apply(prevent: false, lidClosed: false)
+        let beatsAtRelease = heartbeat.beats
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(heartbeat.beats == beatsAtRelease)
+        #expect(!heartbeat.present) // and nothing was left behind
+    }
+
     @Test func releaseWithoutEngagingDoesNothing() {
         let (controller, disabler, _) = make()
         controller.apply(prevent: false, lidClosed: true)

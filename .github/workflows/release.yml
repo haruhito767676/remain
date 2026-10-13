@@ -13,6 +13,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Tag must match the version in the code
+        run: |
+          CODE="$(sed -n 's/.*remainVersion = "\(.*\)"/\1/p' Sources/RemainCore/Version.swift)"
+          if [ "v$CODE" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match Sources/RemainCore/Version.swift ($CODE)"; exit 1
+          fi
       - name: Test
         run: swift test
       - name: Build app

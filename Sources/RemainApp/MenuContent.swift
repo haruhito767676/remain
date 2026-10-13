@@ -65,6 +65,8 @@ struct MenuContent: View {
         }
         .keyboardShortcut(",")
 
+        Button("About remAIn") { showAbout() }
+
         Button("Quit remAIn") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
@@ -72,5 +74,19 @@ struct MenuContent: View {
     private func showSettings() {
         NSApp.activate()
         openSettings()
+    }
+
+    /// The standard macOS About panel: name, icon and version come from the bundle.
+    private func showAbout() {
+        let link = NSMutableAttributedString(
+            string: String(localized: "Keeps your Mac awake while AI agents work.") + "\n",
+            attributes: [.font: NSFont.systemFont(ofSize: 11)]
+        )
+        link.append(NSAttributedString(
+            string: remainRepositoryURL,
+            attributes: [.link: URL(string: remainRepositoryURL)!, .font: NSFont.systemFont(ofSize: 11)]
+        ))
+        NSApp.activate()
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: link])
     }
 }

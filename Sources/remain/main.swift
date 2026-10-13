@@ -114,6 +114,7 @@ let usage = """
 usage: remain <command>
   status                 show the current state
   doctor                 check the app and every integration
+  version                print the version
   sessions               list tracked agent sessions (debugging)
   run [--] <command>     keep the Mac awake while a command runs
   on [minutes]           keep the Mac awake (indefinitely, or for N minutes)
@@ -182,6 +183,8 @@ case "install-hooks", "uninstall-hooks":
     }
 case "doctor":
     runDoctor()
+case "version", "--version", "-v":
+    print("remAIn \(remainVersion)")
 case "debug":
     switch args.dropFirst().first {
     case "on": HookDebugLog.setEnabled(true); print("Hook debug log on: \(HookDebugLog.logURL.path)")

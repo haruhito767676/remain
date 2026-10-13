@@ -32,3 +32,7 @@ func readSettings(_ installer: HookInstaller) throws -> [String: Any] {
 func rawSettings(_ installer: HookInstaller) throws -> String {
     try String(contentsOf: installer.settingsURL, encoding: .utf8)
 }
+
+func decodeSettings(_ json: String) throws -> WakeSettings {
+    try JSONDecoder().decode(WakeSettings.self, from: Data(json.utf8))
+}

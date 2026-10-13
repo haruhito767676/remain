@@ -12,6 +12,8 @@ public final class WakeCoordinator {
     @ObservationIgnored private let assertions: any SleepAssertionProviding
     @ObservationIgnored private let now: @Sendable () -> Date
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
+    /// Called for every effect the engine reports (notifications, completion actions).
+    @ObservationIgnored public var onEffect: (@MainActor (WakeEffect) -> Void)?
 
     public init(
         settings: WakeSettings = WakeSettings(),
@@ -26,8 +28,9 @@ public final class WakeCoordinator {
     }
 
     public func receive(_ event: AgentEvent) {
-        engine.handle(event, at: now())
+        let effects = engine.handle(event, at: now())
         refresh()
+        effects.forEach { onEffect?($0) }
     }
 
     public func setManual(_ mode: ManualMode) {

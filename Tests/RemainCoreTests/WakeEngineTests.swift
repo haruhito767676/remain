@@ -115,3 +115,52 @@ import Testing
         #expect(kind("SomethingNew") == nil)
     }
 }
+
+@Suite struct WakeEffectTests {
+    @Test func finishReportsDurationAndAllFinished() {
+        var engine = WakeEngine()
+        engine.handle(event(.prompt), at: t0)
+        let effects = engine.handle(event(.finish), at: at(90))
+        #expect(effects == [.sessionFinished(cwd: nil, duration: 90), .allFinished(duration: 90)])
+    }
+
+    @Test func duplicateFinishIsSilent() {
+        var engine = WakeEngine()
+        engine.handle(event(.prompt), at: t0)
+        engine.handle(event(.finish), at: at(10))
+        #expect(engine.handle(event(.finish), at: at(11)).isEmpty)
+    }
+
+    @Test func allFinishedWaitsForOtherSessions() {
+        var engine = WakeEngine()
+        engine.handle(event(.prompt, "a"), at: t0)
+        engine.handle(event(.prompt, "b"), at: t0)
+        let first = engine.handle(event(.finish, "a"), at: at(10))
+        #expect(first == [.sessionFinished(cwd: nil, duration: 10)])
+        let second = engine.handle(event(.finish, "b"), at: at(20))
+        #expect(second.contains(.allFinished(duration: 20)))
+    }
+
+    @Test func manualHoldSuppressesAllFinished() {
+        var engine = WakeEngine()
+        engine.setManual(.indefinite)
+        engine.handle(event(.prompt), at: t0)
+        let effects = engine.handle(event(.finish), at: at(5))
+        #expect(effects == [.sessionFinished(cwd: nil, duration: 5)])
+    }
+
+    @Test func attentionReportsOnlyOnTransition() {
+        var engine = WakeEngine()
+        engine.handle(event(.prompt), at: t0)
+        #expect(engine.handle(event(.attention), at: at(5)) == [.needsAttention(cwd: nil)])
+        #expect(engine.handle(event(.attention), at: at(6)).isEmpty)
+    }
+
+    @Test func oldSavedSettingsStillDecode() throws {
+        let settings = try decodeSettings(#"{"sessionTimeout":300,"keepDisplayOn":true}"#)
+        #expect(settings.sessionTimeout == 300)
+        #expect(settings.keepDisplayOn)
+        #expect(settings.notifyOnFinish)
+        #expect(settings.completionAction == .nothing)
+    }
+}

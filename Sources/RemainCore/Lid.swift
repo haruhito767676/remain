@@ -19,6 +19,8 @@ public protocol SleepDisabling: Sendable {
     func isDisabled() -> Bool
     /// Put the Mac to sleep right now (needs no privileges).
     func sleepNow()
+    /// Turn only the display off (needs no privileges); the system keeps running.
+    func displaySleepNow()
 }
 
 public protocol HeartbeatWriting: Sendable {
@@ -52,6 +54,7 @@ public final class LidSleepController: LidSleepControlling {
     private let now: @Sendable () -> Date
     private let retryInterval: TimeInterval
     private var lastFailureAt: Date?
+    private var lidWasClosed = false
 
     public init(
         disabler: any SleepDisabling, heartbeat: any HeartbeatWriting,
@@ -74,11 +77,21 @@ public final class LidSleepController: LidSleepControlling {
     }
 
     public func apply(prevent: Bool, lidClosed: Bool) {
+        let wasEngaged = engaged
         if prevent, !engaged {
             engage()
         } else if !prevent, engaged {
             release(lidClosed: lidClosed)
         }
+        // While the lid is shut and we are keeping the Mac running, macOS keeps treating the display as
+        // "on" (it only logs "Display is turned off" once the hold ends). Do not rely on it: switch the
+        // display off ourselves, once per closing, so a Mac in a bag is not lighting its panel.
+        let justClosed = lidClosed && !lidWasClosed
+        let justEngaged = engaged && !wasEngaged
+        if engaged, lidClosed, justClosed || justEngaged {
+            disabler.displaySleepNow()
+        }
+        lidWasClosed = lidClosed
     }
 
     public func shutdown() {
@@ -190,6 +203,10 @@ public struct PmsetSleepDisabler: SleepDisabling {
 
     public func sleepNow() {
         Shell.run("/usr/bin/pmset", ["sleepnow"])
+    }
+
+    public func displaySleepNow() {
+        Shell.run("/usr/bin/pmset", ["displaysleepnow"])
     }
 }
 

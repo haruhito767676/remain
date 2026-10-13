@@ -44,6 +44,7 @@ When agents finish, remAIn can also:
 
 - one-time admin approval installs a `sudoers` rule for exactly `pmset disablesleep 0` and `pmset disablesleep 1` (validated with `visudo` first);
 - while active, remAIn refreshes a heartbeat file; a launchd **watchdog** turns sleep back on if it goes stale (crash, `kill -9`), and the app repairs any leftover state on launch;
+- when the lid closes during a hold, remAIn turns the display off itself (`pmset displaysleepnow`): macOS otherwise keeps treating the display as on and only logs "Display is turned off" once the hold ends;
 - it only holds while an agent works, then lets the Mac sleep (immediately if the lid is closed);
 - stricter limits while closed: heat (`serious`), battery, and a time limit (3 h default).
 

@@ -118,6 +118,7 @@ final class FakeDisabler: SleepDisabling, @unchecked Sendable {
     var succeeds = true
     private(set) var disabled = false
     private(set) var sleepNowCalls = 0
+    private(set) var displaySleepCalls = 0
     private(set) var setCalls: [Bool] = []
     func isReady() -> Bool { ready }
     func setDisabled(_ disabled: Bool) -> Bool {
@@ -128,6 +129,7 @@ final class FakeDisabler: SleepDisabling, @unchecked Sendable {
     }
     func isDisabled() -> Bool { disabled }
     func sleepNow() { sleepNowCalls += 1 }
+    func displaySleepNow() { displaySleepCalls += 1 }
     func forceDisabled(_ value: Bool) { disabled = value }
 }
 

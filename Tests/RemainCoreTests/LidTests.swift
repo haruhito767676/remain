@@ -170,6 +170,41 @@ private func lidSettings() -> WakeSettings {
         #expect(disabler.sleepNowCalls == 0)
     }
 
+    @Test func closingTheLidSwitchesTheDisplayOffOnce() {
+        let (controller, disabler, _) = make()
+        controller.apply(prevent: true, lidClosed: false)
+        #expect(disabler.displaySleepCalls == 0) // lid open: the display is the user's business
+        controller.apply(prevent: true, lidClosed: true)
+        #expect(disabler.displaySleepCalls == 1)
+        controller.apply(prevent: true, lidClosed: true) // every refresh re-applies: no repeats
+        controller.apply(prevent: true, lidClosed: true)
+        #expect(disabler.displaySleepCalls == 1)
+    }
+
+    @Test func eachNewClosingSwitchesTheDisplayOffAgain() {
+        let (controller, disabler, _) = make()
+        controller.apply(prevent: true, lidClosed: true)
+        controller.apply(prevent: true, lidClosed: false)
+        controller.apply(prevent: true, lidClosed: true)
+        #expect(disabler.displaySleepCalls == 2)
+    }
+
+    @Test func startingAHoldWithTheLidAlreadyClosedSwitchesTheDisplayOff() {
+        let (controller, disabler, _) = make()
+        controller.apply(prevent: false, lidClosed: true) // closed, nothing to hold: macOS sleeps it as usual
+        #expect(disabler.displaySleepCalls == 0)
+        controller.apply(prevent: true, lidClosed: true)
+        #expect(disabler.displaySleepCalls == 1)
+    }
+
+    @Test func theDisplayIsLeftAloneWhenNothingIsHeld() {
+        let (controller, disabler, _) = make()
+        controller.apply(prevent: false, lidClosed: true)
+        controller.apply(prevent: false, lidClosed: false)
+        controller.apply(prevent: false, lidClosed: true)
+        #expect(disabler.displaySleepCalls == 0)
+    }
+
     @Test func afterAFailureItDoesNotRetryAtOnce() {
         let disabler = FakeDisabler()
         disabler.ready = false

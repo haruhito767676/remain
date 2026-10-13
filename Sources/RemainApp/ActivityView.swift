@@ -32,7 +32,7 @@ struct ActivityView: View {
 
             Section("By Project (last 30 days)") {
                 if projects.isEmpty {
-                    Text("No activity yet. Start a task in Claude Code and it will show up here.")
+                    Text("No activity yet. Run a task with an AI agent and it will show up here.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(projects) { project in
@@ -78,7 +78,7 @@ struct ActivityView: View {
     // MARK: - Pieces
 
     private func chart(_ days: [DayTotal]) -> some View {
-        let agent = String(localized: "Claude Code")
+        let agent = String(localized: "Agents")
         let manual = String(localized: "Manual")
         return Chart {
             ForEach(days) { day in
@@ -117,7 +117,7 @@ struct ActivityView: View {
 
     private static func name(of interval: HoldInterval) -> String {
         if !interval.projects.isEmpty { return interval.projects.sorted().joined(separator: ", ") }
-        return interval.sources.contains(.agent) ? String(localized: "Claude Code") : String(localized: "Manual hold")
+        return interval.sources.contains(.agent) ? String(localized: "Agent") : String(localized: "Manual hold")
     }
 
     private static func range(of interval: HoldInterval) -> String {
@@ -130,7 +130,7 @@ extension HoldEndReason {
         switch self {
         case .finished: String(localized: "Finished")
         case .interrupted: String(localized: "Interrupted")
-        case .processExited: String(localized: "Claude Code closed")
+        case .processExited: String(localized: "Agent closed")
         case .timedOut: String(localized: "Timed out")
         case .released: String(localized: "Turned off")
         case .timerElapsed: String(localized: "Timer ended")

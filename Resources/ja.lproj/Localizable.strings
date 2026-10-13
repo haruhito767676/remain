@@ -10,8 +10,8 @@
 "Quit remAIn" = "remAInを終了";
 
 /* Status line */
-"Claude Code is working" = "Claude Codeが作業中";
-"%lld Claude Code sessions working" = "Claude Codeのセッション%lld件が作業中";
+"An agent is working" = "エージェントが作業中";
+"%lld agents working" = "%lld件のエージェントが作業中";
 "Keeping Mac awake" = "Macを起こしています";
 "Keeping Mac awake until %@ (%@ left)" = "%1$@までMacを起こしています(残り%2$@)";
 "Manual hold: on" = "手動で維持中";
@@ -21,7 +21,7 @@
 
 /* Settings: agents */
 "Agents" = "エージェント";
-"Keep awake while Claude Code waits for me" = "Claude Codeが入力待ちの間も起こしておく";
+"Keep awake while an agent waits for me" = "エージェントが入力待ちの間も起こしておく";
 "Keep the display on" = "ディスプレイを点灯したままにする";
 "Stop holding after silence of" = "報告が途絶えてから解除するまでの時間";
 "5 minutes" = "5分";
@@ -34,7 +34,7 @@
 /* Settings: finish */
 "When Agents Finish" = "エージェントの完了時";
 "Notify when a task finishes" = "タスクが完了したら通知する";
-"Notify when Claude Code needs my input" = "Claude Codeが入力を求めたら通知する";
+"Notify when an agent needs my input" = "エージェントが入力を求めたら通知する";
 "Only for tasks longer than" = "通知するタスクの最短時間";
 "Any length" = "すべて";
 "30 seconds" = "30秒";
@@ -59,8 +59,8 @@
 "Could not find the remain command-line helper." = "remainコマンドラインヘルパーが見つかりません。";
 
 /* Notifications */
-"Claude Code finished" = "Claude Codeが完了しました";
-"Claude Code needs your input" = "Claude Codeが入力を求めています";
+"Agent finished" = "エージェントが完了しました";
+"An agent needs your input" = "エージェントが入力を求めています";
 "A session is waiting for you." = "セッションがあなたの入力を待っています。";
 "took %@" = "所要時間 %@";
 
@@ -90,7 +90,7 @@
 "Manual" = "手動";
 "Manual hold" = "手動で維持";
 "By Project (last 30 days)" = "プロジェクト別(過去30日間)";
-"No activity yet. Start a task in Claude Code and it will show up here." = "まだ記録がありません。Claude Codeでタスクを始めると、ここに表示されます。";
+"No activity yet. Run a task with an AI agent and it will show up here." = "まだ記録がありません。AIエージェントでタスクを実行すると、ここに表示されます。";
 "Recent" = "最近の履歴";
 "Less than a minute" = "1分未満";
 "Clear Activity Log…" = "アクティビティログを消去…";
@@ -100,7 +100,8 @@
 "Stored only on this Mac. Only project folder names are kept, never full paths. Entries older than 90 days are removed." = "この Mac にだけ保存されます。プロジェクトはフォルダ名のみで、フルパスは保存しません。90日より古い記録は自動で削除されます。";
 "Finished" = "完了";
 "Interrupted" = "中断";
-"Claude Code closed" = "Claude Codeが終了";
+"Agent closed" = "エージェントが終了";
+"Agent" = "エージェント";
 "Timed out" = "タイムアウト";
 "Turned off" = "手動で解除";
 "Timer ended" = "タイマー終了";

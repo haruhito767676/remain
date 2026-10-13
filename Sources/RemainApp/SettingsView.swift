@@ -35,7 +35,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Keep awake while Claude Code waits for me", isOn: Binding(
+                Toggle("Keep awake while an agent waits for me", isOn: Binding(
                     get: { model.settings.holdWhileWaiting },
                     set: { value in model.update { $0.holdWhileWaiting = value } }
                 ))
@@ -92,7 +92,7 @@ struct GeneralSettingsView: View {
                         if value { model.requestNotificationAuthorization() }
                     }
                 ))
-                Toggle("Notify when Claude Code needs my input", isOn: Binding(
+                Toggle("Notify when an agent needs my input", isOn: Binding(
                     get: { model.settings.notifyOnAttention },
                     set: { value in
                         model.update { $0.notifyOnAttention = value }

@@ -69,8 +69,8 @@ final class AppModel {
         if let block = s.blockedBy { return String(localized: "Sleep allowed: \(block.reason)") }
         if s.workingCount > 0 {
             return s.workingCount == 1
-                ? String(localized: "Claude Code is working")
-                : String(localized: "\(s.workingCount) Claude Code sessions working")
+                ? String(localized: "An agent is working")
+                : String(localized: "\(s.workingCount) agents working")
         }
         switch s.manual {
         case .indefinite: return String(localized: "Keeping Mac awake")

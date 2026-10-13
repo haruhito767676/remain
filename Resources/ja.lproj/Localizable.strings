@@ -1,0 +1,62 @@
+/* Menu */
+"Keep Awake" = "スリープさせない";
+"Keep Awake For" = "時間を指定してスリープさせない";
+"30 Minutes" = "30分";
+"1 Hour" = "1時間";
+"2 Hours" = "2時間";
+"4 Hours" = "4時間";
+"Keep Display On" = "ディスプレイを点灯したままにする";
+"Settings…" = "設定…";
+"Quit remAIn" = "remAInを終了";
+
+/* Status line */
+"Claude Code is working" = "Claude Codeが作業中";
+"%lld Claude Code sessions working" = "Claude Codeのセッション%lld件が作業中";
+"Keeping Mac awake" = "Macを起こしています";
+"Keeping Mac awake until %@" = "%@までMacを起こしています";
+"Waiting for your input" = "入力待ち";
+"Sleep allowed" = "スリープ可能";
+
+/* Settings: agents */
+"Agents" = "エージェント";
+"Keep awake while Claude Code waits for me" = "Claude Codeが入力待ちの間も起こしておく";
+"Keep the display on" = "ディスプレイを点灯したままにする";
+"Stop holding after silence of" = "無反応が続いたら解除するまでの時間";
+"5 minutes" = "5分";
+"15 minutes" = "15分";
+"30 minutes" = "30分";
+"1 hour" = "1時間";
+"If a session stops reporting (for example after an interruption), remAIn lets the Mac sleep again after this time." = "セッションからの報告が途絶えた場合(中断された場合など)、この時間が経つとremAInはMacを再びスリープできる状態に戻します。";
+
+/* Settings: finish */
+"When Agents Finish" = "エージェントの完了時";
+"Notify when a task finishes" = "タスクが完了したら通知する";
+"Notify when Claude Code needs my input" = "Claude Codeが入力を求めたら通知する";
+"Only for tasks longer than" = "通知するタスクの最短時間";
+"Any length" = "すべて";
+"30 seconds" = "30秒";
+"1 minute" = "1分";
+"When all tasks are done" = "すべてのタスクが終わったら";
+"Do nothing" = "何もしない";
+"Turn the display off" = "ディスプレイを消灯する";
+"Put the Mac to sleep" = "Macをスリープさせる";
+"The action runs 10 seconds after the last task ends, and is skipped if you start new work. The length filter applies to the action as well." = "最後のタスクが終わってから10秒後に実行されます。その間に新しい作業を始めると実行されません。最短時間の設定はこの動作にも適用されます。";
+
+/* Settings: Claude Code */
+"Claude Code" = "Claude Code";
+"Hooks" = "フック";
+"Install" = "インストール";
+"Remove" = "削除";
+"Adds remAIn to ~/.claude/settings.json so it knows when Claude Code starts and stops working. Works with the VS Code extension and the CLI." = "~/.claude/settings.json にremAInを追加し、Claude Codeの作業の開始と終了を検知できるようにします。VS Code拡張とCLIの両方で動作します。";
+"Open at login" = "ログイン時に開く";
+
+/* Errors */
+"IPC server failed: %@" = "IPCサーバーの起動に失敗しました: %@";
+"Launch at login: %@" = "ログイン時の起動: %@";
+"Could not find the remain command-line helper." = "remainコマンドラインヘルパーが見つかりません。";
+
+/* Notifications */
+"Claude Code finished" = "Claude Codeが完了しました";
+"Claude Code needs your input" = "Claude Codeが入力を求めています";
+"A session is waiting for you." = "セッションがあなたの入力を待っています。";
+"took %@" = "所要時間 %@";

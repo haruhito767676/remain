@@ -35,6 +35,8 @@ When agents finish, remAIn can also:
 - **Notify you** when a task finishes or needs your input (tasks shorter than a configurable length stay quiet).
 - **Run an action** once the *last* agent is done — turn the display off or sleep the Mac — after a 10 second grace period that is cancelled if you start new work.
 
+The UI is localized (English, 日本語) and follows the system language. Translations live in `Resources/<lang>.lproj/Localizable.strings`; English strings in the code are the keys.
+
 Works with the Claude Code CLI, desktop app and the VS Code extension, since all read the same `~/.claude/settings.json`.
 
 ## Install

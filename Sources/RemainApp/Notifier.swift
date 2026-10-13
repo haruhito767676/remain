@@ -17,11 +17,12 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     }
 
     func finished(cwd: String?, duration: TimeInterval) {
-        post(title: "Claude Code finished", body: [project(cwd), "took " + Self.format(duration)].compactMap { $0 }.joined(separator: " · "))
+        let took = String(localized: "took \(Self.format(duration))")
+        post(title: String(localized: "Claude Code finished"), body: [project(cwd), took].compactMap { $0 }.joined(separator: " · "))
     }
 
     func needsAttention(cwd: String?) {
-        post(title: "Claude Code needs your input", body: project(cwd) ?? "A session is waiting for you.")
+        post(title: String(localized: "Claude Code needs your input"), body: project(cwd) ?? String(localized: "A session is waiting for you."))
     }
 
     private func post(title: String, body: String) {

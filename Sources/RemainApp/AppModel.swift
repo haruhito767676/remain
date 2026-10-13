@@ -25,7 +25,7 @@ final class AppModel {
         do {
             try server.start { request in await coordinator.handle(request) }
         } catch {
-            hooksError = "IPC server failed: \(error)"
+            hooksError = String(localized: "IPC server failed: \(String(describing: error))")
         }
         refreshState()
     }
@@ -46,15 +46,18 @@ final class AppModel {
     var statusTitle: String {
         let s = snapshot
         if s.workingCount > 0 {
-            return s.workingCount == 1 ? "Claude Code is working" : "\(s.workingCount) Claude Code sessions working"
+            return s.workingCount == 1
+                ? String(localized: "Claude Code is working")
+                : String(localized: "\(s.workingCount) Claude Code sessions working")
         }
         switch s.manual {
-        case .indefinite: return "Keeping Mac awake"
-        case .until(let end): return "Keeping Mac awake until \(end.formatted(date: .omitted, time: .shortened))"
+        case .indefinite: return String(localized: "Keeping Mac awake")
+        case .until(let end):
+            return String(localized: "Keeping Mac awake until \(end.formatted(date: .omitted, time: .shortened))")
         case .off: break
         }
-        if s.waitingCount > 0 { return "Waiting for your input" }
-        return "Sleep allowed"
+        if s.waitingCount > 0 { return String(localized: "Waiting for your input") }
+        return String(localized: "Sleep allowed")
     }
 
     // MARK: - Actions
@@ -91,7 +94,7 @@ final class AppModel {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            hooksError = "Launch at login: \(error.localizedDescription)"
+            hooksError = String(localized: "Launch at login: \(error.localizedDescription)")
         }
         refreshState()
     }
@@ -105,7 +108,7 @@ final class AppModel {
 
     private func runInstaller(_ action: (HookInstaller) throws -> Void) {
         guard let installer = installer() else {
-            hooksError = "Could not find the remain command-line helper."
+            hooksError = String(localized: "Could not find the remain command-line helper.")
             return
         }
         do {

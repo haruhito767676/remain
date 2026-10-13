@@ -27,6 +27,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key><array><string>en</string><string>ja</string></array>
     <key>CFBundleName</key><string>remAIn</string>
     <key>CFBundleDisplayName</key><string>remAIn</string>
     <key>CFBundleIdentifier</key><string>dev.remain.app</string>
@@ -40,6 +42,12 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+
+# Localizations (English is the source language and needs no table).
+if [ -d Resources ]; then
+    mkdir -p "$APP/Contents/Resources"
+    cp -R Resources/*.lproj "$APP/Contents/Resources/"
+fi
 
 codesign --force --deep --sign - "$APP"
 echo "Built $APP"

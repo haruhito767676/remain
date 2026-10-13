@@ -50,7 +50,7 @@ final class AppModel {
         do {
             try server.start { request in await coordinator.handle(request) }
         } catch {
-            integrationError = String(localized: "Could not start receiving hook events: \(String(describing: error))")
+            integrationError = String(localized: "Could not start listening to your agents: \(String(describing: error))")
         }
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [coordinator] _ in
             MainActor.assumeIsolated { coordinator.shutdown() }

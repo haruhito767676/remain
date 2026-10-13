@@ -167,8 +167,6 @@ struct GeneralSettingsView: View {
                 }
             } header: {
                 Text("Integrations")
-            } footer: {
-                Text("remAIn adds only its own entries to each tool's hooks, to know when work starts and stops.")
             }
 
             Section {
@@ -184,8 +182,6 @@ struct GeneralSettingsView: View {
                 if let summary = model.resetSummary {
                     Text(summary).foregroundStyle(.secondary)
                 }
-            } footer: {
-                Text("Removes all settings, connections and history.")
             }
         }
         .formStyle(.grouped)
@@ -194,7 +190,7 @@ struct GeneralSettingsView: View {
         .confirmationDialog("Reset all settings?", isPresented: $confirmingReset, titleVisibility: .visible) {
             Button("Reset", role: .destructive) { model.resetEverything() }
         } message: {
-            Text("macOS may ask for your password.")
+            Text("This deletes all settings, connections and history.")
         }
     }
 }

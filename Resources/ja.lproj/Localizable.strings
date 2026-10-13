@@ -48,7 +48,6 @@
 "Remove" = "削除";
 "Open at login" = "ログイン時に開く";
 /* Errors */
-"Could not start receiving hook events: %@" = "hooksの受信を開始できませんでした: %@";
 "Launch at login: %@" = "ログイン時の起動: %@";
 "Could not find the remain command-line helper." = "remainコマンドラインヘルパーが見つかりません。";
 /* Notifications */
@@ -127,7 +126,6 @@
 "Not detected" = "見つかりません";
 "Needs repair" = "修復が必要";
 "Repair" = "修復";
-"remAIn adds only its own entries to each tool's hooks, to know when work starts and stops." = "各ツールのhooksに、remAInの項目だけを追加します。作業の開始と終了を知るためです。";
 "Finish setting up your agents…" = "エージェントの連携を設定する…";
 "Welcome to remAIn" = "remAInへようこそ";
 "remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:" = "remAInは、AIエージェントが作業している間だけ、Macのスリープを防ぎます。お使いのツールを連携しましょう:";
@@ -136,11 +134,11 @@
 "About remAIn" = "remAInについて";
 "Keeps your Mac awake while AI agents work." = "AIエージェントが作業している間、Macを起こしておきます。";
 /* Uninstall */
-
 "Reset Settings…" = "設定をリセット…";
-"Removes all settings, connections and history." = "すべての設定、連携、履歴を削除します。";
 "Reset all settings?" = "設定をリセットしますか?";
-"macOS may ask for your password." = "パスワードを求められることがあります。";
 "Reset" = "リセット";
 "Reset done." = "リセットしました。";
 "The lid-closed permission was kept: the password prompt was cancelled." = "パスワードの入力がキャンセルされたため、蓋を閉じても動作を続けるための許可は残っています。";
+
+"This deletes all settings, connections and history." = "すべての設定、連携、履歴を削除します。";
+"Could not start listening to your agents: %@" = "エージェントの状態を受け取れませんでした: %@";

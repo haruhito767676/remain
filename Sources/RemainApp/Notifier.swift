@@ -25,6 +25,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         post(title: String(localized: "Claude Code needs your input"), body: project(cwd) ?? String(localized: "A session is waiting for you."))
     }
 
+    func holdSuspended(reason: String) {
+        post(title: String(localized: "Letting your Mac sleep"), body: reason)
+    }
+
     private func post(title: String, body: String) {
         guard let center else { return }
         let content = UNMutableNotificationContent()

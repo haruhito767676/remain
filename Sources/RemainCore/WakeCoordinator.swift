@@ -40,6 +40,12 @@ public final class WakeCoordinator {
         effects.forEach { onEffect?($0) }
     }
 
+    public func update(power: PowerState) {
+        let effects = engine.setPower(power)
+        refresh()
+        effects.forEach { onEffect?($0) }
+    }
+
     public func setManual(_ mode: ManualMode) {
         engine.setManual(mode)
         refresh()
@@ -98,7 +104,9 @@ public final class WakeCoordinator {
             } ?? "transcript=none"
             return "\(s.id.prefix(8)) \(s.phase.rawValue) age=\(Int(t.timeIntervalSince(s.startedAt)))s idle=\(Int(t.timeIntervalSince(s.lastSeen)))s \(pid) \(file)"
         }
-        return lines.isEmpty ? "no sessions" : lines.joined(separator: "\n")
+        let p = engine.power
+        let power = "power: onBattery=\(p.onBattery) battery=\(p.batteryPercent.map { "\($0)%" } ?? "n/a") lowPower=\(p.lowPowerMode) thermal=\(p.thermal) blocked=\(String(describing: snapshot.blockedBy))"
+        return (lines.isEmpty ? ["no sessions"] : lines).appending(power).joined(separator: "\n")
     }
 
     /// Polls only while there are sessions to watch.
@@ -127,4 +135,8 @@ public final class WakeCoordinator {
             self?.refresh()
         }
     }
+}
+
+private extension Array {
+    func appending(_ element: Element) -> [Element] { self + [element] }
 }

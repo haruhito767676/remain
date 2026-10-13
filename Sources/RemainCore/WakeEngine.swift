@@ -26,6 +26,16 @@ public enum WakeEffect: Equatable, Sendable {
     case needsAttention(cwd: String?)
     /// The last session finished and nothing else (including a manual hold) is holding the Mac.
     case allFinished(duration: TimeInterval)
+    /// A hold that was wanted had to be released because of power conditions.
+    case holdSuspended(HoldBlock)
+}
+
+/// Why a wanted hold is not being applied.
+public enum HoldBlock: Codable, Equatable, Sendable {
+    case lowBattery(percent: Int)
+    case onBatteryPower
+    case lowPowerMode
+    case overheating
 }
 
 public enum CompletionAction: String, Codable, CaseIterable, Sendable {
@@ -55,6 +65,13 @@ public struct WakeSettings: Codable, Equatable, Sendable {
     public var minimumNotifiableDuration: TimeInterval = 30
     /// Runs once the last agent has finished (after a short grace period).
     public var completionAction: CompletionAction = .nothing
+    /// Let the Mac sleep when the battery falls to this level (0 = never). Resumes 5 points above.
+    public var batteryCutoffPercent = 20
+    /// Never hold while running on battery.
+    public var holdOnlyOnAC = false
+    public var respectLowPowerMode = false
+    /// Let the Mac sleep when macOS reports a critical thermal state.
+    public var releaseWhenOverheating = true
 
     public init() {}
 
@@ -70,6 +87,10 @@ public struct WakeSettings: Codable, Equatable, Sendable {
         minimumNotifiableDuration = try c.decodeIfPresent(TimeInterval.self, forKey: .minimumNotifiableDuration)
             ?? d.minimumNotifiableDuration
         completionAction = try c.decodeIfPresent(CompletionAction.self, forKey: .completionAction) ?? d.completionAction
+        batteryCutoffPercent = try c.decodeIfPresent(Int.self, forKey: .batteryCutoffPercent) ?? d.batteryCutoffPercent
+        holdOnlyOnAC = try c.decodeIfPresent(Bool.self, forKey: .holdOnlyOnAC) ?? d.holdOnlyOnAC
+        respectLowPowerMode = try c.decodeIfPresent(Bool.self, forKey: .respectLowPowerMode) ?? d.respectLowPowerMode
+        releaseWhenOverheating = try c.decodeIfPresent(Bool.self, forKey: .releaseWhenOverheating) ?? d.releaseWhenOverheating
     }
 }
 
@@ -79,6 +100,16 @@ public struct WakeSnapshot: Codable, Equatable, Sendable {
     public var workingCount: Int
     public var waitingCount: Int
     public var manual: ManualMode
+    /// Set when a hold is wanted but power conditions prevent it.
+    public var blockedBy: HoldBlock?
+
+    public init(prevention: SleepPrevention, workingCount: Int, waitingCount: Int, manual: ManualMode, blockedBy: HoldBlock? = nil) {
+        self.prevention = prevention
+        self.workingCount = workingCount
+        self.waitingCount = waitingCount
+        self.manual = manual
+        self.blockedBy = blockedBy
+    }
 
     public static let idle = WakeSnapshot(prevention: .none, workingCount: 0, waitingCount: 0, manual: .off)
 }
@@ -88,7 +119,10 @@ public struct WakeSnapshot: Codable, Equatable, Sendable {
 public struct WakeEngine: Sendable {
     public private(set) var sessions: [String: AgentSession] = [:]
     public private(set) var manual: ManualMode = .off
-    public var settings: WakeSettings
+    public var settings: WakeSettings { didSet { updateBatteryLatch() } }
+    public private(set) var power = PowerState()
+    /// Hysteresis: once the battery cutoff trips it stays tripped until 5 points above it.
+    private var batteryLatched = false
 
     public init(settings: WakeSettings = WakeSettings()) {
         self.settings = settings
@@ -160,12 +194,48 @@ public struct WakeEngine: Sendable {
     public func snapshot() -> WakeSnapshot {
         let working = sessions.values.filter { $0.phase == .working }.count
         let waiting = sessions.values.filter { $0.phase == .waiting }.count
-        let manualActive = manual != .off
-        let holding = working > 0 || manualActive || (settings.holdWhileWaiting && waiting > 0)
-        let level: SleepPrevention = holding
+        let blocked = wantsHold ? block : nil
+        let level: SleepPrevention = (wantsHold && blocked == nil)
             ? (settings.keepDisplayOn ? .systemAndDisplay : .system)
             : .none
-        return WakeSnapshot(prevention: level, workingCount: working, waitingCount: waiting, manual: manual)
+        return WakeSnapshot(prevention: level, workingCount: working, waitingCount: waiting, manual: manual, blockedBy: blocked)
+    }
+
+    /// Whether anything (agent, manual timer) wants the Mac to stay awake, ignoring power conditions.
+    var wantsHold: Bool {
+        let working = sessions.values.contains { $0.phase == .working }
+        let waiting = sessions.values.contains { $0.phase == .waiting }
+        return working || manual != .off || (settings.holdWhileWaiting && waiting)
+    }
+
+    var block: HoldBlock? {
+        if settings.releaseWhenOverheating && power.thermal >= .critical { return .overheating }
+        if batteryLatched, let percent = power.batteryPercent { return .lowBattery(percent: percent) }
+        if settings.respectLowPowerMode && power.lowPowerMode { return .lowPowerMode }
+        if settings.holdOnlyOnAC && power.onBattery { return .onBatteryPower }
+        return nil
+    }
+
+    private mutating func updateBatteryLatch() {
+        guard settings.batteryCutoffPercent > 0, power.onBattery, let percent = power.batteryPercent else {
+            batteryLatched = false
+            return
+        }
+        if percent <= settings.batteryCutoffPercent {
+            batteryLatched = true
+        } else if percent >= settings.batteryCutoffPercent + 5 {
+            batteryLatched = false
+        }
+    }
+
+    /// Feeds in the current power conditions. Reports when a wanted hold gets suspended.
+    @discardableResult
+    public mutating func setPower(_ new: PowerState) -> [WakeEffect] {
+        let before = wantsHold ? block : nil
+        power = new
+        updateBatteryLatch()
+        if before == nil, wantsHold, let after = block { return [.holdSuspended(after)] }
+        return []
     }
 
     /// The next moment at which `expire` would change something, if any.

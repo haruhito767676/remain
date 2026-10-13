@@ -38,6 +38,8 @@ When agents finish, remAIn can also:
 - **Notify you** when a task finishes or needs your input (tasks shorter than a configurable length stay quiet).
 - **Run an action** once the *last* agent is done — turn the display off or sleep the Mac — after a 10 second grace period that is cancelled if you start new work.
 
+**Power guard.** A stay-awake tool should not drain a laptop in a bag. remAIn lets the Mac sleep when the battery falls to a threshold (20% by default, with 5 points of hysteresis so it doesn't flap), and optionally when running on battery at all, in Low Power Mode, or when macOS reports a critical thermal state. It resumes by itself once the condition clears, and tells you when it steps aside.
+
 The UI is localized (English, 日本語) and follows the system language. Translations live in `Resources/<lang>.lproj/Localizable.strings`; English strings in the code are the keys.
 
 Works with the Claude Code CLI, desktop app and the VS Code extension, since all read the same `~/.claude/settings.json`.

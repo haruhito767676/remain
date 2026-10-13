@@ -15,6 +15,7 @@ final class AppModel {
     @ObservationIgnored private let server = IPCServer()
     @ObservationIgnored private let notifier = Notifier()
     @ObservationIgnored private let completion: CompletionRunner
+    @ObservationIgnored private let powerMonitor = SystemPowerMonitor()
     @ObservationIgnored private static let settingsKey = "wakeSettings"
 
     init() {
@@ -29,6 +30,8 @@ final class AppModel {
         } catch {
             hooksError = String(localized: "IPC server failed: \(String(describing: error))")
         }
+        powerMonitor.onChange = { [coordinator] state in coordinator.update(power: state) }
+        powerMonitor.start()
         refreshState()
         Task { [weak self] in
             while !Task.isCancelled {
@@ -46,6 +49,7 @@ final class AppModel {
 
     var symbolName: String {
         let s = snapshot
+        if let block = s.blockedBy { return block.symbolName }
         if s.workingCount > 0 { return "sparkles" }
         if s.manual != .off || s.prevention != .none { return "cup.and.saucer.fill" }
         if s.waitingCount > 0 { return "hourglass" }
@@ -54,6 +58,7 @@ final class AppModel {
 
     var statusTitle: String {
         let s = snapshot
+        if let block = s.blockedBy { return String(localized: "Sleep allowed: \(block.reason)") }
         if s.workingCount > 0 {
             return s.workingCount == 1
                 ? String(localized: "Claude Code is working")
@@ -114,6 +119,8 @@ final class AppModel {
             if s.notifyOnAttention { notifier.needsAttention(cwd: cwd) }
         case .allFinished(let duration):
             if duration >= s.minimumNotifiableDuration { completion.schedule(s.completionAction) }
+        case .holdSuspended(let block):
+            notifier.holdSuspended(reason: block.reason)
         }
     }
 

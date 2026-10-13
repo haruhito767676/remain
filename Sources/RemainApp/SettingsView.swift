@@ -31,6 +31,32 @@ struct SettingsView: View {
             }
 
             Section {
+                Picker("Let the Mac sleep when the battery is below", selection: Binding(
+                    get: { model.settings.batteryCutoffPercent },
+                    set: { value in model.update { $0.batteryCutoffPercent = value } }
+                )) {
+                    Text("Never").tag(0)
+                    ForEach([10, 15, 20, 30], id: \.self) { Text(verbatim: "\($0)%").tag($0) }
+                }
+                Toggle("Only keep awake on AC power", isOn: Binding(
+                    get: { model.settings.holdOnlyOnAC },
+                    set: { value in model.update { $0.holdOnlyOnAC = value } }
+                ))
+                Toggle("Don't keep awake in Low Power Mode", isOn: Binding(
+                    get: { model.settings.respectLowPowerMode },
+                    set: { value in model.update { $0.respectLowPowerMode = value } }
+                ))
+                Toggle("Let the Mac sleep when it gets too hot", isOn: Binding(
+                    get: { model.settings.releaseWhenOverheating },
+                    set: { value in model.update { $0.releaseWhenOverheating = value } }
+                ))
+            } header: {
+                Text("Power")
+            } footer: {
+                Text("remAIn resumes automatically once the condition clears. The battery limit resumes 5 points above the threshold.")
+            }
+
+            Section {
                 Toggle("Notify when a task finishes", isOn: Binding(
                     get: { model.settings.notifyOnFinish },
                     set: { value in

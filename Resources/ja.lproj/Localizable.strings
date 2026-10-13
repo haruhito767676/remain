@@ -63,3 +63,18 @@
 "Claude Code needs your input" = "Claude Codeが入力を求めています";
 "A session is waiting for you." = "セッションがあなたの入力を待っています。";
 "took %@" = "所要時間 %@";
+
+/* Power guard */
+"Sleep allowed: %@" = "スリープ可能: %@";
+"Battery at %@" = "バッテリー残量 %@";
+"On battery power" = "バッテリー駆動中";
+"Low Power Mode is on" = "低電力モードがオン";
+"The Mac is too hot" = "Macが高温";
+"Letting your Mac sleep" = "Macのスリープを許可しました";
+"Power" = "電源";
+"Let the Mac sleep when the battery is below" = "バッテリー残量がこれを下回ったらスリープを許可";
+"Never" = "しない";
+"Only keep awake on AC power" = "電源に接続しているときだけ起こす";
+"Don't keep awake in Low Power Mode" = "低電力モードでは起こさない";
+"Let the Mac sleep when it gets too hot" = "高温になったらスリープを許可";
+"remAIn resumes automatically once the condition clears. The battery limit resumes 5 points above the threshold." = "条件が解消されると自動で再開します。バッテリー残量の制限は、設定値より5ポイント上回ると再開します。";

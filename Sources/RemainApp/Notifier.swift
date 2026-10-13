@@ -18,7 +18,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
 
     func finished(cwd: String?, duration: TimeInterval) {
         let took = String(localized: "took \(Self.format(duration))")
-        post(title: String(localized: "Agent finished"), body: [project(cwd), took].compactMap { $0 }.joined(separator: " · "))
+        post(title: String(localized: "An agent finished its work"), body: [project(cwd), took].compactMap { $0 }.joined(separator: " · "))
     }
 
     func needsAttention(cwd: String?) {

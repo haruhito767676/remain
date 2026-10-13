@@ -59,7 +59,7 @@
 "Could not find the remain command-line helper." = "remainコマンドラインヘルパーが見つかりません。";
 
 /* Notifications */
-"Agent finished" = "エージェントが完了しました";
+"An agent finished its work" = "エージェントの作業が完了しました";
 "An agent needs your input" = "エージェントが入力を求めています";
 "A session is waiting for you." = "セッションがあなたの入力を待っています。";
 "took %@" = "所要時間 %@";

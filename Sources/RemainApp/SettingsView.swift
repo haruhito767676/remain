@@ -31,6 +31,44 @@ struct SettingsView: View {
             }
 
             Section {
+                Toggle("Notify when a task finishes", isOn: Binding(
+                    get: { model.settings.notifyOnFinish },
+                    set: { value in
+                        model.update { $0.notifyOnFinish = value }
+                        if value { model.requestNotificationAuthorization() }
+                    }
+                ))
+                Toggle("Notify when Claude Code needs my input", isOn: Binding(
+                    get: { model.settings.notifyOnAttention },
+                    set: { value in
+                        model.update { $0.notifyOnAttention = value }
+                        if value { model.requestNotificationAuthorization() }
+                    }
+                ))
+                Picker("Only for tasks longer than", selection: Binding(
+                    get: { model.settings.minimumNotifiableDuration },
+                    set: { value in model.update { $0.minimumNotifiableDuration = value } }
+                )) {
+                    Text("Any length").tag(TimeInterval(0))
+                    Text("30 seconds").tag(TimeInterval(30))
+                    Text("1 minute").tag(TimeInterval(60))
+                    Text("5 minutes").tag(TimeInterval(5 * 60))
+                }
+                Picker("When all tasks are done", selection: Binding(
+                    get: { model.settings.completionAction },
+                    set: { value in model.update { $0.completionAction = value } }
+                )) {
+                    Text("Do nothing").tag(CompletionAction.nothing)
+                    Text("Turn the display off").tag(CompletionAction.turnDisplayOff)
+                    Text("Put the Mac to sleep").tag(CompletionAction.sleepMac)
+                }
+            } header: {
+                Text("When Agents Finish")
+            } footer: {
+                Text("The action runs 10 seconds after the last task ends, and is skipped if you start new work. The length filter applies to the action as well.")
+            }
+
+            Section {
                 LabeledContent("Hooks") {
                     if model.hooksInstalled {
                         Button("Remove") { model.uninstallHooks() }

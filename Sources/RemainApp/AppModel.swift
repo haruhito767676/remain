@@ -11,11 +11,16 @@ final class AppModel {
     private(set) var launchAtLogin = false
 
     @ObservationIgnored private let server = IPCServer()
+    @ObservationIgnored private let notifier = Notifier()
+    @ObservationIgnored private let completion: CompletionRunner
     @ObservationIgnored private static let settingsKey = "wakeSettings"
 
     init() {
         let settings = Self.loadSettings()
         coordinator = WakeCoordinator(settings: settings, assertions: IOKitSleepAssertions())
+        completion = CompletionRunner(coordinator: coordinator)
+        if settings.notifyOnFinish || settings.notifyOnAttention { notifier.requestAuthorization() }
+        coordinator.onEffect = { [unowned self] effect in handle(effect) }
         let coordinator = coordinator
         do {
             try server.start { request in await coordinator.handle(request) }
@@ -62,6 +67,22 @@ final class AppModel {
             UserDefaults.standard.set(data, forKey: Self.settingsKey)
         }
     }
+
+    private func handle(_ effect: WakeEffect) {
+        let s = settings
+        switch effect {
+        case .sessionFinished(let cwd, let duration):
+            if s.notifyOnFinish, duration >= s.minimumNotifiableDuration {
+                notifier.finished(cwd: cwd, duration: duration)
+            }
+        case .needsAttention(let cwd):
+            if s.notifyOnAttention { notifier.needsAttention(cwd: cwd) }
+        case .allFinished(let duration):
+            if duration >= s.minimumNotifiableDuration { completion.schedule(s.completionAction) }
+        }
+    }
+
+    func requestNotificationAuthorization() { notifier.requestAuthorization() }
 
     func installHooks() { runInstaller { try $0.install() } }
     func uninstallHooks() { runInstaller { try $0.uninstall() } }

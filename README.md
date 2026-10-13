@@ -30,6 +30,11 @@ Design notes:
 - **The hook command never prints and always exits 0**, so it can't pollute the model's context or break Claude Code if the app isn't running.
 - The core logic (`WakeEngine`) is a pure value type with injected time and is fully unit-tested. IOKit sits behind a protocol.
 
+When agents finish, remAIn can also:
+
+- **Notify you** when a task finishes or needs your input (tasks shorter than a configurable length stay quiet).
+- **Run an action** once the *last* agent is done — turn the display off or sleep the Mac — after a 10 second grace period that is cancelled if you start new work.
+
 Works with the Claude Code CLI, desktop app and the VS Code extension, since all read the same `~/.claude/settings.json`.
 
 ## Install

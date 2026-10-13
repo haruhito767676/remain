@@ -23,6 +23,16 @@ private func lidSettings() -> WakeSettings {
         #expect(engine.snapshot().preventLidSleep == false)
     }
 
+    @Test func aPlainCommandFromRemainRunEngagesItToo() {
+        // `remain run -- <command>` is not an AI agent, and must not need one to get lid-closed operation.
+        var engine = WakeEngine(settings: lidSettings())
+        engine.handle(AgentEvent(sessionID: "run-1", kind: .prompt, pid: 123, agent: .command), at: t0)
+        #expect(engine.snapshot().prevention == .system)
+        #expect(engine.snapshot().preventLidSleep)
+        engine.handle(AgentEvent(sessionID: "run-1", kind: .finish, agent: .command), at: at(30))
+        #expect(engine.snapshot().preventLidSleep == false)
+    }
+
     @Test func blockedByPowerConditions() {
         var engine = WakeEngine(settings: lidSettings())
         engine.handle(event(.prompt), at: t0)

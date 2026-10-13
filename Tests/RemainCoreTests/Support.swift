@@ -233,3 +233,9 @@ func installerAt(_ path: String, existing: String? = nil) throws -> HookInstalle
     let installer = try makeInstaller(existing: existing)
     return HookInstaller(settingsURL: installer.settingsURL, executablePath: path)
 }
+
+// MARK: - Power monitor helpers
+
+final class PowerSource: @unchecked Sendable {
+    var state = PowerState(onBattery: true, batteryPercent: 24)
+}

@@ -131,3 +131,51 @@ private func working() -> WakeEngine {
         #expect(state.batteryPercent == nil || (0...100).contains(state.batteryPercent!))
     }
 }
+
+@MainActor
+@Suite struct PowerMonitorDeliveryTests {
+    /// Regression: with lid mode on at launch, `watchesLid` published before any handler was attached,
+    /// the state was remembered as "published", and the handler then never received anything.
+    @Test func aPublishBeforeTheHandlerExistsIsNotLost() {
+        let source = PowerSource()
+        let monitor = SystemPowerMonitor(reader: { source.state })
+        monitor.watchesLid = true // publishes while nobody listens
+        var received: [PowerState] = []
+        monitor.onChange = { received.append($0) }
+        #expect(received == [source.state]) // delivered as soon as a handler is attached
+    }
+
+    @Test func unchangedStatesAreNotRepeated() {
+        let source = PowerSource()
+        let monitor = SystemPowerMonitor(reader: { source.state })
+        var received: [PowerState] = []
+        monitor.onChange = { received.append($0) }
+        monitor.publish()
+        monitor.publish()
+        #expect(received.count == 1)
+        source.state.batteryPercent = 23
+        monitor.publish()
+        #expect(received.count == 2)
+        #expect(received.last?.batteryPercent == 23)
+    }
+
+    @Test func replacingTheHandlerDeliversTheCurrentStateAgain() {
+        let source = PowerSource()
+        let monitor = SystemPowerMonitor(reader: { source.state })
+        monitor.onChange = { _ in }
+        var second: [PowerState] = []
+        monitor.onChange = { second.append($0) }
+        #expect(second.count == 1)
+    }
+
+    @Test func removingTheHandlerStopsDelivery() {
+        let source = PowerSource()
+        let monitor = SystemPowerMonitor(reader: { source.state })
+        var received = 0
+        monitor.onChange = { _ in received += 1 }
+        monitor.onChange = nil
+        source.state.batteryPercent = 5
+        monitor.publish()
+        #expect(received == 1)
+    }
+}

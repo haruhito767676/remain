@@ -38,7 +38,15 @@ public struct PowerState: Codable, Equatable, Sendable {
 /// Watches battery, Low Power Mode and thermal state and reports changes on the main actor.
 @MainActor
 public final class SystemPowerMonitor {
-    public var onChange: ((PowerState) -> Void)?
+    /// Attaching a handler immediately delivers the current state, so nothing published
+    /// before the handler existed can ever be lost to de-duplication.
+    public var onChange: ((PowerState) -> Void)? {
+        didSet {
+            lastPublished = nil
+            if onChange != nil { publish() }
+        }
+    }
+    private let reader: () -> PowerState
     private var runLoopSource: CFRunLoopSource?
     private var observers: [NSObjectProtocol] = []
     private var lidTimer: Timer?
@@ -58,7 +66,9 @@ public final class SystemPowerMonitor {
         }
     }
 
-    public init() {}
+    public init(reader: @escaping () -> PowerState = SystemPowerMonitor.read) {
+        self.reader = reader
+    }
 
     public func start() {
         // IOKit power-source changes (plug / unplug / percentage).
@@ -81,15 +91,17 @@ public final class SystemPowerMonitor {
         publish()
     }
 
-    private func publish() {
-        let state = Self.read()
+    func publish() {
+        // Nobody is listening: do not read, and above all do not remember the state as "published".
+        guard let onChange else { return }
+        let state = reader()
         guard state != lastPublished else { return }
         lastPublished = state
-        onChange?(state)
+        onChange(state)
     }
 
     /// `AppleClamshellState` on the power-management root domain; false on desktops.
-    static func isLidClosed() -> Bool {
+    nonisolated static func isLidClosed() -> Bool {
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPMrootDomain"))
         guard service != IO_OBJECT_NULL else { return false }
         defer { IOObjectRelease(service) }
@@ -97,7 +109,7 @@ public final class SystemPowerMonitor {
         return (value?.takeRetainedValue() as? Bool) ?? false
     }
 
-    public static func read() -> PowerState {
+    nonisolated public static func read() -> PowerState {
         var state = PowerState(
             lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
             thermal: ThermalLevel(ProcessInfo.processInfo.thermalState),

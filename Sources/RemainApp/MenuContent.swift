@@ -7,9 +7,11 @@ struct MenuContent: View {
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
-        Text(model.statusTitle)
+        // Buttons rather than plain Text: a Text row is a disabled menu item and renders in a
+        // low-contrast gray. Clicking a status row opens Settings.
+        Button(model.statusTitle, action: showSettings)
         if let line = model.manualHoldLine {
-            Text(line)
+            Button(line, action: showSettings)
         }
 
         Divider()
@@ -33,13 +35,15 @@ struct MenuContent: View {
 
         Divider()
 
-        Button("Settings…") {
-            NSApp.activate()
-            openSettings()
-        }
-        .keyboardShortcut(",")
+        Button("Settings…", action: showSettings)
+            .keyboardShortcut(",")
 
         Button("Quit remAIn") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
+    }
+
+    private func showSettings() {
+        NSApp.activate()
+        openSettings()
     }
 }

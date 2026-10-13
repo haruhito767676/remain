@@ -217,7 +217,7 @@ final class AppModel {
         let alert = NSAlert()
         alert.alertStyle = .warning
         alert.messageText = String(localized: "Keep running with the lid closed?")
-        alert.informativeText = String(localized: "While an agent is working, your Mac keeps running even if you close the lid, for example in a bag. It can get warm and use up the battery. remAIn stops automatically when the Mac warms up, the battery runs low, the time limit is reached or the work finishes. The agent still needs an internet connection to work.")
+        alert.informativeText = String(localized: "While an agent is working, your Mac keeps running with the lid closed. It can get warm and use battery, so remAIn stops automatically on heat, low battery, the time limit, or when the work finishes.")
         alert.addButton(withTitle: String(localized: "Turn On"))
         alert.addButton(withTitle: String(localized: "Cancel"))
         NSApp.activate()

@@ -116,7 +116,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Lid Closed")
             } footer: {
-                Text("Lets remAIn turn sleep off for you after a one-time administrator approval. Only the command pmset disablesleep is allowed, and a watchdog turns sleep back on if remAIn stops responding. A Mac running in a closed bag can get hot, so remAIn also stops when it warms up, when the battery is low, or when the time limit is reached.")
+                Text("Needs a one-time administrator approval. Only the command pmset disablesleep is allowed, and a watchdog turns sleep back on if remAIn stops responding.")
             }
 
             Section {

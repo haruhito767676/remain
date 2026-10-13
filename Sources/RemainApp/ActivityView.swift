@@ -82,9 +82,9 @@ struct ActivityView: View {
         let manual = String(localized: "Manual")
         return Chart {
             ForEach(days) { day in
-                BarMark(x: .value("Day", day.day, unit: .day), y: .value("Hours", day.agent / 3600))
+                BarMark(x: .value("Day", day.day, unit: .day), y: .value("Minutes", day.agent / 60))
                     .foregroundStyle(by: .value("Source", agent))
-                BarMark(x: .value("Day", day.day, unit: .day), y: .value("Hours", day.manual / 3600))
+                BarMark(x: .value("Day", day.day, unit: .day), y: .value("Minutes", day.manual / 60))
                     .foregroundStyle(by: .value("Source", manual))
             }
         }
@@ -95,17 +95,30 @@ struct ActivityView: View {
             }
         }
         .chartYAxis {
-            AxisMarks { value in
+            AxisMarks(values: .stride(by: Self.tickStep(for: days))) { value in
                 AxisGridLine()
                 AxisValueLabel {
-                    if let hours = value.as(Double.self) {
-                        Text(verbatim: hours.formatted(.number.precision(.fractionLength(0...1))) + "h")
+                    if let minutes = value.as(Double.self) {
+                        Text(verbatim: Self.axisLabel(minutes: Int(minutes)))
                     }
                 }
             }
         }
         .frame(height: 150)
         .padding(.vertical, 4)
+    }
+
+    /// Gridline spacing in minutes, always a clean step on the clock (15 min, 30 min, 1 h, 2 h ...).
+    private static func tickStep(for days: [DayTotal]) -> Double {
+        let peak = days.map { ($0.agent + $0.manual) / 60 }.max() ?? 0
+        let steps: [Double] = [15, 30, 60, 120, 180, 360, 720]
+        return steps.first { peak / $0 <= 4 } ?? 720
+    }
+
+    private static func axisLabel(minutes: Int) -> String {
+        if minutes < 60 { return "\(minutes)m" }
+        if minutes % 60 == 0 { return "\(minutes / 60)h" }
+        return "\(minutes / 60)h\(minutes % 60)m"
     }
 
     static func format(_ seconds: TimeInterval) -> String {

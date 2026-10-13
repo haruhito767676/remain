@@ -25,7 +25,6 @@
 "1 hour" = "1時間";
 "2 hours" = "2時間";
 "4 hours" = "4時間";
-"Interruptions and exits are detected automatically. This is only a safety net." = "中断や終了は自動で検知します。これは、それ以外のときの安全装置です。";
 /* Settings: finish */
 "When Agents Finish" = "エージェントの完了時";
 "Notify when a task finishes" = "作業が完了したら通知する";
@@ -38,7 +37,6 @@
 "Do nothing" = "何もしない";
 "Turn the display off" = "ディスプレイを消灯する";
 "Put the Mac to sleep" = "Macをスリープさせる";
-"Runs 10 seconds after the last task ends, unless you start new work." = "最後の作業が終わって10秒後に実行します。新しい作業を始めると実行されません。";
 /* Settings: Claude Code */
 "Installed" = "インストール済み";
 "Not installed" = "未インストール";
@@ -66,7 +64,6 @@
 "Only keep awake on AC power" = "電源接続中のみスリープを防ぐ";
 "Don't keep awake in Low Power Mode" = "低電力モード中はスリープを防がない";
 "Let the Mac sleep when it gets too hot" = "高温時はスリープを許可";
-"It resumes automatically once the condition clears." = "条件が解消されると、自動で再開します。";
 /* Activity */
 "General" = "一般";
 "Activity" = "アクティビティ";

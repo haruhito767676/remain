@@ -81,6 +81,16 @@ Settings → General → **Reset Settings…** (or `remain reset` in a terminal)
 
 To uninstall, reset, quit remAIn and move the app to the Trash.
 
+## Settings in detail
+
+The settings explain themselves; the details are here.
+
+- **Release automatically after no activity for**: a safety net. Interruptions and exits of an agent are detected on their own; this only matters for a session that goes quiet for any other reason. Antigravity has its own 5-minute rule (see above).
+- **Keep the display on while preventing sleep**: only extends a hold that is already active (an agent working, or Keep Awake); on its own it does nothing. With the lid closed the display is always switched off.
+- **Power**: when a limit stops the hold (battery below the threshold, battery power, Low Power Mode, heat), remAIn lets the Mac sleep and tells you why, and resumes by itself once the condition clears. The battery limit resumes 5 points above the threshold so it does not flap.
+- **When all tasks are done**: the chosen action (turn the display off, sleep) runs 10 seconds after the last task ends and is skipped if you start new work or if the work was shorter than "Only for work that took longer than".
+- **Lid closed**: needs your password once to set up; see above for how it fails safe.
+
 ## Install
 
 ```sh

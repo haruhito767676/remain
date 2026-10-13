@@ -55,8 +55,6 @@ struct GeneralSettingsView: View {
                 }
             } header: {
                 Text("Agents")
-            } footer: {
-                Text("Interruptions and exits are detected automatically. This is only a safety net.")
             }
 
             Section {
@@ -81,8 +79,6 @@ struct GeneralSettingsView: View {
                 ))
             } header: {
                 Text("Power")
-            } footer: {
-                Text("It resumes automatically once the condition clears.")
             }
 
             Section {
@@ -154,8 +150,6 @@ struct GeneralSettingsView: View {
                 }
             } header: {
                 Text("When Agents Finish")
-            } footer: {
-                Text("Runs 10 seconds after the last task ends, unless you start new work.")
             }
 
             Section {

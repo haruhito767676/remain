@@ -29,8 +29,14 @@ private struct MenuBarIcon: View {
     let model: AppModel
     @Environment(\.openSettings) private var openSettings
 
+    /// The widest symbol we draw (the battery) at menu bar size.
+    private static let slotWidth: CGFloat = 22
+
     var body: some View {
         Image(systemName: model.symbolName)
+            // The symbols differ in width (the cup and the battery are wider than the moon); one
+            // fixed, centred width keeps the icon from shifting when it changes.
+            .frame(width: Self.slotWidth)
             // VoiceOver would otherwise read the symbol's generic name ("sparkles", "moon").
             .accessibilityLabel("remAIn: \(model.statusTitle)")
             .onAppear { SettingsOpener.open = { openSettings() } }

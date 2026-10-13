@@ -227,7 +227,7 @@ final class AppModel {
             update { $0.keepRunningWithLidClosed = false }
             return
         }
-        refreshState()
+        lidReady = lidSupport.isReady() // the user just acted: answer from the real state
         guard lidReady else {
             settingsTab = .general
             lidError = String(localized: "Set up the system permission first.")
@@ -358,7 +358,9 @@ final class AppModel {
         if let manager = integrationManager() {
             integrations = Dictionary(uniqueKeysWithValues: AgentKind.integrable.map { ($0, manager.state(of: $0)) })
         }
-        lidReady = lidSupport.isReady()
+        // Checking the lid setup runs `sudo` and `launchctl`: keep that off the main thread.
+        let support = lidSupport
+        Task { lidReady = await Task.detached { support.isReady() }.value }
         launchAtLogin = SMAppService.mainApp.status == .enabled
         Task { notificationsDenied = await notifier.isDenied() }
     }

@@ -13,7 +13,9 @@
 "Claude Code is working" = "Claude Codeが作業中";
 "%lld Claude Code sessions working" = "Claude Codeのセッション%lld件が作業中";
 "Keeping Mac awake" = "Macを起こしています";
-"Keeping Mac awake until %@" = "%@までMacを起こしています";
+"Keeping Mac awake until %@ (%@ left)" = "%1$@までMacを起こしています(残り%2$@)";
+"Manual hold: on" = "手動で維持中";
+"Manual hold: until %@ (%@ left)" = "手動で維持中: %1$@まで(残り%2$@)";
 "Waiting for your input" = "入力待ち";
 "Sleep allowed" = "スリープ可能";
 

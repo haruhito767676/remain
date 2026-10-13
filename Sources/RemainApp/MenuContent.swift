@@ -8,6 +8,9 @@ struct MenuContent: View {
 
     var body: some View {
         Text(model.statusTitle)
+        if let line = model.manualHoldLine {
+            Text(line)
+        }
 
         Divider()
 

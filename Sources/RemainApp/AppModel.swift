@@ -9,6 +9,8 @@ final class AppModel {
     private(set) var hooksInstalled = false
     private(set) var hooksError: String?
     private(set) var launchAtLogin = false
+    /// Bumped while a manual timer runs so that "time left" in the menu stays current.
+    private var clockTick = Date()
 
     @ObservationIgnored private let server = IPCServer()
     @ObservationIgnored private let notifier = Notifier()
@@ -28,6 +30,13 @@ final class AppModel {
             hooksError = String(localized: "IPC server failed: \(String(describing: error))")
         }
         refreshState()
+        Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(20))
+                guard let self else { return }
+                if case .until = snapshot.manual { clockTick = Date() }
+            }
+        }
     }
 
     // MARK: - Presentation
@@ -53,11 +62,34 @@ final class AppModel {
         switch s.manual {
         case .indefinite: return String(localized: "Keeping Mac awake")
         case .until(let end):
-            return String(localized: "Keeping Mac awake until \(end.formatted(date: .omitted, time: .shortened))")
+            return String(localized: "Keeping Mac awake until \(Self.clock(end)) (\(remaining(until: end)) left)")
         case .off: break
         }
         if s.waitingCount > 0 { return String(localized: "Waiting for your input") }
         return String(localized: "Sleep allowed")
+    }
+
+    /// Extra line shown while agents are working, so a running manual timer does not disappear from view.
+    var manualHoldLine: String? {
+        guard snapshot.workingCount > 0 else { return nil }
+        switch snapshot.manual {
+        case .off: return nil
+        case .indefinite: return String(localized: "Manual hold: on")
+        case .until(let end):
+            return String(localized: "Manual hold: until \(Self.clock(end)) (\(remaining(until: end)) left)")
+        }
+    }
+
+    private static func clock(_ date: Date) -> String {
+        date.formatted(date: .omitted, time: .shortened)
+    }
+
+    /// Rounded up to whole minutes, e.g. "23m" / "1h 5m".
+    private func remaining(until end: Date) -> String {
+        _ = clockTick // read so the view re-renders on every tick
+        let minutes = max(1, Int((end.timeIntervalSinceNow / 60).rounded(.up)))
+        return Duration.seconds(minutes * 60)
+            .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated, maximumUnitCount: 2))
     }
 
     // MARK: - Actions

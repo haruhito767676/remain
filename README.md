@@ -70,6 +70,7 @@ The app is ad-hoc signed; on first launch use right-click → Open. Then open **
 remain status
 remain on [minutes]    # manual hold
 remain off
+remain run -- <command>  # hold while any command runs (builds, downloads, other agents)
 remain install-hooks   # same as the Settings button
 ```
 

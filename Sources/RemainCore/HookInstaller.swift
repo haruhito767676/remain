@@ -37,6 +37,13 @@ public struct HookInstaller: Sendable {
 
     var events: [String] { agent == .codex ? Self.codexEvents : Self.claudeEvents }
 
+    /// Seconds Codex allows these two events at most; it clamps longer values and warns on every run.
+    static let codexShortEvents: Set<String> = ["SessionEnd", "Interrupt"]
+
+    func timeout(for event: String) -> Int {
+        agent == .codex && Self.codexShortEvents.contains(event) ? 3 : 5
+    }
+
     /// Claude Code keeps its original `remain hook`; other tools name themselves.
     var command: String {
         let base = Self.shellQuote(executablePath) + " hook"
@@ -67,7 +74,7 @@ public struct HookInstaller: Sendable {
         for event in events {
             var groups = Self.removingRemain(from: self.groups(in: hooks, event))
             groups.append([
-                "hooks": [["type": "command", "command": command, "timeout": 5]],
+                "hooks": [["type": "command", "command": command, "timeout": timeout(for: event)]],
             ])
             hooks[event] = groups
         }

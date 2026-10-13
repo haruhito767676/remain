@@ -375,6 +375,27 @@ import Testing
         #expect(hooks["Notification"] == nil) // that is Claude Code's event
     }
 
+    @Test func codexShortEventsGetTheirMaximumTimeout() throws {
+        let installer = try codexInstaller()
+        try installer.install()
+        let hooks = try readJSON(installer.settingsURL)["hooks"] as! [String: Any]
+        func timeout(_ event: String) -> Int {
+            (((hooks[event] as! [[String: Any]])[0]["hooks"] as! [[String: Any]])[0]["timeout"] as! Int)
+        }
+        #expect(timeout("SessionEnd") == 3) // Codex clamps these to 3 s and warns if asked for more
+        #expect(timeout("Interrupt") == 3)
+        #expect(timeout("Stop") == 5)
+        #expect(timeout("UserPromptSubmit") == 5)
+    }
+
+    @Test func claudeTimeoutsAreUnchanged() throws {
+        let installer = try installerAt("/Apps/remain")
+        try installer.install()
+        let hooks = try readJSON(installer.settingsURL)["hooks"] as! [String: Any]
+        let session = ((hooks["SessionEnd"] as! [[String: Any]])[0]["hooks"] as! [[String: Any]])[0]
+        #expect(session["timeout"] as? Int == 5)
+    }
+
     @Test func claudeKeepsItsOriginalCommand() throws {
         let installer = try installerAt("/Apps/remain")
         try installer.install()

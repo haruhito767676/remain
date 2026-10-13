@@ -60,22 +60,21 @@ func runCommand(_ command: [String]) -> Never {
     // this wrapper alive to report the end. Set after spawning, because "ignore" is inherited by exec.
     signal(SIGINT, SIG_IGN)
 
-    func report(_ event: String) {
-        var payload = HookPayload(sessionID: session, eventName: event, cwd: directory)
-        payload.claudePID = process.processIdentifier // the command itself: if it dies, the hold ends
-        _ = try? IPCClient.send(.hook(payload))
+    func report(_ kind: AgentEvent.Kind) {
+        let event = AgentEvent(sessionID: session, cwd: directory, kind: kind, pid: process.processIdentifier, agent: .command)
+        _ = try? IPCClient.send(.event(event)) // pid = the command itself: if it dies, the hold ends
     }
-    report("UserPromptSubmit")
+    report(.prompt)
     var lastBeat = Date()
     while process.isRunning {
         Thread.sleep(forTimeInterval: 0.25)
         // A long silent command must not hit the silence timeout.
         if Date().timeIntervalSince(lastBeat) >= 30 {
-            report("PostToolUse")
+            report(.activity)
             lastBeat = Date()
         }
     }
-    report("Stop")
+    report(.finish)
     exit(process.terminationReason == .uncaughtSignal ? 128 + process.terminationStatus : process.terminationStatus)
 }
 
@@ -86,21 +85,30 @@ usage: remain <command>
   run [--] <command>     keep the Mac awake while a command runs
   on [minutes]           keep the Mac awake (indefinitely, or for N minutes)
   off                    release the manual hold
-  install-hooks          register remAIn with Claude Code
-  uninstall-hooks        remove remAIn from Claude Code
+  install-hooks [agent]  register remAIn with claude (default) or antigravity
+  uninstall-hooks [agent] remove remAIn from that tool
+  debug [on|off]         record raw hook calls to a log (diagnostics)
 """
 
 let args = Array(CommandLine.arguments.dropFirst())
 
 switch args.first {
 case "hook":
+    // remain hook [claude|codex|antigravity <Event>]   (no argument = Claude Code, for older installs)
+    let agent = args.dropFirst().first.flatMap { AgentKind(cliName: $0) } ?? .claudeCode
+    let eventArgument = args.dropFirst(2).first
     let input = FileHandle.standardInput.readDataToEndOfFile()
-    if var payload = try? JSONDecoder().decode(HookPayload.self, from: input) {
+    var decoded = HookDecoder.decode(agent: agent, eventName: eventArgument, stdin: input)
+    if var event = decoded {
         // Tell the app which process to watch and where to look for interruptions.
-        payload.claudePID = ProcessTree.claudeAncestor()
-        payload.transcriptSize = payload.transcriptPath.flatMap { TranscriptScanner.fileSize(atPath: $0) }
-        _ = try? IPCClient.send(.hook(payload))
+        event.pid = ProcessTree.agentAncestor(for: agent)
+        if let path = event.transcriptPath { event.transcriptSize = TranscriptScanner.fileSize(atPath: path) }
+        decoded = event
+        _ = try? IPCClient.send(.event(event))
     }
+    HookDebugLog.record(agent: agent, eventArgument: eventArgument, stdin: input, decoded: decoded, processes: ProcessTree.ancestors())
+    // Some tools want JSON back; Claude Code must get nothing (its stdout reaches the model).
+    if let response = HookDecoder.response(agent: agent, eventName: eventArgument) { print(response) }
     exit(0)
 case "status":
     let response = request(.status)
@@ -117,17 +125,29 @@ case "off":
     let response = request(.release)
     print(response.snapshot.map(describe) ?? "ok")
 case "install-hooks", "uninstall-hooks":
-    let installer = HookInstaller(executablePath: executablePath())
+    let agent = args.dropFirst().first.flatMap { AgentKind(cliName: $0) } ?? .claudeCode
+    let install = args[0] == "install-hooks"
     do {
-        if args[0] == "install-hooks" {
-            try installer.install()
-            print("Installed remAIn hooks in \(installer.settingsURL.path)")
-        } else {
-            try installer.uninstall()
-            print("Removed remAIn hooks from \(installer.settingsURL.path)")
+        switch agent {
+        case .claudeCode:
+            let installer = HookInstaller(executablePath: executablePath())
+            if install { try installer.install() } else { try installer.uninstall() }
+            print("\(install ? "Installed remAIn hooks in" : "Removed remAIn hooks from") \(installer.settingsURL.path)")
+        case .antigravity:
+            let installer = AntigravityHookInstaller(executablePath: executablePath())
+            if install { try installer.install() } else { try installer.uninstall() }
+            print("\(install ? "Installed remAIn hooks in" : "Removed remAIn hooks from") \(installer.configURL.path)")
+        case .codex, .command:
+            fail("\(agent.displayName) is not supported yet.")
         }
     } catch {
         fail("\(error)")
+    }
+case "debug":
+    switch args.dropFirst().first {
+    case "on": HookDebugLog.setEnabled(true); print("Hook debug log on: \(HookDebugLog.logURL.path)")
+    case "off": HookDebugLog.setEnabled(false); print("Hook debug log off")
+    default: print("Hook debug log is \(HookDebugLog.isEnabled ? "on" : "off"): \(HookDebugLog.logURL.path)")
     }
 default:
     print(usage)

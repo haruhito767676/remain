@@ -2,7 +2,7 @@ import Foundation
 import Darwin
 
 public enum IPCRequest: Codable, Sendable {
-    case hook(HookPayload)
+    case event(AgentEvent)
     case status
     /// Human-readable dump of every tracked session, for debugging.
     case sessions
@@ -41,8 +41,8 @@ extension WakeCoordinator {
     /// Shared request handling for the app's IPC server.
     public func handle(_ request: IPCRequest) -> IPCResponse {
         switch request {
-        case .hook(let payload):
-            if let event = payload.agentEvent { receive(event) }
+        case .event(let event):
+            receive(event)
         case .status:
             break
         case .sessions:

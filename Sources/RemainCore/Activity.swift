@@ -29,16 +29,32 @@ public struct HoldInterval: Codable, Identifiable, Equatable, Sendable {
     /// Folder names only, never full paths.
     public var projects: Set<String>
     public var endReason: HoldEndReason
+    /// Which tools were working during the interval.
+    public var agents: Set<AgentKind>
 
     public var duration: TimeInterval { end.timeIntervalSince(start) }
 
-    public init(id: UUID = UUID(), start: Date, end: Date, sources: Set<HoldSource>, projects: Set<String>, endReason: HoldEndReason) {
+    public init(id: UUID = UUID(), start: Date, end: Date, sources: Set<HoldSource>, projects: Set<String>,
+                endReason: HoldEndReason, agents: Set<AgentKind> = []) {
         self.id = id
         self.start = start
         self.end = end
         self.sources = sources
         self.projects = projects
         self.endReason = endReason
+        self.agents = agents
+    }
+
+    // Records written before agents were tracked have no `agents` key.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        start = try c.decode(Date.self, forKey: .start)
+        end = try c.decode(Date.self, forKey: .end)
+        sources = try c.decode(Set<HoldSource>.self, forKey: .sources)
+        projects = try c.decode(Set<String>.self, forKey: .projects)
+        endReason = try c.decode(HoldEndReason.self, forKey: .endReason)
+        agents = try c.decodeIfPresent(Set<AgentKind>.self, forKey: .agents) ?? []
     }
 }
 
@@ -49,6 +65,26 @@ public struct OpenInterval: Codable, Equatable, Sendable {
     public var sources: Set<HoldSource>
     public var projects: Set<String>
     public var lastSeen: Date
+    public var agents: Set<AgentKind> = []
+
+    public init(id: UUID, start: Date, sources: Set<HoldSource>, projects: Set<String>, lastSeen: Date, agents: Set<AgentKind> = []) {
+        self.id = id
+        self.start = start
+        self.sources = sources
+        self.projects = projects
+        self.lastSeen = lastSeen
+        self.agents = agents
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        start = try c.decode(Date.self, forKey: .start)
+        sources = try c.decode(Set<HoldSource>.self, forKey: .sources)
+        projects = try c.decode(Set<String>.self, forKey: .projects)
+        lastSeen = try c.decode(Date.self, forKey: .lastSeen)
+        agents = try c.decodeIfPresent(Set<AgentKind>.self, forKey: .agents) ?? []
+    }
 }
 
 // MARK: - Storage
@@ -156,7 +192,7 @@ public final class ActivityLog {
         if let stale = store.loadOpen() {
             let recovered = HoldInterval(
                 id: stale.id, start: stale.start, end: max(stale.lastSeen, stale.start),
-                sources: stale.sources, projects: stale.projects, endReason: .appStopped
+                sources: stale.sources, projects: stale.projects, endReason: .appStopped, agents: stale.agents
             )
             store.append(recovered)
             store.saveOpen(nil)
@@ -169,18 +205,20 @@ public final class ActivityLog {
         intervals = kept
     }
 
-    public func begin(at time: Date, sources: Set<HoldSource>, projects: Set<String>) {
-        let interval = OpenInterval(id: UUID(), start: time, sources: sources, projects: projects, lastSeen: time)
+    public func begin(at time: Date, sources: Set<HoldSource>, projects: Set<String>, agents: Set<AgentKind> = []) {
+        let interval = OpenInterval(id: UUID(), start: time, sources: sources, projects: projects, lastSeen: time, agents: agents)
         open = interval
         store.saveOpen(interval)
     }
 
     /// Sources and projects only ever grow during an interval.
-    public func update(at time: Date, sources: Set<HoldSource>, projects: Set<String>) {
+    public func update(at time: Date, sources: Set<HoldSource>, projects: Set<String>, agents: Set<AgentKind> = []) {
         guard var current = open else { return }
         let grew = !sources.isSubset(of: current.sources) || !projects.isSubset(of: current.projects)
+            || !agents.isSubset(of: current.agents)
         current.sources.formUnion(sources)
         current.projects.formUnion(projects)
+        current.agents.formUnion(agents)
         current.lastSeen = time
         open = current
         if grew { store.saveOpen(current) }
@@ -200,7 +238,7 @@ public final class ActivityLog {
         guard time.timeIntervalSince(current.start) >= 1 else { return } // not worth recording
         let interval = HoldInterval(
             id: current.id, start: current.start, end: time,
-            sources: current.sources, projects: current.projects, endReason: reason
+            sources: current.sources, projects: current.projects, endReason: reason, agents: current.agents
         )
         store.append(interval)
         intervals.append(interval)
@@ -235,7 +273,7 @@ public enum ActivitySummary {
         guard let open else { return intervals }
         let running = HoldInterval(
             id: open.id, start: open.start, end: max(now, open.start),
-            sources: open.sources, projects: open.projects, endReason: .appStopped
+            sources: open.sources, projects: open.projects, endReason: .appStopped, agents: open.agents
         )
         return intervals + [running]
     }

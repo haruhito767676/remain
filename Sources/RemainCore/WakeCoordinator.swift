@@ -44,6 +44,7 @@ public final class WakeCoordinator {
     public func receive(_ event: AgentEvent) {
         let effects = engine.handle(event, at: now())
         if event.kind == .finish { endCause = .finished }
+        if event.kind == .interrupted { endCause = .interrupted }
         refresh()
         effects.forEach { onEffect?($0) }
     }
@@ -104,11 +105,12 @@ public final class WakeCoordinator {
             if !holding.isEmpty { sources.insert(.agent) }
             if snapshot.manual != .off { sources.insert(.manual) }
             let projects = Set(holding.compactMap { $0.cwd }.map { URL(fileURLWithPath: $0).lastPathComponent }.filter { !$0.isEmpty })
+            let agents = Set(holding.map(\.agent))
             if activity.open == nil {
-                activity.begin(at: time, sources: sources, projects: projects)
+                activity.begin(at: time, sources: sources, projects: projects, agents: agents)
                 startHeartbeat()
             } else {
-                activity.update(at: time, sources: sources, projects: projects)
+                activity.update(at: time, sources: sources, projects: projects, agents: agents)
             }
         } else if activity.open != nil {
             let reason = endCause

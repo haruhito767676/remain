@@ -10,14 +10,25 @@ public enum ProcessTree {
     /// The nearest ancestor of `pid` that is a Claude Code process.
     /// A hook runs as `claude -> sh -> remain hook`, so this is normally two levels up.
     public static func claudeAncestor(of pid: Int32 = getppid()) -> Int32? {
+        agentAncestor(for: .claudeCode, of: pid)
+    }
+
+    /// The nearest ancestor of `pid` that belongs to the given tool.
+    public static func agentAncestor(for agent: AgentKind, of pid: Int32 = getppid()) -> Int32? {
+        ancestors(of: pid).first { agent.ownsProcess(named: $0.name) }?.pid
+    }
+
+    /// Process names from `pid` upwards (used by the matcher and by the debug log).
+    public static func ancestors(of pid: Int32 = getppid(), limit: Int = 10) -> [(pid: Int32, name: String)] {
+        var result: [(pid: Int32, name: String)] = []
         var current = pid
-        for _ in 0..<8 {
-            guard current > 1 else { return nil }
-            if let name = executableName(of: current), claudeNames.contains(name) { return current }
-            guard let parent = parent(of: current) else { return nil }
+        for _ in 0..<limit {
+            guard current > 1 else { break }
+            result.append((current, executableName(of: current) ?? "?"))
+            guard let parent = parent(of: current) else { break }
             current = parent
         }
-        return nil
+        return result
     }
 
     static func parent(of pid: Int32) -> Int32? {

@@ -36,6 +36,15 @@ public struct HookInstaller: Sendable {
         }
     }
 
+    /// Installed, but pointing at a different executable than this app's (it was moved or replaced).
+    public func needsRepair() -> Bool {
+        guard let root = try? loadSettings(), let hooks = root["hooks"] as? [String: Any] else { return false }
+        let ours = Self.events.flatMap { event in
+            groups(in: hooks, event).flatMap { commands(in: $0) }.filter(Self.isRemainCommand)
+        }
+        return !ours.isEmpty && ours.contains { $0 != command }
+    }
+
     public func install() throws {
         var root = try loadSettings()
         var hooks = root["hooks"] as? [String: Any] ?? [:]
@@ -94,33 +103,87 @@ public struct HookInstaller: Sendable {
     }
 
     private func loadSettings() throws -> [String: Any] {
-        guard FileManager.default.fileExists(atPath: settingsURL.path) else { return [:] }
-        let data = try Data(contentsOf: settingsURL)
-        if data.allSatisfy({ $0 == 0x20 || $0 == 0x0A || $0 == 0x09 || $0 == 0x0D }) { return [:] }
-        do {
-            guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                throw InstallError.invalidSettings("top level is not an object")
-            }
-            return object
-        } catch let error as InstallError {
-            throw error
-        } catch {
-            // Never overwrite a file we cannot read.
-            throw InstallError.invalidSettings(error.localizedDescription)
+        do { return try JSONFile.load(settingsURL) } catch let error as JSONFile.Invalid {
+            throw InstallError.invalidSettings(error.reason)
         }
     }
 
     private func save(_ root: [String: Any]) throws {
-        let fm = FileManager.default
-        try fm.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        if fm.fileExists(atPath: settingsURL.path) {
-            let backup = settingsURL.appendingPathExtension("remain-backup")
-            if !fm.fileExists(atPath: backup.path) { try fm.copyItem(at: settingsURL, to: backup) }
+        try JSONFile.save(root, to: settingsURL)
+    }
+}
+
+/// Antigravity keeps hooks in `~/.gemini/config/hooks.json`: top-level keys are hook names, so remAIn
+/// owns exactly one key and never touches the others.
+public struct AntigravityHookInstaller: Sendable {
+    public static let hookName = "remain"
+    static let plainEvents = ["SessionStart", "PreInvocation", "PostInvocation", "Stop"]
+    static let toolEvents = ["PostToolUse"] // PreToolUse must answer with a decision, so we stay out of it
+
+    public let configURL: URL
+    public let executablePath: String
+
+    public init(
+        configURL: URL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".gemini/config/hooks.json"),
+        executablePath: String
+    ) {
+        self.configURL = configURL
+        self.executablePath = executablePath
+    }
+
+    func command(for event: String) -> String {
+        HookInstaller.shellQuote(executablePath) + " hook \(AgentKind.antigravity.cliName) \(event)"
+    }
+
+    func entry() -> [String: Any] {
+        func handler(_ event: String) -> [String: Any] { ["type": "command", "command": command(for: event), "timeout": 5] }
+        var hook: [String: Any] = [:]
+        for event in Self.plainEvents { hook[event] = [handler(event)] }
+        for event in Self.toolEvents { hook[event] = [["matcher": "", "hooks": [handler(event)]]] }
+        return hook
+    }
+
+    private func ourCommands() -> [String] {
+        guard let root = try? JSONFile.load(configURL), let ours = root[Self.hookName] as? [String: Any] else { return [] }
+        var commands: [String] = []
+        for event in Self.plainEvents {
+            commands += (ours[event] as? [[String: Any]] ?? []).compactMap { $0["command"] as? String }
         }
-        let data = try JSONSerialization.data(
-            withJSONObject: root,
-            options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        )
-        try data.write(to: settingsURL, options: .atomic)
+        for event in Self.toolEvents {
+            for group in ours[event] as? [[String: Any]] ?? [] {
+                commands += (group["hooks"] as? [[String: Any]] ?? []).compactMap { $0["command"] as? String }
+            }
+        }
+        return commands
+    }
+
+    public func isInstalled() -> Bool {
+        ourCommands().count == Self.plainEvents.count + Self.toolEvents.count
+    }
+
+    /// Installed, but pointing at a different executable than this app's.
+    public func needsRepair() -> Bool {
+        let commands = ourCommands()
+        let expected = Set((Self.plainEvents + Self.toolEvents).map(command(for:)))
+        return !commands.isEmpty && Set(commands) != expected
+    }
+
+    public func install() throws {
+        var root: [String: Any]
+        do { root = try JSONFile.load(configURL) } catch let error as JSONFile.Invalid {
+            throw HookInstaller.InstallError.invalidSettings(error.reason)
+        }
+        root[Self.hookName] = entry()
+        try JSONFile.save(root, to: configURL)
+    }
+
+    public func uninstall() throws {
+        var root: [String: Any]
+        do { root = try JSONFile.load(configURL) } catch let error as JSONFile.Invalid {
+            throw HookInstaller.InstallError.invalidSettings(error.reason)
+        }
+        guard root[Self.hookName] != nil else { return }
+        root[Self.hookName] = nil
+        try JSONFile.save(root, to: configURL)
     }
 }

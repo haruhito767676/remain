@@ -1,16 +1,21 @@
 import Foundation
 
 /// Normalised signal about what an AI agent session is doing.
-public struct AgentEvent: Equatable, Sendable {
-    public enum Kind: Equatable, Sendable {
+public struct AgentEvent: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Equatable, Sendable {
         /// The user submitted a prompt: the agent starts working.
         case prompt
+        /// Work is under way: creates the session if unknown, otherwise just refreshes it.
+        /// For tools without a "prompt submitted" hook.
+        case start
         /// The agent is still active (e.g. a tool is running). Only refreshes known sessions.
         case activity
         /// The agent is blocked on the user (permission prompt, idle prompt).
         case attention
         /// The agent finished, failed, or the session ended.
         case finish
+        /// The user interrupted the agent (for tools that tell us so directly).
+        case interrupted
     }
 
     public var sessionID: String
@@ -21,10 +26,12 @@ public struct AgentEvent: Equatable, Sendable {
     public var transcriptPath: String?
     /// Size of the transcript when the event fired; later scans start from here.
     public var transcriptSize: UInt64?
+    public var agent: AgentKind
 
     public init(
         sessionID: String, cwd: String? = nil, kind: Kind,
-        pid: Int32? = nil, transcriptPath: String? = nil, transcriptSize: UInt64? = nil
+        pid: Int32? = nil, transcriptPath: String? = nil, transcriptSize: UInt64? = nil,
+        agent: AgentKind = .claudeCode
     ) {
         self.sessionID = sessionID
         self.cwd = cwd
@@ -32,6 +39,7 @@ public struct AgentEvent: Equatable, Sendable {
         self.pid = pid
         self.transcriptPath = transcriptPath
         self.transcriptSize = transcriptSize
+        self.agent = agent
     }
 }
 
@@ -64,18 +72,25 @@ public struct HookPayload: Codable, Equatable, Sendable {
     }
 
     /// Maps a Claude Code hook event to an agent event. Unknown events yield `nil`.
-    public var agentEvent: AgentEvent? {
+    public var agentEvent: AgentEvent? { event(for: .claudeCode) }
+
+    /// Claude Code and Codex share this payload shape and almost all event names.
+    public func event(for agent: AgentKind) -> AgentEvent? {
         let kind: AgentEvent.Kind
         switch eventName {
         case "UserPromptSubmit": kind = .prompt
         case "PreToolUse", "PostToolUse": kind = .activity
-        case "Notification": kind = .attention
+        case "Notification", "PermissionRequest": kind = .attention
         case "Stop", "StopFailure", "SessionEnd": kind = .finish
+        case "Interrupt": kind = .interrupted
         default: return nil
         }
         return AgentEvent(
             sessionID: sessionID, cwd: cwd, kind: kind,
-            pid: claudePID, transcriptPath: transcriptPath, transcriptSize: transcriptSize
+            pid: claudePID,
+            transcriptPath: agent.scansTranscriptForInterruption ? transcriptPath : nil,
+            transcriptSize: agent.scansTranscriptForInterruption ? transcriptSize : nil,
+            agent: agent
         )
     }
 }

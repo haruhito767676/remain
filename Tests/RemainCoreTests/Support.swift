@@ -200,3 +200,36 @@ func watchdogPlistObject() throws -> [String: Any] {
     return try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
 }
 func adminScript(_ command: String) -> String { LidSupport.adminAppleScript(command) }
+
+// MARK: - Multi-agent helpers
+
+func decodeEvent(_ agent: AgentKind, _ event: String? = nil, _ json: String) -> AgentEvent? {
+    HookDecoder.decode(agent: agent, eventName: event, stdin: Data(json.utf8))
+}
+
+func roundTrip(_ event: AgentEvent) throws -> AgentEvent {
+    try JSONDecoder().decode(AgentEvent.self, from: JSONEncoder().encode(event))
+}
+
+func decodeInterval(_ json: String) throws -> HoldInterval {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    return try decoder.decode(HoldInterval.self, from: Data(json.utf8))
+}
+
+func makeAntigravityInstaller(existing: String? = nil, executable: String = "/Applications/remAIn.app/Contents/Helpers/remain") throws -> AntigravityHookInstaller {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent("hooks.json")
+    if let existing { try existing.write(to: url, atomically: true, encoding: .utf8) }
+    return AntigravityHookInstaller(configURL: url, executablePath: executable)
+}
+
+func readJSON(_ url: URL) throws -> [String: Any] {
+    try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
+}
+
+func installerAt(_ path: String, existing: String? = nil) throws -> HookInstaller {
+    let installer = try makeInstaller(existing: existing)
+    return HookInstaller(settingsURL: installer.settingsURL, executablePath: path)
+}

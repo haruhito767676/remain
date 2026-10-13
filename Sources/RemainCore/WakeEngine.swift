@@ -16,6 +16,7 @@ public struct AgentSession: Equatable, Sendable {
     public var transcriptPath: String?
     /// How far into the transcript interruption scanning has progressed.
     public var scanOffset: UInt64?
+    public var agent: AgentKind = .claudeCode
 }
 
 /// Something worth telling the user about, emitted when the engine's state changes.
@@ -153,8 +154,27 @@ public struct WakeEngine: Sendable {
             let offset = event.transcriptSize ?? (event.transcriptPath != nil ? 0 : nil)
             sessions[id] = AgentSession(
                 id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
-                pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: offset
+                pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: offset, agent: event.agent
             )
+            return []
+        case .start:
+            // For tools that only tell us "a model call is starting": keep the session if there is one.
+            if var session = sessions[id] {
+                session.phase = .working
+                session.lastSeen = now
+                session.pid = event.pid ?? session.pid
+                sessions[id] = session
+            } else {
+                let offset = event.transcriptSize ?? (event.transcriptPath != nil ? 0 : nil)
+                sessions[id] = AgentSession(
+                    id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
+                    pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: offset, agent: event.agent
+                )
+            }
+            return []
+        case .interrupted:
+            // The user is present: end quietly, like an interruption found in the transcript.
+            sessions[id] = nil
             return []
         case .activity:
             // Unknown sessions are ignored on purpose: a late hook arriving after `Stop`

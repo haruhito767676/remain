@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>remAIn: keep your Mac awake while AI agents work</title>
+<meta name="description" content="A macOS menu bar app that holds a sleep assertion only while Claude Code is actually working.">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fbfbfd; --fg: #1d1d1f; --muted: #6e6e73; --card: #fff; --line: #d2d2d7; --accent: #0071e3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --fg: #f5f5f7; --muted: #a1a1a6; --card: #1c1c1e; --line: #38383a; --accent: #2997ff; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 72px 20px 96px; }
+  h1 { font-size: clamp(40px, 8vw, 56px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 16px; }
+  h2 { font-size: 24px; letter-spacing: -0.01em; margin: 56px 0 12px; }
+  p { margin: 0 0 16px; }
+  .lead { font-size: 21px; color: var(--muted); }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 28px 0 0; }
+  a.button {
+    display: inline-block; padding: 10px 20px; border-radius: 980px; text-decoration: none;
+    background: var(--accent); color: #fff; font-weight: 500;
+  }
+  a.button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 15px; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { color: var(--muted); font-weight: 500; }
+  code, pre { font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  code { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+  pre { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
+  ul { padding-left: 20px; } li { margin-bottom: 8px; }
+  footer { margin-top: 64px; color: var(--muted); font-size: 14px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>remAIn</h1>
+  <p class="lead">Keeps your Mac awake only while an AI coding agent is actually working.</p>
+  <p>Long Claude Code runs die when the Mac idles to sleep. A plain stay-awake toggle fixes that but keeps the machine up long after the agent is done. remAIn listens to Claude Code's hooks and holds a sleep assertion for exactly as long as the agent is busy.</p>
+  <div class="actions">
+    <a class="button" href="https://github.com/haruhito767676/remain/releases/latest">Download</a>
+    <a class="button secondary" href="https://github.com/haruhito767676/remain">View on GitHub</a>
+  </div>
+
+  <h2>How it behaves</h2>
+  <table>
+    <tr><th>Claude Code event</th><th>remAIn</th></tr>
+    <tr><td><code>UserPromptSubmit</code></td><td>Session starts, Mac stays awake</td></tr>
+    <tr><td><code>PreToolUse</code> / <code>PostToolUse</code></td><td>Heartbeat; resumes after a permission prompt</td></tr>
+    <tr><td><code>Notification</code></td><td>Agent waits for you, sleep is allowed (configurable)</td></tr>
+    <tr><td><code>Stop</code> / <code>SessionEnd</code></td><td>Session ends, hold is released</td></tr>
+  </table>
+
+  <h2>Details</h2>
+  <ul>
+    <li><strong>The display may sleep.</strong> Agents don't need a lit screen, so only system sleep is prevented by default.</li>
+    <li><strong>No stuck awake state.</strong> A session that goes silent is dropped after a timeout, so a missed <code>Stop</code> can't pin your Mac.</li>
+    <li><strong>Native.</strong> A real menu, SF Symbols and a System Settings style preferences window.</li>
+    <li><strong>Notifications and actions.</strong> Get told when a task finishes, and optionally turn the display off or sleep afterwards.</li>
+  </ul>
+
+  <h2>Install</h2>
+  <pre>./scripts/build-app.sh
+open build/remAIn.app</pre>
+  <p>Then open Settings and install the Claude Code hooks. It works with the CLI, the desktop app and the VS Code extension.</p>
+
+  <footer>MIT licensed. Requires macOS 14 or later.</footer>
+</main>
+</body>
+</html>

@@ -69,6 +69,10 @@ F=/Library/Developer/CommandLineTools/Library/Developer/Frameworks
 swift test -Xswiftc -F$F -Xlinker -F$F -Xlinker -rpath -Xlinker $F
 ```
 
+## Releases
+
+Pushing a tag like `v0.2.0` runs `.github/workflows/release.yml`, which tests, builds the app and attaches `remAIn-v0.2.0.zip` to a GitHub release. The landing page in `docs/` is deployed with GitHub Pages (set *Settings → Pages → Source* to *GitHub Actions* once).
+
 ## License
 
 MIT

@@ -23,12 +23,15 @@ public struct PowerState: Codable, Equatable, Sendable {
     public var batteryPercent: Int?
     public var lowPowerMode = false
     public var thermal: ThermalLevel = .nominal
+    public var lidClosed = false
 
-    public init(onBattery: Bool = false, batteryPercent: Int? = nil, lowPowerMode: Bool = false, thermal: ThermalLevel = .nominal) {
+    public init(onBattery: Bool = false, batteryPercent: Int? = nil, lowPowerMode: Bool = false,
+                thermal: ThermalLevel = .nominal, lidClosed: Bool = false) {
         self.onBattery = onBattery
         self.batteryPercent = batteryPercent
         self.lowPowerMode = lowPowerMode
         self.thermal = thermal
+        self.lidClosed = lidClosed
     }
 }
 
@@ -38,6 +41,22 @@ public final class SystemPowerMonitor {
     public var onChange: ((PowerState) -> Void)?
     private var runLoopSource: CFRunLoopSource?
     private var observers: [NSObjectProtocol] = []
+    private var lidTimer: Timer?
+    private var lastPublished: PowerState?
+
+    /// The lid has no change notification we can use, so it is polled; only do that while it matters.
+    public var watchesLid = false {
+        didSet {
+            guard watchesLid != oldValue else { return }
+            lidTimer?.invalidate()
+            lidTimer = nil
+            guard watchesLid else { return }
+            lidTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.publish() }
+            }
+            publish()
+        }
+    }
 
     public init() {}
 
@@ -63,13 +82,26 @@ public final class SystemPowerMonitor {
     }
 
     private func publish() {
-        onChange?(Self.read())
+        let state = Self.read()
+        guard state != lastPublished else { return }
+        lastPublished = state
+        onChange?(state)
+    }
+
+    /// `AppleClamshellState` on the power-management root domain; false on desktops.
+    static func isLidClosed() -> Bool {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPMrootDomain"))
+        guard service != IO_OBJECT_NULL else { return false }
+        defer { IOObjectRelease(service) }
+        let value = IORegistryEntryCreateCFProperty(service, "AppleClamshellState" as CFString, kCFAllocatorDefault, 0)
+        return (value?.takeRetainedValue() as? Bool) ?? false
     }
 
     public static func read() -> PowerState {
         var state = PowerState(
             lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled,
-            thermal: ThermalLevel(ProcessInfo.processInfo.thermalState)
+            thermal: ThermalLevel(ProcessInfo.processInfo.thermalState),
+            lidClosed: isLidClosed()
         )
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
               let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef] else { return state }

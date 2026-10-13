@@ -110,3 +110,93 @@ func project(_ path: String) -> AgentEvent { AgentEvent(sessionID: "s", cwd: pat
 func openInterval(start: Double, lastSeen: Double, projects: Set<String> = ["remain"]) -> OpenInterval {
     OpenInterval(id: UUID(), start: at(start), sources: [.agent], projects: projects, lastSeen: at(lastSeen))
 }
+
+// MARK: - Lid helpers
+
+final class FakeDisabler: SleepDisabling, @unchecked Sendable {
+    var ready = true
+    var succeeds = true
+    private(set) var disabled = false
+    private(set) var sleepNowCalls = 0
+    private(set) var setCalls: [Bool] = []
+    func isReady() -> Bool { ready }
+    func setDisabled(_ disabled: Bool) -> Bool {
+        setCalls.append(disabled)
+        guard succeeds else { return false }
+        self.disabled = disabled
+        return true
+    }
+    func isDisabled() -> Bool { disabled }
+    func sleepNow() { sleepNowCalls += 1 }
+    func forceDisabled(_ value: Bool) { disabled = value }
+}
+
+final class FakeHeartbeat: HeartbeatWriting, @unchecked Sendable {
+    private(set) var present = false
+    private(set) var beats = 0
+    func beat() { present = true; beats += 1 }
+    func clear() { present = false }
+    func exists() -> Bool { present }
+    func plant() { present = true }
+}
+
+@MainActor
+final class FakeLid: LidSleepControlling {
+    private(set) var calls: [(prevent: Bool, lidClosed: Bool)] = []
+    private(set) var shutdowns = 0
+    func apply(prevent: Bool, lidClosed: Bool) { calls.append((prevent, lidClosed)) }
+    func shutdown() { shutdowns += 1 }
+}
+
+/// Runs the real watchdog script with a throw-away HOME and returns the heartbeat path.
+struct WatchdogRun {
+    let home: URL
+    var heartbeat: URL { home.appendingPathComponent("Library/Application Support/remAIn/lid-heartbeat") }
+
+    init() throws {
+        home = FileManager.default.temporaryDirectory.appendingPathComponent("remain-home-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: heartbeat.deletingLastPathComponent(), withIntermediateDirectories: true)
+    }
+
+    func plantHeartbeat(ageSeconds: Double) throws {
+        try "x".write(to: heartbeat, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.modificationDate: Date().addingTimeInterval(-ageSeconds)], ofItemAtPath: heartbeat.path)
+    }
+
+    var heartbeatExists: Bool { FileManager.default.fileExists(atPath: heartbeat.path) }
+
+    @discardableResult
+    func run() throws -> Int32 {
+        let script = home.appendingPathComponent("watchdog.sh")
+        try LidSupport.watchdogScript.write(to: script, atomically: true, encoding: .utf8)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = [script.path]
+        process.environment = ["HOME": home.path, "PATH": "/usr/bin:/bin"]
+        process.standardOutput = Pipe()
+        process.standardError = Pipe()
+        try process.run()
+        process.waitUntilExit()
+        return process.terminationStatus
+    }
+
+    static func syntaxCheck() throws -> Int32 {
+        let script = FileManager.default.temporaryDirectory.appendingPathComponent("wd-\(UUID().uuidString).sh")
+        try LidSupport.watchdogScript.write(to: script, atomically: true, encoding: .utf8)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-n", script.path]
+        try process.run()
+        process.waitUntilExit()
+        return process.terminationStatus
+    }
+}
+
+func sudoersContent(for user: String) -> String? { LidSupport.sudoersContent(user: user) }
+func watchdogPlistObject() throws -> [String: Any] {
+    let support = LidSupport(supportDirectory: URL(fileURLWithPath: "/tmp/Application Support/remAIn"),
+                             launchAgentsDirectory: URL(fileURLWithPath: "/tmp/LaunchAgents"), userName: "tester", uid: 501)
+    let data = Data(support.watchdogPlist().utf8)
+    return try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
+}
+func adminScript(_ command: String) -> String { LidSupport.adminAppleScript(command) }

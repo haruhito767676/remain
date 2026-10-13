@@ -28,6 +28,8 @@ public enum WakeEffect: Equatable, Sendable {
     case allFinished(duration: TimeInterval)
     /// A hold that was wanted had to be released because of power conditions.
     case holdSuspended(HoldBlock)
+    /// The lid-closed time limit ran out: the Mac will sleep when the lid is closed.
+    case lidLimitReached
 }
 
 /// Why a wanted hold is not being applied.
@@ -72,6 +74,10 @@ public struct WakeSettings: Codable, Equatable, Sendable {
     public var respectLowPowerMode = false
     /// Let the Mac sleep when macOS reports a critical thermal state.
     public var releaseWhenOverheating = true
+    /// Keep running when the lid is closed while a hold is wanted (needs one-time system setup).
+    public var keepRunningWithLidClosed = false
+    /// Safety limit for lid-closed operation, counted from the start of the hold.
+    public var lidClosedLimit: TimeInterval = 3 * 60 * 60
 
     public init() {}
 
@@ -91,6 +97,8 @@ public struct WakeSettings: Codable, Equatable, Sendable {
         holdOnlyOnAC = try c.decodeIfPresent(Bool.self, forKey: .holdOnlyOnAC) ?? d.holdOnlyOnAC
         respectLowPowerMode = try c.decodeIfPresent(Bool.self, forKey: .respectLowPowerMode) ?? d.respectLowPowerMode
         releaseWhenOverheating = try c.decodeIfPresent(Bool.self, forKey: .releaseWhenOverheating) ?? d.releaseWhenOverheating
+        keepRunningWithLidClosed = try c.decodeIfPresent(Bool.self, forKey: .keepRunningWithLidClosed) ?? d.keepRunningWithLidClosed
+        lidClosedLimit = try c.decodeIfPresent(TimeInterval.self, forKey: .lidClosedLimit) ?? d.lidClosedLimit
     }
 }
 
@@ -102,13 +110,17 @@ public struct WakeSnapshot: Codable, Equatable, Sendable {
     public var manual: ManualMode
     /// Set when a hold is wanted but power conditions prevent it.
     public var blockedBy: HoldBlock?
+    /// Whether closing the lid should *not* put the Mac to sleep right now.
+    public var preventLidSleep: Bool
 
-    public init(prevention: SleepPrevention, workingCount: Int, waitingCount: Int, manual: ManualMode, blockedBy: HoldBlock? = nil) {
+    public init(prevention: SleepPrevention, workingCount: Int, waitingCount: Int, manual: ManualMode,
+                blockedBy: HoldBlock? = nil, preventLidSleep: Bool = false) {
         self.prevention = prevention
         self.workingCount = workingCount
         self.waitingCount = waitingCount
         self.manual = manual
         self.blockedBy = blockedBy
+        self.preventLidSleep = preventLidSleep
     }
 
     public static let idle = WakeSnapshot(prevention: .none, workingCount: 0, waitingCount: 0, manual: .off)
@@ -123,6 +135,9 @@ public struct WakeEngine: Sendable {
     public private(set) var power = PowerState()
     /// Hysteresis: once the battery cutoff trips it stays tripped until 5 points above it.
     private var batteryLatched = false
+    /// When lid-closed prevention began within the current hold, and whether its limit has run out.
+    public private(set) var lidSince: Date?
+    public private(set) var lidLimitHit = false
 
     public init(settings: WakeSettings = WakeSettings()) {
         self.settings = settings
@@ -214,7 +229,31 @@ public struct WakeEngine: Sendable {
         let level: SleepPrevention = (wantsHold && blocked == nil)
             ? (settings.keepDisplayOn ? .systemAndDisplay : .system)
             : .none
-        return WakeSnapshot(prevention: level, workingCount: working, waitingCount: waiting, manual: manual, blockedBy: blocked)
+        return WakeSnapshot(
+            prevention: level, workingCount: working, waitingCount: waiting, manual: manual,
+            blockedBy: blocked, preventLidSleep: wantsLidPrevention
+        )
+    }
+
+    /// Lid-closed operation is wanted, allowed and still within its time limit.
+    var wantsLidPrevention: Bool {
+        settings.keepRunningWithLidClosed && wantsHold && block == nil && !lidLimitHit
+    }
+
+    /// Tracks the lid-closed time limit. Call with the current time whenever state may have changed.
+    @discardableResult
+    public mutating func updateLid(at now: Date) -> [WakeEffect] {
+        guard settings.keepRunningWithLidClosed, wantsHold else {
+            lidSince = nil
+            lidLimitHit = false
+            return []
+        }
+        if lidSince == nil { lidSince = now }
+        if !lidLimitHit, let since = lidSince, now.timeIntervalSince(since) >= settings.lidClosedLimit {
+            lidLimitHit = true
+            return [.lidLimitReached]
+        }
+        return []
     }
 
     /// Whether anything (agent, manual timer) wants the Mac to stay awake, ignoring power conditions.
@@ -225,7 +264,11 @@ public struct WakeEngine: Sendable {
     }
 
     var block: HoldBlock? {
-        if settings.releaseWhenOverheating && power.thermal >= .critical { return .overheating }
+        // A closed Mac, often in a bag, cannot shed heat: be stricter than usual.
+        let enclosed = settings.keepRunningWithLidClosed && power.lidClosed
+        if (enclosed && power.thermal >= .serious) || (settings.releaseWhenOverheating && power.thermal >= .critical) {
+            return .overheating
+        }
         if batteryLatched, let percent = power.batteryPercent { return .lowBattery(percent: percent) }
         if settings.respectLowPowerMode && power.lowPowerMode { return .lowPowerMode }
         if settings.holdOnlyOnAC && power.onBattery { return .onBatteryPower }
@@ -258,6 +301,7 @@ public struct WakeEngine: Sendable {
     public func nextDeadline() -> Date? {
         var deadlines = sessions.values.map { $0.lastSeen.addingTimeInterval(settings.sessionTimeout) }
         if case .until(let end) = manual { deadlines.append(end) }
+        if let since = lidSince, !lidLimitHit { deadlines.append(since.addingTimeInterval(settings.lidClosedLimit)) }
         return deadlines.min()
     }
 }

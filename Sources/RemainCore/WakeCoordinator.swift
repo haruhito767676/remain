@@ -17,6 +17,8 @@ public final class WakeCoordinator {
     @ObservationIgnored public let activity: ActivityLog?
     @ObservationIgnored private var endCause: HoldEndReason?
     @ObservationIgnored private var heartbeatTask: Task<Void, Never>?
+    /// Applies lid-closed prevention; set by the app once the system setup is known to be in place.
+    @ObservationIgnored public var lid: (any LidSleepControlling)?
     @ObservationIgnored private let pollInterval: Duration
     /// Called for every effect the engine reports (notifications, completion actions).
     @ObservationIgnored public var onEffect: (@MainActor (WakeEffect) -> Void)?
@@ -60,6 +62,7 @@ public final class WakeCoordinator {
 
     /// Closes the running activity interval; call when the app quits.
     public func shutdown() {
+        lid?.shutdown()
         activity?.end(at: now(), reason: .appQuit)
         heartbeatTask?.cancel()
     }
@@ -80,11 +83,14 @@ public final class WakeCoordinator {
 
     private func refresh() {
         let expiry = engine.expire(at: now())
+        let lidEffects = engine.updateLid(at: now())
         snapshot = engine.snapshot()
         assertions.apply(snapshot.prevention)
+        lid?.apply(prevent: snapshot.preventLidSleep, lidClosed: engine.power.lidClosed)
         recordActivity(expiry: expiry)
         scheduleExpiry()
         ensurePolling()
+        lidEffects.forEach { onEffect?($0) }
     }
 
     /// Opens, updates or closes the activity interval to mirror whether the Mac is being held awake.

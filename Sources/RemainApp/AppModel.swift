@@ -10,6 +10,8 @@ final class AppModel {
     var settingsTab: SettingsTab = .general
     private(set) var integrations: [AgentKind: IntegrationState] = [:]
     private(set) var integrationError: String?
+    private(set) var uninstallBusy = false
+    private(set) var uninstallSummary: String?
     @ObservationIgnored var welcomeWindow: NSWindow?
     /// The welcome window's "Open at login" choice (on by default), applied when the window closes.
     var welcomeOpenAtLogin = true
@@ -176,6 +178,44 @@ final class AppModel {
     }
 
     func requestNotificationAuthorization() { notifier.requestAuthorization() }
+
+    // MARK: - Uninstall
+
+    /// Removes everything remAIn put on the Mac except the app itself, then reports what it did.
+    func removeEverything() {
+        guard !uninstallBusy, let manager = integrationManager() else { return }
+        uninstallBusy = true
+        uninstallSummary = nil
+        update { $0.keepRunningWithLidClosed = false } // stop holding before the setup is taken away
+        let lidSupport = lidSupport
+        Task {
+            let report = await Task.detached {
+                Uninstaller(manager: manager, lid: lidSupport).removeEverything()
+            }.value
+            finishUninstall(report)
+        }
+    }
+
+    private func finishUninstall(_ report: Uninstaller.Report) {
+        var lines: [String] = []
+        if !report.hooksRemoved.isEmpty {
+            lines.append(String(localized: "Removed the hooks of \(report.hooksRemoved.map(\.displayName).joined(separator: ", "))."))
+        }
+        if report.lidSupportRemoved { lines.append(String(localized: "Removed the lid-closed permission and watchdog.")) }
+        if report.lidSupportSkipped { lines.append(String(localized: "The lid-closed permission was kept (the password prompt was cancelled).")) }
+
+        // What only the app can undo: the login item and its saved settings.
+        if SMAppService.mainApp.status == .enabled { try? SMAppService.mainApp.unregister() }
+        if let id = Bundle.main.bundleIdentifier { UserDefaults.standard.removePersistentDomain(forName: id) }
+        activity.clear()
+        lines.append(String(localized: "Removed the login item, saved settings and history."))
+
+        lines.append(contentsOf: report.errors)
+        lines.append(String(localized: "You can now quit remAIn and move it to the Trash."))
+        uninstallSummary = lines.joined(separator: "\n")
+        uninstallBusy = false
+        refreshState()
+    }
 
     // MARK: - Lid-closed mode
 

@@ -31,6 +31,7 @@ struct SettingsView: View {
 
 struct GeneralSettingsView: View {
     let model: AppModel
+    @State private var confirmingUninstall = false
 
     var body: some View {
         Form {
@@ -176,10 +177,25 @@ struct GeneralSettingsView: View {
                     set: { model.setLaunchAtLogin($0) }
                 ))
             }
+
+            Section {
+                Button("Remove All remAIn Changes…", role: .destructive) { confirmingUninstall = true }
+                    .disabled(model.uninstallBusy)
+                if let summary = model.uninstallSummary {
+                    Text(summary).foregroundStyle(.secondary)
+                }
+            } footer: {
+                Text("Removes remAIn's hooks from your tools, the lid-closed permission, the login item, saved settings and history. Your other settings stay as they are. The app itself is left for you to move to the Trash.")
+            }
         }
         .formStyle(.grouped)
         .frame(width: SettingsLayout.width, height: SettingsLayout.height)
         .onAppear { model.refreshState() }
+        .confirmationDialog("Remove everything remAIn has set up?", isPresented: $confirmingUninstall, titleVisibility: .visible) {
+            Button("Remove", role: .destructive) { model.removeEverything() }
+        } message: {
+            Text("macOS may ask for your password to remove the lid-closed permission.")
+        }
     }
 }
 

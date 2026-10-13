@@ -145,3 +145,13 @@
 "remAIn has to be running to notice your agents." = "remAInが起動していないと、エージェントの作業を検知できません。";
 "About remAIn" = "remAInについて";
 "Keeps your Mac awake while AI agents work." = "AIエージェントが作業している間、Macを起こしておきます。";
+/* Uninstall */
+"Remove All remAIn Changes…" = "remAInの変更をすべて元に戻す…";
+"Removes remAIn's hooks from your tools, the lid-closed permission, the login item, saved settings and history. Your other settings stay as they are. The app itself is left for you to move to the Trash." = "各ツールのremAInのhooks、蓋を閉じたままの許可、ログイン項目、保存済みの設定と履歴を削除します。そのほかの設定には手を加えません。アプリ本体は、ゴミ箱に移すのをあなたに任せます。";
+"Remove everything remAIn has set up?" = "remAInが設定したものをすべて削除しますか?";
+"macOS may ask for your password to remove the lid-closed permission." = "蓋を閉じたままの許可を削除するために、macOSがパスワードを求めることがあります。";
+"Removed the hooks of %@." = "%@のhooksを削除しました。";
+"Removed the lid-closed permission and watchdog." = "蓋を閉じたままの許可と見張り役を削除しました。";
+"The lid-closed permission was kept (the password prompt was cancelled)." = "蓋を閉じたままの許可は、そのまま残しました(パスワードの入力がキャンセルされたため)。";
+"Removed the login item, saved settings and history." = "ログイン項目、保存済みの設定、履歴を削除しました。";
+"You can now quit remAIn and move it to the Trash." = "remAInを終了して、ゴミ箱に移せます。";

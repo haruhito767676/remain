@@ -110,11 +110,26 @@ func runDoctor() -> Never {
     exit(0)
 }
 
+/// Same as the Settings button, minus the login item and saved settings, which only the app can reach.
+func runUninstall() -> Never {
+    print("Removing remAIn's hooks, lid-closed setup and data (an administrator prompt may appear)…")
+    let report = Uninstaller(manager: IntegrationManager(executablePath: executablePath())).removeEverything()
+    for agent in report.hooksRemoved { print("  removed hooks: \(agent.displayName)") }
+    if report.lidSupportRemoved { print("  removed: lid-closed permission and watchdog") }
+    if report.lidSupportSkipped { print("  skipped: the administrator prompt was cancelled (the watchdog was still removed)") }
+    for name in report.dataRemoved { print("  removed data: \(name)") }
+    for error in report.errors { print("  PROBLEM: \(error)") }
+    print("Done. In the app, Settings has the same button and also removes Open at login and saved settings.")
+    print("Then quit remAIn and move it to the Trash.")
+    exit(report.errors.isEmpty ? 0 : 1)
+}
+
 let usage = """
 usage: remain <command>
   status                 show the current state
   doctor                 check the app and every integration
   version                print the version
+  uninstall              remove everything remAIn put on this Mac (not the app itself)
   sessions               list tracked agent sessions (debugging)
   run [--] <command>     keep the Mac awake while a command runs
   on [minutes]           keep the Mac awake (indefinitely, or for N minutes)
@@ -183,6 +198,8 @@ case "install-hooks", "uninstall-hooks":
     }
 case "doctor":
     runDoctor()
+case "uninstall":
+    runUninstall()
 case "version", "--version", "-v":
     print("remAIn \(remainVersion)")
 case "debug":

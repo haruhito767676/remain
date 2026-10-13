@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 # The version comes from the single source of truth in the code unless the caller overrides it.
 VERSION="${VERSION:-$(sed -n 's/.*remainVersion = "\(.*\)"/\1/p' Sources/RemainCore/Version.swift)}"
 APP="build/remAIn.app"
-# Build number: the CI run number, else the commit count. (Shown as "Version 0.1.0 (42)" in About.)
+# Build number: the CI run number, else the commit count. (Shown as "Version 1.0.0 (42)" in About.)
 BUILD="${GITHUB_RUN_NUMBER:-$(git rev-list --count HEAD 2>/dev/null || echo 1)}"
 
 # One build per architecture, merged with lipo (works without a full Xcode install).

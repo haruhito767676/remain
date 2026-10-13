@@ -8,8 +8,11 @@ struct MenuContent: View {
 
     var body: some View {
         // Buttons rather than plain Text: a Text row is a disabled menu item and renders in a
-        // low-contrast gray. Clicking a status row opens Settings.
-        Button(model.statusTitle, action: showSettings)
+        // low-contrast gray. A status row only does something when it describes a manual hold:
+        // clicking that ends it.
+        Button(model.statusTitle) {
+            if model.statusIsManualHold { model.coordinator.setManual(.off) }
+        }
         if model.needsAttention {
             Button("Finish setting up your agents…") {
                 model.settingsTab = .general
@@ -17,10 +20,10 @@ struct MenuContent: View {
             }
         }
         if let line = model.manualHoldLine {
-            Button(line, action: showSettings)
+            Button(line) { model.coordinator.setManual(.off) }
         }
         if let lid = model.lidLine {
-            Button(lid, action: showSettings)
+            Button(lid) {}
         }
         if let today = model.todaySummary {
             Button(today) {

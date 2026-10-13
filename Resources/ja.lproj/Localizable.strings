@@ -14,7 +14,7 @@
 "Manual: on" = "手動: オン";
 "Manual: until %@ (%@ left)" = "手動: %1$@まで(残り%2$@)";
 "An agent is waiting for you" = "エージェントが入力待ち";
-"Sleep allowed" = "スリープ可能";
+"Sleeps as usual" = "通常どおりスリープします";
 /* Settings: agents */
 "Agents" = "エージェント";
 "Keep awake while an agent is waiting" = "エージェントが待っている間も、スリープを防ぐ";
@@ -48,7 +48,7 @@
 "An agent is waiting for you." = "エージェントがあなたの入力を待っています。";
 "took %@" = "所要時間 %@";
 /* Power guard */
-"Sleep allowed: %@" = "スリープ可能: %@";
+"Allowing sleep: %@" = "スリープを許可中: %@";
 "Battery at %@" = "バッテリー残量 %@";
 "On battery power" = "バッテリー駆動中";
 "Low Power Mode is on" = "低電力モードがオン";

@@ -98,7 +98,7 @@ final class AppModel {
 
     var statusTitle: String {
         let s = snapshot
-        if let block = s.blockedBy { return String(localized: "Sleep allowed: \(block.reason)") }
+        if let block = s.blockedBy { return String(localized: "Allowing sleep: \(block.reason)") }
         if s.workingCount > 0 {
             return s.workingCount == 1
                 ? String(localized: "An agent is working")
@@ -111,7 +111,13 @@ final class AppModel {
         case .off: break
         }
         if s.waitingCount > 0 { return String(localized: "An agent is waiting for you") }
-        return String(localized: "Sleep allowed")
+        return String(localized: "Sleeps as usual")
+    }
+
+    /// The status line describes a manual hold (nothing else is going on), so clicking it can end it.
+    var statusIsManualHold: Bool {
+        let s = snapshot
+        return s.blockedBy == nil && s.workingCount == 0 && s.manual != .off
     }
 
     /// Current time, re-read whenever the tick fires so views that show durations stay fresh.

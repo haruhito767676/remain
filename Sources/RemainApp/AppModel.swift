@@ -8,8 +8,10 @@ final class AppModel {
     let coordinator: WakeCoordinator
     let activity: ActivityLog
     var settingsTab: SettingsTab = .general
-    private(set) var hooksInstalled = false
-    private(set) var hooksError: String?
+    private(set) var integrations: [AgentKind: IntegrationState] = [:]
+    private(set) var integrationError: String?
+    @ObservationIgnored var welcomeWindow: NSWindow?
+    @ObservationIgnored private static let onboardingKey = "onboardingDone"
     private(set) var launchAtLogin = false
     private(set) var lidReady = false
     private(set) var lidBusy = false
@@ -44,7 +46,7 @@ final class AppModel {
         do {
             try server.start { request in await coordinator.handle(request) }
         } catch {
-            hooksError = String(localized: "Could not start receiving hook events: \(String(describing: error))")
+            integrationError = String(localized: "Could not start receiving hook events: \(String(describing: error))")
         }
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [coordinator] _ in
             MainActor.assumeIsolated { coordinator.shutdown() }
@@ -52,6 +54,11 @@ final class AppModel {
         powerMonitor.onChange = { [coordinator] state in coordinator.update(power: state) }
         powerMonitor.start()
         refreshState()
+        repairIntegrationsIfBundled()
+        Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1)) // let the app finish launching before showing a window
+            self?.showWelcomeIfNeeded()
+        }
         Task { [weak self] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(20))
@@ -232,42 +239,85 @@ final class AppModel {
         notifier.lidFailed(failure)
     }
 
-    func installHooks() { runInstaller { try $0.install() } }
-    func uninstallHooks() { runInstaller { try $0.uninstall() } }
+    // MARK: - Integrations
+
+    /// Hooks are (re)written for `agent`; "Repair" is the same operation as "Install".
+    func installIntegration(_ agent: AgentKind) { runIntegration { try $0.install(agent) } }
+    func removeIntegration(_ agent: AgentKind) { runIntegration { try $0.uninstall(agent) } }
+
+    /// A tool that is on this Mac but not connected, or connected to a stale path.
+    var needsAttention: Bool {
+        AgentKind.integrable.contains { integrations[$0] == .notInstalled || integrations[$0] == .needsRepair }
+    }
+
+    /// The hooks remAIn wrote point at this app's helper. If the app moved, they quietly stop working,
+    /// so fix our own entries. Skipped when run from a build folder, which must not hijack the hooks.
+    private func repairIntegrationsIfBundled() {
+        guard Bundle.main.bundleIdentifier != nil, let manager = integrationManager() else { return }
+        if !manager.repairAll().isEmpty { refreshState() }
+    }
+
+    func showWelcomeIfNeeded() {
+        guard !UserDefaults.standard.bool(forKey: Self.onboardingKey), needsAttention else { return }
+        showWelcome()
+    }
+
+    func showWelcome() {
+        if let window = welcomeWindow {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        let window = NSWindow(contentViewController: NSHostingController(rootView: WelcomeView(model: self)))
+        window.title = "remAIn"
+        window.styleMask = [.titled, .closable]
+        window.isReleasedWhenClosed = false
+        window.center()
+        NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated {
+                UserDefaults.standard.set(true, forKey: Self.onboardingKey)
+                self?.welcomeWindow = nil
+            }
+        }
+        welcomeWindow = window
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+    }
 
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            hooksError = String(localized: "Launch at login: \(error.localizedDescription)")
+            integrationError = String(localized: "Launch at login: \(error.localizedDescription)")
         }
         refreshState()
     }
 
     func refreshState() {
-        hooksInstalled = installer()?.isInstalled() ?? false
+        if let manager = integrationManager() {
+            integrations = Dictionary(uniqueKeysWithValues: AgentKind.integrable.map { ($0, manager.state(of: $0)) })
+        }
         lidReady = lidSupport.isReady()
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 
     // MARK: - Private
 
-    private func runInstaller(_ action: (HookInstaller) throws -> Void) {
-        guard let installer = installer() else {
-            hooksError = String(localized: "Could not find the remain command-line helper.")
+    private func runIntegration(_ action: (IntegrationManager) throws -> Void) {
+        guard let manager = integrationManager() else {
+            integrationError = String(localized: "Could not find the remain command-line helper.")
             return
         }
         do {
-            try action(installer)
-            hooksError = nil
+            try action(manager)
+            integrationError = nil
         } catch {
-            hooksError = "\(error)"
+            integrationError = "\(error)"
         }
         refreshState()
     }
 
     /// The CLI lives in `remAIn.app/Contents/Helpers/remain`, or next to the binary during development.
-    private func installer() -> HookInstaller? {
+    private func integrationManager() -> IntegrationManager? {
         let candidates = [
             Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/remain"),
             Bundle.main.executableURL?.deletingLastPathComponent().appendingPathComponent("remain"),
@@ -275,7 +325,7 @@ final class AppModel {
         guard let cli = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
             return nil
         }
-        return HookInstaller(executablePath: cli.path)
+        return IntegrationManager(executablePath: cli.path)
     }
 
     private static func loadSettings() -> WakeSettings {

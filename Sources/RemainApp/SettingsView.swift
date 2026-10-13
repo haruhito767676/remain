@@ -158,24 +158,16 @@ struct GeneralSettingsView: View {
             }
 
             Section {
-                LabeledContent("Integration") {
-                    HStack {
-                        Text(model.hooksInstalled ? "Installed" : "Not installed")
-                            .foregroundStyle(.secondary)
-                        if model.hooksInstalled {
-                            Button("Remove") { model.uninstallHooks() }
-                        } else {
-                            Button("Install") { model.installHooks() }
-                        }
-                    }
+                ForEach(AgentKind.integrable, id: \.self) { agent in
+                    IntegrationRow(model: model, agent: agent)
                 }
-                if let error = model.hooksError {
+                if let error = model.integrationError {
                     Text(error).foregroundStyle(.red)
                 }
             } header: {
-                Text("Claude Code")
+                Text("Integrations")
             } footer: {
-                Text("Adds remAIn to ~/.claude/settings.json so it knows when Claude Code starts and stops working. Works with the VS Code extension and the CLI.")
+                Text("remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone.")
             }
 
             Section {
@@ -188,5 +180,69 @@ struct GeneralSettingsView: View {
         .formStyle(.grouped)
         .frame(width: SettingsLayout.width, height: SettingsLayout.height)
         .onAppear { model.refreshState() }
+    }
+}
+
+/// One tool: its state and the button that fits it. Shared by Settings and the welcome window.
+struct IntegrationRow: View {
+    let model: AppModel
+    let agent: AgentKind
+
+    var body: some View {
+        let state = model.integrations[agent] ?? .notDetected
+        LabeledContent(agent.displayName) {
+            HStack {
+                Text(label(state))
+                    .foregroundStyle(state == .needsRepair ? Color.orange : Color.secondary)
+                switch state {
+                case .installed:
+                    Button("Remove") { model.removeIntegration(agent) }
+                case .needsRepair:
+                    Button("Repair") { model.installIntegration(agent) }
+                case .notInstalled, .notDetected:
+                    Button("Install") { model.installIntegration(agent) }
+                }
+            }
+        }
+    }
+
+    private func label(_ state: IntegrationState) -> LocalizedStringKey {
+        switch state {
+        case .installed: "Installed"
+        case .notInstalled: "Not installed"
+        case .notDetected: "Not detected"
+        case .needsRepair: "Needs repair"
+        }
+    }
+}
+
+/// Shown once at first launch when a supported tool is on the Mac but not connected yet.
+struct WelcomeView: View {
+    let model: AppModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Welcome to remAIn").font(.title2.bold())
+            Text("remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:")
+                .fixedSize(horizontal: false, vertical: true)
+            Form {
+                ForEach(AgentKind.integrable, id: \.self) { agent in
+                    IntegrationRow(model: model, agent: agent)
+                }
+            }
+            .formStyle(.grouped)
+            .scrollDisabled(true)
+            .frame(height: 130)
+            if let error = model.integrationError {
+                Text(error).foregroundStyle(.red)
+            }
+            HStack {
+                Spacer()
+                Button("Done") { model.welcomeWindow?.close() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 440)
     }
 }

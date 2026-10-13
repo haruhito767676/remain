@@ -237,3 +237,22 @@ import Testing
         #expect((hooks["Stop"] as! [Any]).count == 1) // replaced, not duplicated
     }
 }
+
+@Suite struct HookDebugLogPrivacyTests {
+    @Test func promptTextNeverReachesTheLog() {
+        let claude = loggable(.claudeCode, #"{"session_id":"s","hook_event_name":"UserPromptSubmit","prompt":"my secret plan"}"#)
+        #expect(!claude.contains("secret"))
+        #expect(claude == "keys: hook_event_name,prompt,session_id")
+        let codex = loggable(.codex, #"{"session_id":"s","prompt":"another secret"}"#)
+        #expect(!codex.contains("secret"))
+    }
+
+    @Test func antigravityIsLoggedRawBecauseThatIsTheWholePoint() {
+        let raw = #"{"conversationId":"c","fullyIdle":true,"terminationReason":"user_cancelled"}"#
+        #expect(loggable(.antigravity, raw) == raw)
+    }
+
+    @Test func unparseableInputIsNotEchoed() {
+        #expect(loggable(.claudeCode, "my secret not json") == "(unparsed)")
+    }
+}

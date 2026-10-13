@@ -18,6 +18,19 @@ public enum HookDebugLog {
         }
     }
 
+    /// What may be written to the log for a hook input. Claude Code and Codex put the user's prompt
+    /// text in their payload, so for them only the field names are kept. Antigravity's payload carries
+    /// ids and paths only, and the raw form is what is needed to learn how it behaves.
+    static func loggableInput(agent: AgentKind, stdin: Data) -> String {
+        switch agent {
+        case .antigravity:
+            return String(decoding: stdin.prefix(8000), as: UTF8.self)
+        case .claudeCode, .codex, .command:
+            guard let object = (try? JSONSerialization.jsonObject(with: stdin)) as? [String: Any] else { return "(unparsed)" }
+            return "keys: " + object.keys.sorted().joined(separator: ",")
+        }
+    }
+
     /// Never throws and never blocks the tool that called the hook.
     public static func record(agent: AgentKind, eventArgument: String?, stdin: Data, decoded: AgentEvent?, processes: [(pid: Int32, name: String)]) {
         guard isEnabled else { return }
@@ -25,7 +38,7 @@ public enum HookDebugLog {
             "time": ISO8601DateFormatter().string(from: Date()),
             "agent": agent.cliName,
             "eventArgument": eventArgument ?? NSNull(),
-            "stdin": String(decoding: stdin.prefix(8000), as: UTF8.self),
+            "stdin": loggableInput(agent: agent, stdin: stdin),
             "decodedKind": decoded?.kind.rawValue ?? NSNull(),
             "decodedPID": decoded?.pid.map { Int($0) } as Any? ?? NSNull(),
             "ancestors": processes.map { "\($0.pid):\($0.name)" },

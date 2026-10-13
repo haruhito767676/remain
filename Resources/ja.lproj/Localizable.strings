@@ -46,13 +46,10 @@
 "The action runs 10 seconds after the last task ends. It is skipped if you start new work, or if the work was shorter than the time chosen above." = "最後の作業が終わって10秒後に実行します。新しい作業を始めた場合や、上で指定した時間より短い作業のあとは実行しません。";
 
 /* Settings: Claude Code */
-"Claude Code" = "Claude Code";
-"Integration" = "連携";
 "Installed" = "インストール済み";
 "Not installed" = "未インストール";
 "Install" = "インストール";
 "Remove" = "削除";
-"Adds remAIn to ~/.claude/settings.json so it knows when Claude Code starts and stops working. Works with the VS Code extension and the CLI." = "~/.claude/settings.json にremAInを追加し、Claude Codeの作業の開始と終了を検知できるようにします。VS Code拡張とCLIの両方で動作します。";
 "Open at login" = "ログイン時に開く";
 
 /* Errors */
@@ -134,3 +131,14 @@
 "Could not keep running with the lid closed" = "蓋を閉じたままの動作を開始できませんでした";
 "The system permission is not set up. Open Settings to set it up." = "システムの許可が未設定です。設定画面でセットアップしてください。";
 "The system refused the change. Try setting it up again." = "システムが変更を受け付けませんでした。もう一度セットアップしてください。";
+
+/* Integrations */
+"Integrations" = "連携";
+"Not detected" = "見つかりません";
+"Needs repair" = "要修復";
+"Repair" = "修復";
+"remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone." = "remAInは、各ツールのhooksファイルに自分の項目だけを追加し、ツールの作業の開始と終了を知ります。ファイルのそれ以外の内容には手を加えません。";
+"Finish setting up your agents…" = "エージェントの連携を完了する…";
+"Welcome to remAIn" = "remAInへようこそ";
+"remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:" = "remAInは、AIエージェントが作業している間だけMacのスリープを防ぎ、作業が終わったらスリープできるようにします。使っているツールを連携してください:";
+"Done" = "完了";

@@ -32,8 +32,9 @@ public enum AgentKind: String, Codable, CaseIterable, Sendable {
         self = kind
     }
 
-    /// Tools that call `remain hook`; `command` has no hook integration.
-    public static var integrable: [AgentKind] { [.claudeCode, .antigravity, .codex] }
+    /// Tools remAIn can connect to. Codex's hooks are decoded already but stay off this list until they
+    /// have been checked against a real Codex; `command` (remain run) needs no integration.
+    public static var integrable: [AgentKind] { [.claudeCode, .antigravity] }
 
     /// Does the conversation log reveal interruptions we know how to read?
     var scansTranscriptForInterruption: Bool { self == .claudeCode }

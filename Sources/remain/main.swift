@@ -78,9 +78,41 @@ func runCommand(_ command: [String]) -> Never {
     exit(process.terminationReason == .uncaughtSignal ? 128 + process.terminationStatus : process.terminationStatus)
 }
 
+/// One screen that answers "why is nothing happening?".
+func runDoctor() -> Never {
+    func line(_ label: String, _ value: String) { print("  " + label.padding(toLength: 18, withPad: " ", startingAt: 0) + value) }
+    print("remAIn doctor")
+
+    if let response = try? IPCClient.send(.status), let snapshot = response.snapshot {
+        line("app", "running (\(describe(snapshot)))")
+    } else {
+        line("app", "NOT RUNNING: open remAIn.app; hooks do nothing without it")
+    }
+
+    let manager = IntegrationManager(executablePath: executablePath())
+    for agent in AgentKind.integrable {
+        let path = manager.configURL(of: agent)?.path ?? ""
+        let text: String
+        switch manager.state(of: agent) {
+        case .installed: text = "connected (\(path))"
+        case .notInstalled: text = "found, not connected: run `remain install-hooks \(agent.cliName)`"
+        case .needsRepair: text = "hooks point to another copy of remAIn: run `remain install-hooks \(agent.cliName)`"
+        case .notDetected: text = "not found on this Mac"
+        }
+        line(agent.displayName, text)
+    }
+
+    let lid = LidSupport()
+    let privilege = lid.isPrivilegeInstalled(), watchdog = lid.isWatchdogLoaded()
+    line("lid-closed mode", privilege && watchdog ? "ready" : "not set up (permission: \(privilege ? "yes" : "no"), watchdog: \(watchdog ? "yes" : "no"))")
+    line("hook debug log", HookDebugLog.isEnabled ? "ON: \(HookDebugLog.logURL.path)" : "off (turn on with `remain debug on`)")
+    exit(0)
+}
+
 let usage = """
 usage: remain <command>
   status                 show the current state
+  doctor                 check the app and every integration
   sessions               list tracked agent sessions (debugging)
   run [--] <command>     keep the Mac awake while a command runs
   on [minutes]           keep the Mac awake (indefinitely, or for N minutes)
@@ -126,23 +158,16 @@ case "off":
     print(response.snapshot.map(describe) ?? "ok")
 case "install-hooks", "uninstall-hooks":
     let agent = args.dropFirst().first.flatMap { AgentKind(cliName: $0) } ?? .claudeCode
+    let manager = IntegrationManager(executablePath: executablePath())
     let install = args[0] == "install-hooks"
     do {
-        switch agent {
-        case .claudeCode:
-            let installer = HookInstaller(executablePath: executablePath())
-            if install { try installer.install() } else { try installer.uninstall() }
-            print("\(install ? "Installed remAIn hooks in" : "Removed remAIn hooks from") \(installer.settingsURL.path)")
-        case .antigravity:
-            let installer = AntigravityHookInstaller(executablePath: executablePath())
-            if install { try installer.install() } else { try installer.uninstall() }
-            print("\(install ? "Installed remAIn hooks in" : "Removed remAIn hooks from") \(installer.configURL.path)")
-        case .codex, .command:
-            fail("\(agent.displayName) is not supported yet.")
-        }
+        if install { try manager.install(agent) } else { try manager.uninstall(agent) }
+        print("\(install ? "Installed remAIn hooks for" : "Removed remAIn hooks for") \(agent.displayName): \(manager.configURL(of: agent)?.path ?? "")")
     } catch {
         fail("\(error)")
     }
+case "doctor":
+    runDoctor()
 case "debug":
     switch args.dropFirst().first {
     case "on": HookDebugLog.setEnabled(true); print("Hook debug log on: \(HookDebugLog.logURL.path)")

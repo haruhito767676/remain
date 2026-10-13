@@ -10,6 +10,12 @@ struct MenuContent: View {
         // Buttons rather than plain Text: a Text row is a disabled menu item and renders in a
         // low-contrast gray. Clicking a status row opens Settings.
         Button(model.statusTitle, action: showSettings)
+        if model.needsAttention {
+            Button("Finish setting up your agents…") {
+                model.settingsTab = .general
+                showSettings()
+            }
+        }
         if let line = model.manualHoldLine {
             Button(line, action: showSettings)
         }

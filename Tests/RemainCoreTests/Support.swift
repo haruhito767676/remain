@@ -239,3 +239,23 @@ func installerAt(_ path: String, existing: String? = nil) throws -> HookInstalle
 final class PowerSource: @unchecked Sendable {
     var state = PowerState(onBattery: true, batteryPercent: 24)
 }
+
+// MARK: - Integration helpers
+
+struct FakeHome {
+    let home: URL
+    init() throws {
+        home = FileManager.default.temporaryDirectory.appendingPathComponent("home-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+    }
+    func makeDirectory(_ relative: String) throws {
+        try FileManager.default.createDirectory(at: home.appendingPathComponent(relative), withIntermediateDirectories: true)
+    }
+    func manager(executable: String = "/Apps/remain") -> IntegrationManager {
+        IntegrationManager(executablePath: executable, home: home, applicationDirectories: [home.appendingPathComponent("Applications")])
+    }
+}
+
+func loggable(_ agent: AgentKind, _ json: String) -> String {
+    HookDebugLog.loggableInput(agent: agent, stdin: Data(json.utf8))
+}

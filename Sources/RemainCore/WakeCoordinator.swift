@@ -12,14 +12,21 @@ public final class WakeCoordinator {
     @ObservationIgnored private let assertions: any SleepAssertionProviding
     @ObservationIgnored private let now: @Sendable () -> Date
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
+    @ObservationIgnored private var pollTask: Task<Void, Never>?
+    @ObservationIgnored private let probe: any SessionProbing
+    @ObservationIgnored private let pollInterval: Duration
     /// Called for every effect the engine reports (notifications, completion actions).
     @ObservationIgnored public var onEffect: (@MainActor (WakeEffect) -> Void)?
 
     public init(
         settings: WakeSettings = WakeSettings(),
         assertions: any SleepAssertionProviding,
+        probe: any SessionProbing = SystemSessionProbe(),
+        pollInterval: Duration = .seconds(3),
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
+        self.probe = probe
+        self.pollInterval = pollInterval
         self.settings = settings
         self.engine = WakeEngine(settings: settings)
         self.assertions = assertions
@@ -57,6 +64,44 @@ public final class WakeCoordinator {
         snapshot = engine.snapshot()
         assertions.apply(snapshot.prevention)
         scheduleExpiry()
+        ensurePolling()
+    }
+
+    /// Looks for sessions that ended without telling us: the Claude Code process is gone,
+    /// or the user interrupted it (no `Stop` hook fires for that).
+    func checkLiveness() {
+        var ended = false
+        for session in engine.sessions.values {
+            if let pid = session.pid, !probe.isAlive(pid: pid) {
+                engine.end(session.id)
+                ended = true
+            } else if let path = session.transcriptPath, let offset = session.scanOffset {
+                let scan = probe.scanTranscript(path: path, from: offset)
+                if scan.interrupted {
+                    engine.end(session.id)
+                    ended = true
+                } else if scan.newOffset != offset {
+                    engine.setScanOffset(scan.newOffset, for: session.id)
+                }
+            }
+        }
+        if ended { refresh() }
+    }
+
+    /// Polls only while there are sessions to watch.
+    private func ensurePolling() {
+        guard pollTask == nil, !engine.sessions.isEmpty else { return }
+        pollTask = Task { [weak self, pollInterval] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: pollInterval)
+                guard let self else { return }
+                checkLiveness()
+                if engine.sessions.isEmpty {
+                    pollTask = nil
+                    return
+                }
+            }
+        }
     }
 
     private func scheduleExpiry() {

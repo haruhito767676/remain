@@ -52,7 +52,10 @@ let args = Array(CommandLine.arguments.dropFirst())
 switch args.first {
 case "hook":
     let input = FileHandle.standardInput.readDataToEndOfFile()
-    if let payload = try? JSONDecoder().decode(HookPayload.self, from: input) {
+    if var payload = try? JSONDecoder().decode(HookPayload.self, from: input) {
+        // Tell the app which process to watch and where to look for interruptions.
+        payload.claudePID = ProcessTree.claudeAncestor()
+        payload.transcriptSize = payload.transcriptPath.flatMap { TranscriptScanner.fileSize(atPath: $0) }
         _ = try? IPCClient.send(.hook(payload))
     }
     exit(0)

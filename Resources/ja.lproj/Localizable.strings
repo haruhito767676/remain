@@ -23,12 +23,13 @@
 "Agents" = "エージェント";
 "Keep awake while Claude Code waits for me" = "Claude Codeが入力待ちの間も起こしておく";
 "Keep the display on" = "ディスプレイを点灯したままにする";
-"Stop holding after silence of" = "無反応が続いたら解除するまでの時間";
+"Stop holding after silence of" = "報告が途絶えてから解除するまでの時間";
 "5 minutes" = "5分";
-"15 minutes" = "15分";
 "30 minutes" = "30分";
 "1 hour" = "1時間";
-"If a session stops reporting (for example after an interruption), remAIn lets the Mac sleep again after this time." = "セッションからの報告が途絶えた場合(中断された場合など)、この時間が経つとremAInはMacを再びスリープできる状態に戻します。";
+"2 hours" = "2時間";
+"4 hours" = "4時間";
+"Interruptions and closed sessions are detected automatically. This timeout is only a safety net for a session that stops reporting for any other reason." = "中断やセッションの終了は自動で検知します。この時間は、それ以外の理由で報告が途絶えた場合の安全装置です。";
 
 /* Settings: finish */
 "When Agents Finish" = "エージェントの完了時";

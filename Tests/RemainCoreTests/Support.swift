@@ -36,3 +36,30 @@ func rawSettings(_ installer: HookInstaller) throws -> String {
 func decodeSettings(_ json: String) throws -> WakeSettings {
     try JSONDecoder().decode(WakeSettings.self, from: Data(json.utf8))
 }
+
+// MARK: - Liveness helpers
+
+func scan(_ jsonLines: [String]) -> Bool {
+    TranscriptScanner.containsInterruption(in: Data((jsonLines.joined(separator: "\n") + "\n").utf8))
+}
+
+func scanFile(_ text: String, from offset: UInt64 = 0) throws -> TranscriptScan {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jsonl")
+    try text.write(to: url, atomically: true, encoding: .utf8)
+    return TranscriptScanner.scan(path: url.path, from: offset)
+}
+
+final class FakeAssertions: SleepAssertionProviding, @unchecked Sendable {
+    private(set) var level: SleepPrevention = .none
+    func apply(_ level: SleepPrevention) { self.level = level }
+}
+
+final class FakeProbe: SessionProbing, @unchecked Sendable {
+    var alive = true
+    var next = TranscriptScan(newOffset: 0, interrupted: false)
+    func isAlive(pid: Int32) -> Bool { alive }
+    func scanTranscript(path: String, from offset: UInt64) -> TranscriptScan { next }
+}
+
+func ownPID() -> Int32 { getpid() }
+func parentPID() -> Int32 { getppid() }

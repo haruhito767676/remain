@@ -11,6 +11,11 @@ public struct AgentSession: Equatable, Sendable {
     public var startedAt: Date
     public var lastSeen: Date
     public var cwd: String?
+    /// Claude Code process; if it disappears the session is over.
+    public var pid: Int32?
+    public var transcriptPath: String?
+    /// How far into the transcript interruption scanning has progressed.
+    public var scanOffset: UInt64?
 }
 
 /// Something worth telling the user about, emitted when the engine's state changes.
@@ -38,7 +43,8 @@ public enum ManualMode: Codable, Equatable, Sendable {
 public struct WakeSettings: Codable, Equatable, Sendable {
     /// A session that has not reported anything for this long is considered dead.
     /// Protects against missed `Stop` events (interrupts, crashes).
-    public var sessionTimeout: TimeInterval = 15 * 60
+    /// Interruptions and dead processes are detected directly; this is only a safety net.
+    public var sessionTimeout: TimeInterval = 60 * 60
     /// Keep the Mac awake while an agent waits for the user (permission prompts).
     public var holdWhileWaiting = false
     /// Keep the display on as well. Off by default: agents do not need a lit screen.
@@ -93,7 +99,10 @@ public struct WakeEngine: Sendable {
         let id = event.sessionID
         switch event.kind {
         case .prompt:
-            sessions[id] = AgentSession(id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd)
+            sessions[id] = AgentSession(
+                id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
+                pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: event.transcriptSize
+            )
             return []
         case .activity:
             // Unknown sessions are ignored on purpose: a late hook arriving after `Stop`
@@ -101,6 +110,7 @@ public struct WakeEngine: Sendable {
             guard var session = sessions[id] else { return [] }
             session.phase = .working
             session.lastSeen = now
+            session.pid = event.pid ?? session.pid
             sessions[id] = session
             return []
         case .attention:
@@ -120,6 +130,16 @@ public struct WakeEngine: Sendable {
             }
             return effects
         }
+    }
+
+    /// Ends a session silently (interrupted or process gone): the user is present, so no
+    /// notification and no completion action.
+    public mutating func end(_ id: String) {
+        sessions[id] = nil
+    }
+
+    public mutating func setScanOffset(_ offset: UInt64, for id: String) {
+        sessions[id]?.scanOffset = offset
     }
 
     public mutating func setManual(_ mode: ManualMode) {

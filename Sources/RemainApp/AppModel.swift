@@ -166,9 +166,12 @@ final class AppModel {
 
     private static func loadSettings() -> WakeSettings {
         guard let data = UserDefaults.standard.data(forKey: settingsKey),
-              let settings = try? JSONDecoder().decode(WakeSettings.self, from: data) else {
+              var settings = try? JSONDecoder().decode(WakeSettings.self, from: data) else {
             return WakeSettings()
         }
+        // The old default (15 min) cut off long tool runs. Interruptions are now detected directly,
+        // so the timeout is only a safety net and the default moved to 1 hour.
+        if settings.sessionTimeout == 15 * 60 { settings.sessionTimeout = WakeSettings().sessionTimeout }
         return settings
     }
 }

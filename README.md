@@ -25,7 +25,10 @@ Design notes:
 
 - **Display may sleep.** Agents don't need a lit screen, so by default only *system* sleep is prevented.
 - **Sessions are tracked per `session_id`**, so several parallel sessions work.
-- **Missed `Stop` events can't pin your Mac awake.** A session that stays silent for 15 minutes (configurable) is dropped.
+- **Interruptions don't pin your Mac awake.** Claude Code fires no `Stop` hook when you press Esc or reject a tool, so remAIn watches two things instead of guessing from silence:
+  - the Claude Code *process* (found by walking up from the hook process): if it exits or crashes, the session ends;
+  - the session *transcript*: a user-role `[Request interrupted by user…]` entry ends the session. Only user entries count, so the same text in assistant output or tool results is ignored, and half-written lines are never judged.
+  A long silence timeout (1 hour by default) remains as a last-resort safety net.
 - **Late hooks are ignored** for sessions that already finished, so reordering can't resurrect them.
 - **The hook command never prints and always exits 0**, so it can't pollute the model's context or break Claude Code if the app isn't running.
 - The core logic (`WakeEngine`) is a pure value type with injected time and is fully unit-tested. IOKit sits behind a protocol.

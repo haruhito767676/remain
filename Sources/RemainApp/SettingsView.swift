@@ -19,15 +19,15 @@ struct SettingsView: View {
                     get: { model.settings.sessionTimeout },
                     set: { value in model.update { $0.sessionTimeout = value } }
                 )) {
-                    Text("5 minutes").tag(TimeInterval(5 * 60))
-                    Text("15 minutes").tag(TimeInterval(15 * 60))
                     Text("30 minutes").tag(TimeInterval(30 * 60))
                     Text("1 hour").tag(TimeInterval(60 * 60))
+                    Text("2 hours").tag(TimeInterval(2 * 60 * 60))
+                    Text("4 hours").tag(TimeInterval(4 * 60 * 60))
                 }
             } header: {
                 Text("Agents")
             } footer: {
-                Text("If a session stops reporting (for example after an interruption), remAIn lets the Mac sleep again after this time.")
+                Text("Interruptions and closed sessions are detected automatically. This timeout is only a safety net for a session that stops reporting for any other reason.")
             }
 
             Section {

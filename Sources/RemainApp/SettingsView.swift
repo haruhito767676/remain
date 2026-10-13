@@ -196,28 +196,32 @@ struct IntegrationRow: View {
 
     var body: some View {
         let state = model.integrations[agent] ?? .notDetected
-        LabeledContent(agent.displayName) {
-            HStack {
-                Text(label(state))
-                    .foregroundStyle(state == .needsRepair ? Color.orange : Color.secondary)
-                switch state {
-                case .installed:
-                    Button("Remove") { model.removeIntegration(agent) }
-                case .needsRepair:
-                    Button("Repair") { model.installIntegration(agent) }
-                case .notInstalled, .notDetected:
-                    Button("Install") { model.installIntegration(agent) }
+        HStack {
+            Toggle(isOn: Binding(
+                get: { state == .installed || state == .needsRepair },
+                set: { $0 ? model.installIntegration(agent) : model.removeIntegration(agent) }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(agent.displayName)
+                    if let note = note(state) {
+                        Text(note)
+                            .font(.caption)
+                            .foregroundStyle(state == .needsRepair ? Color.orange : Color.secondary)
+                    }
                 }
+            }
+            .disabled(state == .notDetected)
+            if state == .needsRepair {
+                Button("Repair") { model.installIntegration(agent) }
             }
         }
     }
 
-    private func label(_ state: IntegrationState) -> LocalizedStringKey {
+    private func note(_ state: IntegrationState) -> LocalizedStringKey? {
         switch state {
-        case .installed: "Installed"
-        case .notInstalled: "Not installed"
         case .notDetected: "Not detected"
         case .needsRepair: "Needs repair"
+        case .installed, .notInstalled: nil
         }
     }
 }

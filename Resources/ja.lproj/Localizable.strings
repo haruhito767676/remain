@@ -38,9 +38,6 @@
 "Turn the display off" = "ディスプレイを消灯する";
 "Put the Mac to sleep" = "Macをスリープさせる";
 /* Settings: Claude Code */
-"Installed" = "インストール済み";
-"Not installed" = "未インストール";
-"Install" = "インストール";
 "Remove" = "削除";
 "Open at login" = "ログイン時に開く";
 /* Errors */

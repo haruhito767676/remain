@@ -218,7 +218,7 @@ struct IntegrationRow: View {
 
 /// Shown once at first launch when a supported tool is on the Mac but not connected yet.
 struct WelcomeView: View {
-    let model: AppModel
+    @Bindable var model: AppModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -232,7 +232,12 @@ struct WelcomeView: View {
             }
             .formStyle(.grouped)
             .scrollDisabled(true)
-            .frame(height: 130)
+            .frame(height: CGFloat(model.visibleIntegrations.count) * 44 + 40)
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("Open at login", isOn: $model.welcomeOpenAtLogin)
+                Text("remAIn has to be running to notice your agents.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             if let error = model.integrationError {
                 Text(error).foregroundStyle(.red)
             }

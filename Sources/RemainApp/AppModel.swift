@@ -11,6 +11,8 @@ final class AppModel {
     private(set) var integrations: [AgentKind: IntegrationState] = [:]
     private(set) var integrationError: String?
     @ObservationIgnored var welcomeWindow: NSWindow?
+    /// The welcome window's "Open at login" choice (on by default), applied when the window closes.
+    var welcomeOpenAtLogin = true
     @ObservationIgnored private static let onboardingKey = "onboardingDone"
     private(set) var launchAtLogin = false
     private(set) var lidReady = false
@@ -264,8 +266,10 @@ final class AppModel {
         if !manager.repairAll().isEmpty { refreshState() }
     }
 
+    /// Shown once, on the very first launch, so a new user always gets to connect their tools and to
+    /// decide about starting at login (hooks do nothing while the app is not running).
     func showWelcomeIfNeeded() {
-        guard !UserDefaults.standard.bool(forKey: Self.onboardingKey), needsAttention else { return }
+        guard !UserDefaults.standard.bool(forKey: Self.onboardingKey) else { return }
         showWelcome()
     }
 
@@ -282,7 +286,12 @@ final class AppModel {
         NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 UserDefaults.standard.set(true, forKey: Self.onboardingKey)
-                self?.welcomeWindow = nil
+                guard let self else { return }
+                self.welcomeWindow = nil
+                // Whatever way the window was closed, honour the choice (only a real app can register).
+                if Bundle.main.bundleIdentifier != nil, self.welcomeOpenAtLogin != self.launchAtLogin {
+                    self.setLaunchAtLogin(self.welcomeOpenAtLogin)
+                }
             }
         }
         welcomeWindow = window

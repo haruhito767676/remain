@@ -468,10 +468,4 @@ import Testing
         try manager.uninstall(.codex)
         #expect(manager.state(of: .codex) == .notInstalled)
     }
-
-    @Test func codexIsFlaggedExperimental() {
-        #expect(AgentKind.codex.isExperimental)
-        #expect(!AgentKind.claudeCode.isExperimental)
-        #expect(!AgentKind.antigravity.isExperimental)
-    }
 }

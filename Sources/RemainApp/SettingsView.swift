@@ -190,7 +190,7 @@ struct IntegrationRow: View {
 
     var body: some View {
         let state = model.integrations[agent] ?? .notDetected
-        LabeledContent {
+        LabeledContent(agent.displayName) {
             HStack {
                 Text(label(state))
                     .foregroundStyle(state == .needsRepair ? Color.orange : Color.secondary)
@@ -201,13 +201,6 @@ struct IntegrationRow: View {
                     Button("Repair") { model.installIntegration(agent) }
                 case .notInstalled, .notDetected:
                     Button("Install") { model.installIntegration(agent) }
-                }
-            }
-        } label: {
-            HStack(spacing: 6) {
-                Text(agent.displayName)
-                if agent.isExperimental {
-                    Text("Experimental").font(.caption).foregroundStyle(.secondary)
                 }
             }
         }

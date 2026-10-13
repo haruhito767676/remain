@@ -35,9 +35,6 @@ public enum AgentKind: String, Codable, CaseIterable, Sendable {
     /// Tools remAIn can connect to; `command` (remain run) needs no integration.
     public static var integrable: [AgentKind] { [.claudeCode, .antigravity, .codex] }
 
-    /// Supported from the documentation, still being checked against the real tool.
-    public var isExperimental: Bool { self == .codex }
-
     /// Does the conversation log reveal interruptions we know how to read?
     var scansTranscriptForInterruption: Bool { self == .claudeCode }
 

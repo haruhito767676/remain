@@ -142,5 +142,3 @@
 "Welcome to remAIn" = "remAInへようこそ";
 "remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:" = "remAInは、AIエージェントが作業している間だけMacのスリープを防ぎ、作業が終わったらスリープできるようにします。使っているツールを連携してください:";
 "Done" = "完了";
-
-"Experimental" = "試験的";

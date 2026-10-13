@@ -61,7 +61,7 @@ Works with the Claude Code CLI, desktop app and the VS Code extension, since all
 | --- | --- |
 | Claude Code | hooks in `~/.claude/settings.json` (CLI, desktop, VS Code extension) |
 | Antigravity | hooks in `~/.gemini/config/hooks.json`; model calls count as work. Its stop button fires no hook and leaves no trace in its log, so a run that goes quiet for 5 minutes is considered over, unless `Stop` said a background command is still running (`fullyIdle: false`) |
-| Codex (experimental) | hooks in `~/.codex/hooks.json`; Codex asks you to review and trust them (`/hooks`) before they run. Verified with the Codex CLI. In the desktop app, Codex starts hooks in the conversation's working folder: if that folder does not exist (a placeholder "New project"), every hook fails with `No such file or directory`, so open a real folder |
+| Codex | hooks in `~/.codex/hooks.json` (CLI and desktop app). Codex asks you to review and trust them first, and starts hooks in the conversation's working folder: if that folder does not exist (the desktop app's placeholder "New project"), every hook fails with `No such file or directory`, so open a real folder. Checked: prompt, stop and interrupt (Esc). Not exercised yet: tool-use and approval events |
 | anything else | `remain run -- <command>` holds while the command runs |
 
 Settings → Integrations (and a welcome window on first launch) connects the tools it finds. If the app is moved, the hooks it wrote are re-pointed automatically at launch. `remain doctor` shows what is connected and what is not; `remain debug on` records raw hook calls (field names only for Claude Code and Codex, since their payloads contain your prompts).

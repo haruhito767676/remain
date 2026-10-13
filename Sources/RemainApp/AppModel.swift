@@ -19,6 +19,8 @@ final class AppModel {
     private(set) var launchAtLogin = false
     private(set) var lidReady = false
     private(set) var notificationsDenied = false
+    /// Desktop Macs have no battery and no lid: the settings that only make sense on a laptop hide.
+    private(set) var hasBattery = true
     private(set) var lidBusy = false
     private(set) var lidError: String?
     /// Bumped while a manual timer runs so that "time left" in the menu stays current.
@@ -59,7 +61,10 @@ final class AppModel {
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [coordinator] _ in
             MainActor.assumeIsolated { coordinator.shutdown() }
         }
-        powerMonitor.onChange = { [coordinator] state in coordinator.update(power: state) }
+        powerMonitor.onChange = { [coordinator, weak self] state in
+            coordinator.update(power: state)
+            self?.hasBattery = state.batteryPercent != nil
+        }
         powerMonitor.start()
         refreshState()
         repairIntegrationsIfBundled()

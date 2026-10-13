@@ -58,17 +58,19 @@ struct GeneralSettingsView: View {
             }
 
             Section {
-                Picker("Let the Mac sleep when the battery is below", selection: Binding(
-                    get: { model.settings.batteryCutoffPercent },
-                    set: { value in model.update { $0.batteryCutoffPercent = value } }
-                )) {
-                    Text("Never").tag(0)
-                    ForEach([10, 15, 20, 30], id: \.self) { Text(verbatim: "\($0)%").tag($0) }
+                if model.hasBattery {
+                    Picker("Let the Mac sleep when the battery is below", selection: Binding(
+                        get: { model.settings.batteryCutoffPercent },
+                        set: { value in model.update { $0.batteryCutoffPercent = value } }
+                    )) {
+                        Text("Never").tag(0)
+                        ForEach([10, 15, 20, 30], id: \.self) { Text(verbatim: "\($0)%").tag($0) }
+                    }
+                    Toggle("Only keep awake on AC power", isOn: Binding(
+                        get: { model.settings.holdOnlyOnAC },
+                        set: { value in model.update { $0.holdOnlyOnAC = value } }
+                    ))
                 }
-                Toggle("Only keep awake on AC power", isOn: Binding(
-                    get: { model.settings.holdOnlyOnAC },
-                    set: { value in model.update { $0.holdOnlyOnAC = value } }
-                ))
                 Toggle("Don't keep awake in Low Power Mode", isOn: Binding(
                     get: { model.settings.respectLowPowerMode },
                     set: { value in model.update { $0.respectLowPowerMode = value } }
@@ -81,39 +83,41 @@ struct GeneralSettingsView: View {
                 Text("Power")
             }
 
-            Section {
-                LabeledContent("System permission") {
-                    HStack {
-                        Text(model.lidReady ? "Ready" : "Not set up").foregroundStyle(.secondary)
-                        if model.lidReady {
-                            Button("Remove") { model.removeLidSupport() }.disabled(model.lidBusy)
-                        } else {
-                            Button("Set Up…") { model.setUpLidSupport() }.disabled(model.lidBusy)
+            if model.hasBattery {
+                Section {
+                    LabeledContent("System permission") {
+                        HStack {
+                            Text(model.lidReady ? "Ready" : "Not set up").foregroundStyle(.secondary)
+                            if model.lidReady {
+                                Button("Remove") { model.removeLidSupport() }.disabled(model.lidBusy)
+                            } else {
+                                Button("Set Up…") { model.setUpLidSupport() }.disabled(model.lidBusy)
+                            }
                         }
                     }
+                    Toggle("Keep running with the lid closed", isOn: Binding(
+                        get: { model.settings.keepRunningWithLidClosed },
+                        set: { model.setLidMode($0) }
+                    ))
+                    .disabled(!model.lidReady)
+                    Picker("Stop after", selection: Binding(
+                        get: { model.settings.lidClosedLimit },
+                        set: { value in model.update { $0.lidClosedLimit = value } }
+                    )) {
+                        Text("1 hour").tag(TimeInterval(1 * 3600))
+                        Text("2 hours").tag(TimeInterval(2 * 3600))
+                        Text("3 hours").tag(TimeInterval(3 * 3600))
+                        Text("4 hours").tag(TimeInterval(4 * 3600))
+                        Text("6 hours").tag(TimeInterval(6 * 3600))
+                    }
+                    if let error = model.lidError {
+                        Text(error).foregroundStyle(.red)
+                    }
+                } header: {
+                    Text("Lid Closed")
+                } footer: {
+                    Text("Asks for your password once.")
                 }
-                Toggle("Keep running with the lid closed", isOn: Binding(
-                    get: { model.settings.keepRunningWithLidClosed },
-                    set: { model.setLidMode($0) }
-                ))
-                .disabled(!model.lidReady)
-                Picker("Stop after", selection: Binding(
-                    get: { model.settings.lidClosedLimit },
-                    set: { value in model.update { $0.lidClosedLimit = value } }
-                )) {
-                    Text("1 hour").tag(TimeInterval(1 * 3600))
-                    Text("2 hours").tag(TimeInterval(2 * 3600))
-                    Text("3 hours").tag(TimeInterval(3 * 3600))
-                    Text("4 hours").tag(TimeInterval(4 * 3600))
-                    Text("6 hours").tag(TimeInterval(6 * 3600))
-                }
-                if let error = model.lidError {
-                    Text(error).foregroundStyle(.red)
-                }
-            } header: {
-                Text("Lid Closed")
-            } footer: {
-                Text("Asks for your password once.")
             }
 
             Section {

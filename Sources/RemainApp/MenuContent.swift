@@ -43,14 +43,16 @@ struct MenuContent: View {
             Button("4 Hours") { model.coordinator.setManual(minutes: 240) }
         }
 
-        Toggle("Keep Running with Lid Closed", isOn: Binding(
-            get: { model.settings.keepRunningWithLidClosed },
-            set: { enabled in
-                model.setLidMode(enabled)
-                // Not set up yet: take the user to where the setup button is.
-                if enabled, !model.lidReady { showSettings() }
-            }
-        ))
+        if model.hasBattery {
+            Toggle("Keep Running with Lid Closed", isOn: Binding(
+                get: { model.settings.keepRunningWithLidClosed },
+                set: { enabled in
+                    model.setLidMode(enabled)
+                    // Not set up yet: take the user to where the setup button is.
+                    if enabled, !model.lidReady { showSettings() }
+                }
+            ))
+        }
 
         Divider()
 

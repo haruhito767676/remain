@@ -265,3 +265,26 @@ func loggable(_ agent: AgentKind, _ json: String) -> String {
 func eventName(_ agent: AgentKind, _ argument: String?, _ json: String) -> String? {
     HookDecoder.eventName(agent: agent, argument: argument, stdin: Data(json.utf8))
 }
+
+// MARK: - Uninstaller helpers
+
+struct SupportDirectory {
+    let url: URL
+    init(files: [String]) throws {
+        url = FileManager.default.temporaryDirectory.appendingPathComponent("support-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        for name in files { try "x".write(to: url.appendingPathComponent(name), atomically: true, encoding: .utf8) }
+    }
+    func has(_ name: String) -> Bool { FileManager.default.fileExists(atPath: url.appendingPathComponent(name).path) }
+}
+
+extension FakeHome {
+    func has(_ relative: String) -> Bool { FileManager.default.fileExists(atPath: home.appendingPathComponent(relative).path) }
+    func write(_ relative: String, _ text: String) throws {
+        let target = home.appendingPathComponent(relative)
+        try FileManager.default.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try text.write(to: target, atomically: true, encoding: .utf8)
+    }
+    func read(_ relative: String) throws -> String { try String(contentsOf: home.appendingPathComponent(relative), encoding: .utf8) }
+    func json(_ relative: String) throws -> [String: Any] { try readJSON(home.appendingPathComponent(relative)) }
+}

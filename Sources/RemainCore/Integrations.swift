@@ -95,6 +95,18 @@ public struct IntegrationManager: Sendable {
         return isDetected(agent) ? .notInstalled : .notDetected
     }
 
+    /// Why the tool's hooks file cannot be read, if it exists but is not valid JSON. remAIn never rewrites
+    /// such a file, so anything it put there stays until the user fixes it.
+    public func configProblem(of agent: AgentKind) -> String? {
+        guard let url = configURL(of: agent), FileManager.default.fileExists(atPath: url.path) else { return nil }
+        do {
+            _ = try JSONFile.load(url)
+            return nil
+        } catch {
+            return "\(error)"
+        }
+    }
+
     // MARK: Actions
 
     public func install(_ agent: AgentKind) throws {

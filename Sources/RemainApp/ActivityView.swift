@@ -62,8 +62,6 @@ struct ActivityView: View {
             Section {
                 Button("Clear Activity Log…", role: .destructive) { confirmingClear = true }
                     .disabled(log.intervals.isEmpty)
-            } footer: {
-                Text("Stored only on this Mac and deleted automatically after 90 days.")
             }
         }
         .formStyle(.grouped)

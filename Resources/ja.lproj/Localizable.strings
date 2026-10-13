@@ -81,7 +81,6 @@
 "Clear the activity log?" = "アクティビティログを消去しますか?";
 "This deletes all recorded activity. It cannot be undone." = "記録をすべて削除します。元に戻せません。";
 "Clear" = "消去";
-"Stored only on this Mac and deleted automatically after 90 days." = "このMacの中だけに保存され、90日たつと自動で削除されます。";
 "Finished" = "完了";
 "Interrupted" = "中断";
 "Agent closed" = "エージェントが終了";

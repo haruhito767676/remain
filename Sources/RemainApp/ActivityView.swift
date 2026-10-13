@@ -67,8 +67,7 @@ struct ActivityView: View {
             }
         }
         .formStyle(.grouped)
-        // Fixed height: the form scrolls instead of growing taller than the screen.
-        .frame(width: 460, height: 620)
+        .frame(width: SettingsLayout.width, height: SettingsLayout.height)
         .confirmationDialog("Clear the activity log?", isPresented: $confirmingClear, titleVisibility: .visible) {
             Button("Clear", role: .destructive) { log.clear() }
         } message: {

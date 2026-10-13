@@ -1,6 +1,13 @@
 import SwiftUI
 import RemainCore
 
+enum SettingsLayout {
+    /// Every tab uses the same size, so the window does not jump when switching tabs.
+    /// Content taller than this scrolls inside the form.
+    static let width: CGFloat = 460
+    static let height: CGFloat = 620
+}
+
 enum SettingsTab: Hashable {
     case general
     case activity
@@ -140,8 +147,7 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(width: SettingsLayout.width, height: SettingsLayout.height)
         .onAppear { model.refreshState() }
     }
 }

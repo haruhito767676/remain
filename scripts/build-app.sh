@@ -33,6 +33,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleDisplayName</key><string>remAIn</string>
     <key>CFBundleIdentifier</key><string>dev.remain.app</string>
     <key>CFBundleExecutable</key><string>RemainApp</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundleVersion</key><string>${VERSION}</string>
@@ -44,9 +45,10 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 PLIST
 
 # Localizations (English is the source language and needs no table).
+mkdir -p "$APP/Contents/Resources"
 if [ -d Resources ]; then
-    mkdir -p "$APP/Contents/Resources"
     cp -R Resources/*.lproj "$APP/Contents/Resources/"
+    cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 fi
 
 codesign --force --deep --sign - "$APP"

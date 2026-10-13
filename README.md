@@ -62,6 +62,10 @@ remain off
 remain install-hooks   # same as the Settings button
 ```
 
+## App icon
+
+The icon is drawn in code (`scripts/make-icon.swift`, plain CoreGraphics, no SF Symbols since Apple's license forbids them in app icons) and committed as `Resources/AppIcon.icns`. A sleeping moon sits inside a task-progress ring whose bright head carries an AI sparkle: stay awake while the task runs. Regenerate with `swift scripts/make-icon.swift`.
+
 ## Development
 
 ```sh

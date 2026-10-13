@@ -16,6 +16,12 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
+    /// True when the user has turned remAIn's notifications off in System Settings.
+    func isDenied() async -> Bool {
+        guard let center else { return false }
+        return await center.notificationSettings().authorizationStatus == .denied
+    }
+
     func finished(cwd: String?, duration: TimeInterval) {
         let took = String(localized: "took \(Self.format(duration))")
         post(title: String(localized: "An agent finished its work"), body: [project(cwd), took].compactMap { $0 }.joined(separator: " · "))

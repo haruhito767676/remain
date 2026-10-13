@@ -131,6 +131,15 @@ struct GeneralSettingsView: View {
                         if value { model.requestNotificationAuthorization() }
                     }
                 ))
+                if model.notificationsDenied, model.settings.notifyOnFinish || model.settings.notifyOnAttention {
+                    LabeledContent("Notifications are off in System Settings") {
+                        Button("Open System Settings…") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                    }
+                }
                 Picker("Only for work that took longer than", selection: Binding(
                     get: { model.settings.minimumNotifiableDuration },
                     set: { value in model.update { $0.minimumNotifiableDuration = value } }

@@ -18,6 +18,7 @@ final class AppModel {
     @ObservationIgnored private static let onboardingKey = "onboardingDone"
     private(set) var launchAtLogin = false
     private(set) var lidReady = false
+    private(set) var notificationsDenied = false
     private(set) var lidBusy = false
     private(set) var lidError: String?
     /// Bumped while a manual timer runs so that "time left" in the menu stays current.
@@ -44,7 +45,10 @@ final class AppModel {
         coordinator.lid = lidController
         lidController.onFailure = { [unowned self] failure in lidFailed(failure) }
         powerMonitor.watchesLid = settings.keepRunningWithLidClosed
-        if settings.notifyOnFinish || settings.notifyOnAttention { notifier.requestAuthorization() }
+        // The first-launch window comes first; its closing asks for permission instead (see showWelcome).
+        if UserDefaults.standard.bool(forKey: Self.onboardingKey), settings.notifyOnFinish || settings.notifyOnAttention {
+            notifier.requestAuthorization()
+        }
         coordinator.onEffect = { [unowned self] effect in handle(effect) }
         let coordinator = coordinator
         do {
@@ -329,6 +333,7 @@ final class AppModel {
                 UserDefaults.standard.set(true, forKey: Self.onboardingKey)
                 guard let self else { return }
                 self.welcomeWindow = nil
+                if self.settings.notifyOnFinish || self.settings.notifyOnAttention { self.notifier.requestAuthorization() }
                 // Whatever way the window was closed, honour the choice (only a real app can register).
                 if Bundle.main.bundleIdentifier != nil, self.welcomeOpenAtLogin != self.launchAtLogin {
                     self.setLaunchAtLogin(self.welcomeOpenAtLogin)
@@ -355,6 +360,7 @@ final class AppModel {
         }
         lidReady = lidSupport.isReady()
         launchAtLogin = SMAppService.mainApp.status == .enabled
+        Task { notificationsDenied = await notifier.isDenied() }
     }
 
     // MARK: - Private

@@ -41,6 +41,7 @@ func describe(_ snapshot: WakeSnapshot) -> String {
 let usage = """
 usage: remain <command>
   status                 show the current state
+  sessions               list tracked agent sessions (debugging)
   on [minutes]           keep the Mac awake (indefinitely, or for N minutes)
   off                    release the manual hold
   install-hooks          register remAIn with Claude Code
@@ -62,6 +63,8 @@ case "hook":
 case "status":
     let response = request(.status)
     print(response.snapshot.map(describe) ?? "unknown")
+case "sessions":
+    print(request(.sessions).message ?? "unknown")
 case "on":
     let minutes = args.dropFirst().first.flatMap { Int($0) }
     let response = request(.keepAwake(minutes: minutes))

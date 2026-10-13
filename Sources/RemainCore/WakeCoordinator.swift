@@ -88,6 +88,19 @@ public final class WakeCoordinator {
         if ended { refresh() }
     }
 
+    func describeSessions() -> String {
+        let t = now()
+        let lines = engine.sessions.values.sorted { $0.startedAt < $1.startedAt }.map { s -> String in
+            let pid = s.pid.map { "pid=\($0) alive=\(probe.isAlive(pid: $0))" } ?? "pid=none"
+            let file = s.transcriptPath.map { path -> String in
+                let size = TranscriptScanner.fileSize(atPath: path).map(String.init) ?? "missing"
+                return "transcript=\((path as NSString).lastPathComponent) scanned=\(s.scanOffset.map(String.init) ?? "none")/size=\(size)"
+            } ?? "transcript=none"
+            return "\(s.id.prefix(8)) \(s.phase.rawValue) age=\(Int(t.timeIntervalSince(s.startedAt)))s idle=\(Int(t.timeIntervalSince(s.lastSeen)))s \(pid) \(file)"
+        }
+        return lines.isEmpty ? "no sessions" : lines.joined(separator: "\n")
+    }
+
     /// Polls only while there are sessions to watch.
     private func ensurePolling() {
         guard pollTask == nil, !engine.sessions.isEmpty else { return }

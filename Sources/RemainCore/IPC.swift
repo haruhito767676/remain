@@ -4,6 +4,8 @@ import Darwin
 public enum IPCRequest: Codable, Sendable {
     case hook(HookPayload)
     case status
+    /// Human-readable dump of every tracked session, for debugging.
+    case sessions
     /// `nil` minutes means indefinitely.
     case keepAwake(minutes: Int?)
     case release
@@ -43,6 +45,8 @@ extension WakeCoordinator {
             if let event = payload.agentEvent { receive(event) }
         case .status:
             break
+        case .sessions:
+            return IPCResponse(ok: true, message: describeSessions(), snapshot: snapshot)
         case .keepAwake(let minutes):
             setManual(minutes: minutes)
         case .release:

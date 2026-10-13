@@ -156,6 +156,18 @@ import Testing
         #expect(engine.handle(event(.attention), at: at(6)).isEmpty)
     }
 
+    @Test func newConversationWithoutTranscriptYetScansFromTheStart() {
+        var engine = WakeEngine()
+        engine.handle(AgentEvent(sessionID: "a", kind: .prompt, transcriptPath: "/tmp/new.jsonl"), at: t0)
+        #expect(engine.sessions["a"]?.scanOffset == 0)
+    }
+
+    @Test func noTranscriptMeansNothingToScan() {
+        var engine = WakeEngine()
+        engine.handle(event(.prompt), at: t0)
+        #expect(engine.sessions["a"]?.scanOffset == nil)
+    }
+
     @Test func oldSavedSettingsStillDecode() throws {
         let settings = try decodeSettings(#"{"sessionTimeout":300,"keepDisplayOn":true}"#)
         #expect(settings.sessionTimeout == 300)

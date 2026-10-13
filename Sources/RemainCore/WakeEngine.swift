@@ -99,9 +99,12 @@ public struct WakeEngine: Sendable {
         let id = event.sessionID
         switch event.kind {
         case .prompt:
+            // A brand-new conversation has no transcript file yet when its first prompt fires,
+            // so a missing size means "start scanning from the beginning".
+            let offset = event.transcriptSize ?? (event.transcriptPath != nil ? 0 : nil)
             sessions[id] = AgentSession(
                 id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
-                pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: event.transcriptSize
+                pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: offset
             )
             return []
         case .activity:

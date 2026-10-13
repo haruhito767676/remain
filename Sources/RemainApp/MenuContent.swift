@@ -13,6 +13,12 @@ struct MenuContent: View {
         if let line = model.manualHoldLine {
             Button(line, action: showSettings)
         }
+        if let today = model.todaySummary {
+            Button(today) {
+                model.settingsTab = .activity
+                showSettings()
+            }
+        }
 
         Divider()
 
@@ -35,8 +41,11 @@ struct MenuContent: View {
 
         Divider()
 
-        Button("Settings…", action: showSettings)
-            .keyboardShortcut(",")
+        Button("Settings…") {
+            model.settingsTab = .general
+            showSettings()
+        }
+        .keyboardShortcut(",")
 
         Button("Quit remAIn") { NSApp.terminate(nil) }
             .keyboardShortcut("q")

@@ -40,6 +40,8 @@ When agents finish, remAIn can also:
 
 **Power guard.** A stay-awake tool should not drain a laptop in a bag. remAIn lets the Mac sleep when the battery falls to a threshold (20% by default, with 5 points of hysteresis so it doesn't flap), and optionally when running on battery at all, in Low Power Mode, or when macOS reports a critical thermal state. It resumes by itself once the condition clears, and tells you when it steps aside.
 
+**Activity log.** Every stretch of time remAIn kept the Mac awake is recorded: start, end, agent or manual, the project folder name and why it ended (finished, interrupted, Claude Code closed, timer, power guard, ...). The menu shows today's total and Settings → Activity shows a 14-day chart, per-project totals and recent history. Data lives in `~/Library/Application Support/remAIn/activity.jsonl` (JSON Lines, 90 days, never leaves the Mac, folder names only). The running interval is checkpointed every minute, so a crash loses at most a minute.
+
 The UI is localized (English, 日本語) and follows the system language. Translations live in `Resources/<lang>.lproj/Localizable.strings`; English strings in the code are the keys.
 
 Works with the Claude Code CLI, desktop app and the VS Code extension, since all read the same `~/.claude/settings.json`.

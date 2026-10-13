@@ -6,6 +6,8 @@ import RemainCore
 @Observable
 final class AppModel {
     let coordinator: WakeCoordinator
+    let activity: ActivityLog
+    var settingsTab: SettingsTab = .general
     private(set) var hooksInstalled = false
     private(set) var hooksError: String?
     private(set) var launchAtLogin = false
@@ -20,7 +22,9 @@ final class AppModel {
 
     init() {
         let settings = Self.loadSettings()
-        coordinator = WakeCoordinator(settings: settings, assertions: IOKitSleepAssertions())
+        let activity = ActivityLog(store: FileActivityStore())
+        self.activity = activity
+        coordinator = WakeCoordinator(settings: settings, assertions: IOKitSleepAssertions(), activity: activity)
         completion = CompletionRunner(coordinator: coordinator)
         if settings.notifyOnFinish || settings.notifyOnAttention { notifier.requestAuthorization() }
         coordinator.onEffect = { [unowned self] effect in handle(effect) }
@@ -30,6 +34,9 @@ final class AppModel {
         } catch {
             hooksError = String(localized: "IPC server failed: \(String(describing: error))")
         }
+        NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [coordinator] _ in
+            MainActor.assumeIsolated { coordinator.shutdown() }
+        }
         powerMonitor.onChange = { [coordinator] state in coordinator.update(power: state) }
         powerMonitor.start()
         refreshState()
@@ -37,7 +44,8 @@ final class AppModel {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(20))
                 guard let self else { return }
-                if case .until = snapshot.manual { clockTick = Date() }
+                // Keeps "time left" and "today" in the menu and the Activity tab current.
+                if snapshot.prevention != .none { clockTick = Date() }
             }
         }
     }
@@ -72,6 +80,20 @@ final class AppModel {
         }
         if s.waitingCount > 0 { return String(localized: "Waiting for your input") }
         return String(localized: "Sleep allowed")
+    }
+
+    /// Current time, re-read whenever the tick fires so views that show durations stay fresh.
+    var now: Date {
+        _ = clockTick
+        return Date()
+    }
+
+    /// "Today: 2h 14m", or nil while there is nothing worth showing.
+    var todaySummary: String? {
+        let intervals = ActivitySummary.all(activity.intervals, open: activity.open, now: now)
+        let seconds = ActivitySummary.daily(intervals, now: now, days: 1).first?.total ?? 0
+        guard seconds >= 60 else { return nil }
+        return String(localized: "Today: \(ActivityView.format(seconds))")
     }
 
     /// Extra line shown while agents are working, so a running manual timer does not disappear from view.

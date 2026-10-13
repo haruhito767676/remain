@@ -78,3 +78,32 @@
 "Don't keep awake in Low Power Mode" = "低電力モードでは起こさない";
 "Let the Mac sleep when it gets too hot" = "高温になったらスリープを許可";
 "remAIn resumes automatically once the condition clears. The battery limit resumes 5 points above the threshold." = "条件が解消されると自動で再開します。バッテリー残量の制限は、設定値より5ポイント上回ると再開します。";
+
+/* Activity */
+"General" = "一般";
+"Activity" = "アクティビティ";
+"Today" = "今日";
+"Today: %@" = "今日: %@";
+"Last 7 days" = "過去7日間";
+"Last 30 days" = "過去30日間";
+"Last 14 days" = "過去14日間";
+"Manual" = "手動";
+"Manual hold" = "手動で維持";
+"By Project (last 30 days)" = "プロジェクト別(過去30日間)";
+"No activity yet. Start a task in Claude Code and it will show up here." = "まだ記録がありません。Claude Codeでタスクを始めると、ここに表示されます。";
+"Recent" = "最近の履歴";
+"Less than a minute" = "1分未満";
+"Clear Activity Log…" = "アクティビティログを消去…";
+"Clear the activity log?" = "アクティビティログを消去しますか?";
+"This removes all recorded history on this Mac. It cannot be undone." = "この Mac に記録された履歴がすべて削除されます。元に戻せません。";
+"Clear" = "消去";
+"Stored only on this Mac. Only project folder names are kept, never full paths. Entries older than 90 days are removed." = "この Mac にだけ保存されます。プロジェクトはフォルダ名のみで、フルパスは保存しません。90日より古い記録は自動で削除されます。";
+"Finished" = "完了";
+"Interrupted" = "中断";
+"Claude Code closed" = "Claude Codeが終了";
+"Timed out" = "タイムアウト";
+"Turned off" = "手動で解除";
+"Timer ended" = "タイマー終了";
+"Power guard" = "電源の保護";
+"remAIn quit" = "remAIn終了";
+"remAIn stopped" = "remAIn停止";

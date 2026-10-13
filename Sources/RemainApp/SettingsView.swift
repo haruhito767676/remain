@@ -1,7 +1,28 @@
 import SwiftUI
 import RemainCore
 
+enum SettingsTab: Hashable {
+    case general
+    case activity
+}
+
+/// The Settings window: a tab bar in the toolbar style System Settings uses.
 struct SettingsView: View {
+    @Bindable var model: AppModel
+
+    var body: some View {
+        TabView(selection: $model.settingsTab) {
+            GeneralSettingsView(model: model)
+                .tabItem { Label("General", systemImage: "gearshape") }
+                .tag(SettingsTab.general)
+            ActivityView(model: model)
+                .tabItem { Label("Activity", systemImage: "chart.bar") }
+                .tag(SettingsTab.activity)
+        }
+    }
+}
+
+struct GeneralSettingsView: View {
     let model: AppModel
 
     var body: some View {

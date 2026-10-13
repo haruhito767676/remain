@@ -167,7 +167,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Integrations")
             } footer: {
-                Text("remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone. Codex asks you to review and trust new hooks before they run (type /hooks in Codex).")
+                Text("remAIn adds its own entries to each tool's hooks file so it knows when the tool starts and stops working. Everything else in those files is left alone.")
             }
 
             Section {

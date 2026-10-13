@@ -140,7 +140,7 @@ public final class WakeCoordinator {
     func checkLiveness() {
         var ended = false
         for session in engine.sessions.values {
-            if let pid = session.pid, !probe.isAlive(pid: pid) {
+            if let pid = session.pid, !probe.isAlive(pid: pid, agent: session.agent) {
                 engine.end(session.id)
                 endCause = .processExited
                 ended = true

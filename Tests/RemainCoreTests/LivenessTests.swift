@@ -116,3 +116,21 @@ private let toolUseInterrupt = #"{"type":"user","message":{"role":"user","conten
         #expect(!ProcessTree.claudeNames.contains("zsh"))
     }
 }
+
+@Suite struct RecycledProcessIDTests {
+    private let probe = SystemSessionProbe()
+
+    @Test func aLiveProcessThatIsNotTheToolDoesNotKeepTheSessionAlive() {
+        // The test runner is alive, but it is not Claude Code: the id was recycled.
+        #expect(probe.isAlive(pid: ownPID()))
+        #expect(!probe.isAlive(pid: ownPID(), agent: .claudeCode))
+    }
+
+    @Test func aWrappedCommandIsWatchedWhateverItIsCalled() {
+        #expect(probe.isAlive(pid: ownPID(), agent: .command))
+    }
+
+    @Test func aDeadProcessIsNeverAlive() {
+        #expect(!probe.isAlive(pid: 999_999, agent: .command))
+    }
+}

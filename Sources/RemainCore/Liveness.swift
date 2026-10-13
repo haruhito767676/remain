@@ -114,7 +114,13 @@ public enum TranscriptScanner {
 
 public protocol SessionProbing: Sendable {
     func isAlive(pid: Int32) -> Bool
+    /// Alive *and still that tool*: a recycled process id must not keep a finished session going.
+    func isAlive(pid: Int32, agent: AgentKind) -> Bool
     func scanTranscript(path: String, from offset: UInt64) -> TranscriptScan
+}
+
+extension SessionProbing {
+    public func isAlive(pid: Int32, agent: AgentKind) -> Bool { isAlive(pid: pid) }
 }
 
 public struct SystemSessionProbe: SessionProbing {
@@ -122,6 +128,14 @@ public struct SystemSessionProbe: SessionProbing {
 
     public func isAlive(pid: Int32) -> Bool {
         kill(pid, 0) == 0 || errno == EPERM
+    }
+
+    public func isAlive(pid: Int32, agent: AgentKind) -> Bool {
+        guard isAlive(pid: pid) else { return false }
+        // `remain run` watches the command itself, whatever it is called. For the tools, the process
+        // we remembered must still carry the tool's name (unknown when it cannot be inspected).
+        guard agent != .command, let name = ProcessTree.executableName(of: pid) else { return true }
+        return agent.ownsProcess(named: name)
     }
 
     public func scanTranscript(path: String, from offset: UInt64) -> TranscriptScan {

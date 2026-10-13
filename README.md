@@ -1,0 +1,69 @@
+# remAIn
+
+A tiny macOS menu bar app that keeps your Mac awake **only while an AI coding agent is actually working**.
+
+Long agent runs (Claude Code, etc.) get killed when the Mac idles to sleep. A plain "stay awake" toggle fixes that, but leaves the Mac awake long after the agent has finished. remAIn listens to Claude Code's [hooks](https://code.claude.com/docs/en/hooks) and holds a sleep assertion for exactly as long as the agent is busy.
+
+## How it works
+
+```
+Claude Code ──hook (JSON on stdin)──▶ remain hook ──Unix socket──▶ remAIn.app
+                                                                      │
+                                         WakeEngine (pure state machine)
+                                                                      │
+                                              IOPMAssertion (system sleep)
+```
+
+| Claude Code event | remAIn |
+| --- | --- |
+| `UserPromptSubmit` | session starts → stay awake |
+| `PreToolUse` / `PostToolUse` | heartbeat; resumes after a permission prompt |
+| `Notification` | agent waits for you → allow sleep (configurable) |
+| `Stop` / `StopFailure` / `SessionEnd` | session ends → release |
+
+Design notes:
+
+- **Display may sleep.** Agents don't need a lit screen, so by default only *system* sleep is prevented.
+- **Sessions are tracked per `session_id`**, so several parallel sessions work.
+- **Missed `Stop` events can't pin your Mac awake.** A session that stays silent for 15 minutes (configurable) is dropped.
+- **Late hooks are ignored** for sessions that already finished, so reordering can't resurrect them.
+- **The hook command never prints and always exits 0**, so it can't pollute the model's context or break Claude Code if the app isn't running.
+- The core logic (`WakeEngine`) is a pure value type with injected time and is fully unit-tested. IOKit sits behind a protocol.
+
+Works with the Claude Code CLI, desktop app and the VS Code extension, since all read the same `~/.claude/settings.json`.
+
+## Install
+
+```sh
+./scripts/build-app.sh
+open build/remAIn.app
+```
+
+The app is ad-hoc signed; on first launch use right-click → Open. Then open **Settings… → Claude Code → Install** to register the hooks (existing settings are preserved, a one-time backup is written to `settings.json.remain-backup`).
+
+## CLI
+
+```sh
+remain status
+remain on [minutes]    # manual hold
+remain off
+remain install-hooks   # same as the Settings button
+```
+
+## Development
+
+```sh
+swift build
+swift test
+```
+
+Requires macOS 14+ and Swift 6. If `swift test` fails with `no such module 'Testing'` on a Command Line Tools–only setup, install Xcode or pass the framework path:
+
+```sh
+F=/Library/Developer/CommandLineTools/Library/Developer/Frameworks
+swift test -Xswiftc -F$F -Xlinker -F$F -Xlinker -rpath -Xlinker $F
+```
+
+## License
+
+MIT

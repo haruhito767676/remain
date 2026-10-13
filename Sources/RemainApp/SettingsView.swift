@@ -85,6 +85,41 @@ struct GeneralSettingsView: View {
             }
 
             Section {
+                LabeledContent("System permission") {
+                    HStack {
+                        Text(model.lidReady ? "Ready" : "Not set up").foregroundStyle(.secondary)
+                        if model.lidReady {
+                            Button("Remove") { model.removeLidSupport() }.disabled(model.lidBusy)
+                        } else {
+                            Button("Set Up…") { model.setUpLidSupport() }.disabled(model.lidBusy)
+                        }
+                    }
+                }
+                Toggle("Keep running with the lid closed", isOn: Binding(
+                    get: { model.settings.keepRunningWithLidClosed },
+                    set: { model.setLidMode($0) }
+                ))
+                .disabled(!model.lidReady)
+                Picker("Stop after", selection: Binding(
+                    get: { model.settings.lidClosedLimit },
+                    set: { value in model.update { $0.lidClosedLimit = value } }
+                )) {
+                    Text("1 hour").tag(TimeInterval(1 * 3600))
+                    Text("2 hours").tag(TimeInterval(2 * 3600))
+                    Text("3 hours").tag(TimeInterval(3 * 3600))
+                    Text("4 hours").tag(TimeInterval(4 * 3600))
+                    Text("6 hours").tag(TimeInterval(6 * 3600))
+                }
+                if let error = model.lidError {
+                    Text(error).foregroundStyle(.red)
+                }
+            } header: {
+                Text("Lid Closed")
+            } footer: {
+                Text("Lets remAIn turn sleep off for you after a one-time administrator approval. Only the command pmset disablesleep is allowed, and a watchdog turns sleep back on if remAIn stops responding. A Mac running in a closed bag can get hot, so remAIn also stops when it warms up, when the battery is low, or when the time limit is reached.")
+            }
+
+            Section {
                 Toggle("Notify when a task finishes", isOn: Binding(
                     get: { model.settings.notifyOnFinish },
                     set: { value in

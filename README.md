@@ -40,6 +40,15 @@ When agents finish, remAIn can also:
 
 **Power guard.** A stay-awake tool should not drain a laptop in a bag. remAIn lets the Mac sleep when the battery falls to a threshold (20% by default, with 5 points of hysteresis so it doesn't flap), and optionally when running on battery at all, in Low Power Mode, or when macOS reports a critical thermal state. It resumes by itself once the condition clears, and tells you when it steps aside.
 
+**Lid-closed mode (opt-in).** For the commute: keep an agent running while the MacBook is closed in a bag. macOS only allows that with `pmset disablesleep`, which needs root, and a Mac that never sleeps in a bag is a hazard, so this is built to fail safe:
+
+- one-time admin approval installs a `sudoers` rule for exactly `pmset disablesleep 0` and `pmset disablesleep 1` (validated with `visudo` first);
+- while active, remAIn refreshes a heartbeat file; a launchd **watchdog** turns sleep back on if it goes stale (crash, `kill -9`), and the app repairs any leftover state on launch;
+- it only holds while an agent works, then lets the Mac sleep (immediately if the lid is closed);
+- stricter limits while closed: heat (`serious`), battery, and a time limit (3 h default).
+
+It needs a network connection to be useful (tether on the move). Off by default; the first activation shows a warning.
+
 **Activity log.** Every stretch of time remAIn kept the Mac awake is recorded: start, end, agent or manual, the project folder name and why it ended (finished, interrupted, Claude Code closed, timer, power guard, ...). The menu shows today's total and Settings → Activity shows a 14-day chart, per-project totals and recent history. Data lives in `~/Library/Application Support/remAIn/activity.jsonl` (JSON Lines, 90 days, never leaves the Mac, folder names only). The running interval is checkpointed every minute, so a crash loses at most a minute.
 
 The UI is localized (English, 日本語) and follows the system language. Translations live in `Resources/<lang>.lproj/Localizable.strings`; English strings in the code are the keys.

@@ -13,6 +13,9 @@ struct MenuContent: View {
         if let line = model.manualHoldLine {
             Button(line, action: showSettings)
         }
+        if let lid = model.lidLine {
+            Button(lid, action: showSettings)
+        }
         if let today = model.todaySummary {
             Button(today) {
                 model.settingsTab = .activity
@@ -33,6 +36,15 @@ struct MenuContent: View {
             Button("2 Hours") { model.coordinator.setManual(minutes: 120) }
             Button("4 Hours") { model.coordinator.setManual(minutes: 240) }
         }
+
+        Toggle("Keep Running with Lid Closed", isOn: Binding(
+            get: { model.settings.keepRunningWithLidClosed },
+            set: { enabled in
+                model.setLidMode(enabled)
+                // Not set up yet: take the user to where the setup button is.
+                if enabled, !model.lidReady { showSettings() }
+            }
+        ))
 
         Toggle("Keep Display On", isOn: Binding(
             get: { model.settings.keepDisplayOn },

@@ -25,6 +25,18 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         post(title: String(localized: "An agent needs your input"), body: project(cwd) ?? String(localized: "An agent is waiting for you."))
     }
 
+    func lidLimitReached() {
+        post(title: String(localized: "Lid-closed limit reached"), body: String(localized: "The Mac will sleep when you close the lid."))
+    }
+
+    func lidFailed(_ failure: LidFailure) {
+        let body = switch failure {
+        case .notSetUp: String(localized: "The system permission is not set up. Open Settings to set it up.")
+        case .commandFailed: String(localized: "The system refused the change. Try setting it up again.")
+        }
+        post(title: String(localized: "Could not keep running with the lid closed"), body: body)
+    }
+
     func holdSuspended(reason: String) {
         post(title: String(localized: "Letting your Mac sleep"), body: reason)
     }

@@ -109,3 +109,28 @@
 "Power guard" = "電源・温度の保護";
 "remAIn quit" = "remAInを終了";
 "remAIn stopped" = "remAInが停止";
+
+/* Lid closed */
+"Keep Running with Lid Closed" = "蓋を閉じても動かす";
+"Keeps running if you close the lid" = "蓋を閉じても動き続けます";
+"Lid Closed" = "蓋を閉じたとき";
+"System permission" = "システムの許可";
+"Ready" = "利用可能";
+"Not set up" = "未設定";
+"Set Up…" = "セットアップ…";
+"Keep running with the lid closed" = "蓋を閉じても動かし続ける";
+"Stop after" = "自動で止めるまでの時間";
+"3 hours" = "3時間";
+"6 hours" = "6時間";
+"Lets remAIn turn sleep off for you after a one-time administrator approval. Only the command pmset disablesleep is allowed, and a watchdog turns sleep back on if remAIn stops responding. A Mac running in a closed bag can get hot, so remAIn also stops when it warms up, when the battery is low, or when the time limit is reached." = "管理者の承認を一度だけ行うと、remAInがスリープのオン・オフを切り替えられるようになります。許可されるのは pmset disablesleep だけで、remAInが応答しなくなった場合は、見張り役が自動でスリープを元に戻します。閉じたカバンの中ではMacが熱を持つため、温度が上がったとき、バッテリーが少なくなったとき、上限の時間に達したときも自動で止まります。";
+"Set up the system permission first." = "先にシステムの許可をセットアップしてください。";
+"Setup failed: %@" = "セットアップに失敗しました: %@";
+"Keep running with the lid closed?" = "蓋を閉じても動かし続けますか?";
+"While an agent is working, your Mac keeps running even if you close the lid, for example in a bag. It can get warm and use up the battery. remAIn stops automatically when the Mac warms up, the battery runs low, the time limit is reached or the work finishes. The agent still needs an internet connection to work." = "エージェントが作業している間は、蓋を閉じてもMacは動き続けます(カバンの中でも同様です)。本体が熱を持ったり、バッテリーを消費したりする場合があります。温度が上がったとき、バッテリーが少なくなったとき、上限の時間に達したとき、作業が終わったときは、自動で止まります。エージェントが作業するには、インターネット接続が必要です。";
+"Turn On" = "オンにする";
+"Cancel" = "キャンセル";
+"Lid-closed limit reached" = "蓋を閉じたままの動作の上限に達しました";
+"The Mac will sleep when you close the lid." = "蓋を閉じるとMacはスリープします。";
+"Could not keep running with the lid closed" = "蓋を閉じたままの動作を開始できませんでした";
+"The system permission is not set up. Open Settings to set it up." = "システムの許可が未設定です。設定画面でセットアップしてください。";
+"The system refused the change. Try setting it up again." = "システムが変更を受け付けませんでした。もう一度セットアップしてください。";

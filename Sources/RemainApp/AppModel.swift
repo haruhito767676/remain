@@ -11,6 +11,9 @@ final class AppModel {
     private(set) var hooksInstalled = false
     private(set) var hooksError: String?
     private(set) var launchAtLogin = false
+    private(set) var lidReady = false
+    private(set) var lidBusy = false
+    private(set) var lidError: String?
     /// Bumped while a manual timer runs so that "time left" in the menu stays current.
     private var clockTick = Date()
 
@@ -18,6 +21,10 @@ final class AppModel {
     @ObservationIgnored private let notifier = Notifier()
     @ObservationIgnored private let completion: CompletionRunner
     @ObservationIgnored private let powerMonitor = SystemPowerMonitor()
+    @ObservationIgnored private let lidSupport = LidSupport()
+    @ObservationIgnored private let lidController: LidSleepController
+    @ObservationIgnored private var lastLidFailureNotice: Date?
+    @ObservationIgnored private static let lidRiskKey = "lidRiskAcknowledged"
     @ObservationIgnored private static let settingsKey = "wakeSettings"
 
     init() {
@@ -25,7 +32,12 @@ final class AppModel {
         let activity = ActivityLog(store: FileActivityStore())
         self.activity = activity
         coordinator = WakeCoordinator(settings: settings, assertions: IOKitSleepAssertions(), activity: activity)
+        lidController = LidSleepController(disabler: PmsetSleepDisabler(support: lidSupport), heartbeat: FileHeartbeat())
+        lidController.recoverOnLaunch() // a crash may have left sleep disabled
         completion = CompletionRunner(coordinator: coordinator)
+        coordinator.lid = lidController
+        lidController.onFailure = { [unowned self] failure in lidFailed(failure) }
+        powerMonitor.watchesLid = settings.keepRunningWithLidClosed
         if settings.notifyOnFinish || settings.notifyOnAttention { notifier.requestAuthorization() }
         coordinator.onEffect = { [unowned self] effect in handle(effect) }
         let coordinator = coordinator
@@ -96,6 +108,11 @@ final class AppModel {
         return String(localized: "Today: \(ActivityView.format(seconds))")
     }
 
+    /// Shown while the Mac would keep running with its lid closed.
+    var lidLine: String? {
+        snapshot.preventLidSleep ? String(localized: "Keeps running if you close the lid") : nil
+    }
+
     /// Extra line shown while agents are working, so a running manual timer does not disappear from view.
     var manualHoldLine: String? {
         guard snapshot.workingCount > 0 else { return nil }
@@ -125,6 +142,7 @@ final class AppModel {
         var new = coordinator.settings
         change(&new)
         coordinator.update(settings: new)
+        powerMonitor.watchesLid = new.keepRunningWithLidClosed
         if let data = try? JSONEncoder().encode(new) {
             UserDefaults.standard.set(data, forKey: Self.settingsKey)
         }
@@ -143,10 +161,76 @@ final class AppModel {
             if duration >= s.minimumNotifiableDuration { completion.schedule(s.completionAction) }
         case .holdSuspended(let block):
             notifier.holdSuspended(reason: block.reason)
+        case .lidLimitReached:
+            notifier.lidLimitReached()
         }
     }
 
     func requestNotificationAuthorization() { notifier.requestAuthorization() }
+
+    // MARK: - Lid-closed mode
+
+    /// The menu / settings switch. Turning it on requires the one-time system setup and an informed yes.
+    func setLidMode(_ enabled: Bool) {
+        guard enabled else {
+            update { $0.keepRunningWithLidClosed = false }
+            return
+        }
+        refreshState()
+        guard lidReady else {
+            settingsTab = .general
+            lidError = String(localized: "Set up the system permission first.")
+            return
+        }
+        guard confirmLidRisk() else { return }
+        lidError = nil
+        update { $0.keepRunningWithLidClosed = true }
+    }
+
+    /// Asks for the administrator password (macOS shows the dialog) off the main thread.
+    func setUpLidSupport() {
+        runLidSetup { try $0.setUp() }
+    }
+
+    func removeLidSupport() {
+        update { $0.keepRunningWithLidClosed = false }
+        runLidSetup { try $0.tearDown() }
+    }
+
+    private func runLidSetup(_ action: @escaping @Sendable (LidSupport) throws -> Void) {
+        guard !lidBusy else { return }
+        lidBusy = true
+        lidError = nil
+        let support = lidSupport
+        Task {
+            let result = await Task.detached { Result { try action(support) } }.value
+            lidBusy = false
+            if case .failure(let error) = result, error as? LidSupportError != .cancelled {
+                lidError = String(localized: "Setup failed: \(String(describing: error))")
+            }
+            refreshState()
+        }
+    }
+
+    private func confirmLidRisk() -> Bool {
+        if UserDefaults.standard.bool(forKey: Self.lidRiskKey) { return true }
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = String(localized: "Keep running with the lid closed?")
+        alert.informativeText = String(localized: "While an agent is working, your Mac keeps running even if you close the lid, for example in a bag. It can get warm and use up the battery. remAIn stops automatically when the Mac warms up, the battery runs low, the time limit is reached or the work finishes. The agent still needs an internet connection to work.")
+        alert.addButton(withTitle: String(localized: "Turn On"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        NSApp.activate()
+        guard alert.runModal() == .alertFirstButtonReturn else { return false }
+        UserDefaults.standard.set(true, forKey: Self.lidRiskKey)
+        return true
+    }
+
+    private func lidFailed(_ failure: LidFailure) {
+        if let last = lastLidFailureNotice, Date().timeIntervalSince(last) < 300 { return }
+        lastLidFailureNotice = Date()
+        notifier.lidFailed(failure)
+    }
 
     func installHooks() { runInstaller { try $0.install() } }
     func uninstallHooks() { runInstaller { try $0.uninstall() } }
@@ -162,6 +246,7 @@ final class AppModel {
 
     func refreshState() {
         hooksInstalled = installer()?.isInstalled() ?? false
+        lidReady = lidSupport.isReady()
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 

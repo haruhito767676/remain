@@ -36,7 +36,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Keep awake while an agent waits for me", isOn: Binding(
+                Toggle("Keep awake while an agent is waiting", isOn: Binding(
                     get: { model.settings.holdWhileWaiting },
                     set: { value in model.update { $0.holdWhileWaiting = value } }
                 ))

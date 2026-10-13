@@ -89,7 +89,7 @@ struct ActivityView: View {
         .chartForegroundStyleScale([agent: Color.accentColor, manual: Color.secondary.opacity(0.45)])
         .chartXAxis {
             AxisMarks(values: .stride(by: .day, count: 2)) { _ in
-                AxisValueLabel(format: .dateTime.day(), centered: true)
+                AxisValueLabel(format: .dateTime.month(.defaultDigits).day(), centered: true)
             }
         }
         .chartYAxis {

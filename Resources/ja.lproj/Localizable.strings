@@ -18,7 +18,7 @@
 "Sleep allowed" = "スリープ可能";
 /* Settings: agents */
 "Agents" = "エージェント";
-"Keep awake while an agent waits for me" = "入力待ちの間もスリープを防ぐ";
+"Keep awake while an agent is waiting" = "エージェントが待っている間も、スリープを防ぐ";
 "Release automatically after no activity for" = "反応がなくなってから解除するまで";
 "5 minutes" = "5分";
 "30 minutes" = "30分";

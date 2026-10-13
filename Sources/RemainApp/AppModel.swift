@@ -10,8 +10,8 @@ final class AppModel {
     var settingsTab: SettingsTab = .general
     private(set) var integrations: [AgentKind: IntegrationState] = [:]
     private(set) var integrationError: String?
-    private(set) var uninstallBusy = false
-    private(set) var uninstallSummary: String?
+    private(set) var resetBusy = false
+    private(set) var resetSummary: String?
     @ObservationIgnored var welcomeWindow: NSWindow?
     /// The welcome window's "Open at login" choice (on by default), applied when the window closes.
     var welcomeOpenAtLogin = true
@@ -179,41 +179,39 @@ final class AppModel {
 
     func requestNotificationAuthorization() { notifier.requestAuthorization() }
 
-    // MARK: - Uninstall
+    // MARK: - Reset
 
-    /// Removes everything remAIn put on the Mac except the app itself, then reports what it did.
-    func removeEverything() {
-        guard !uninstallBusy, let manager = integrationManager() else { return }
-        uninstallBusy = true
-        uninstallSummary = nil
+    /// Takes back everything remAIn put on the Mac (hooks, lid permission, login item, saved settings,
+    /// history) and returns the app to its first-launch state. The app itself stays.
+    func resetEverything() {
+        guard !resetBusy, let manager = integrationManager() else { return }
+        resetBusy = true
+        resetSummary = nil
         update { $0.keepRunningWithLidClosed = false } // stop holding before the setup is taken away
         let lidSupport = lidSupport
         Task {
             let report = await Task.detached {
                 Uninstaller(manager: manager, lid: lidSupport).removeEverything()
             }.value
-            finishUninstall(report)
+            finishReset(report)
         }
     }
 
-    private func finishUninstall(_ report: Uninstaller.Report) {
-        var lines: [String] = []
-        if !report.hooksRemoved.isEmpty {
-            lines.append(String(localized: "Removed the hooks of \(report.hooksRemoved.map(\.displayName).joined(separator: ", "))."))
-        }
-        if report.lidSupportRemoved { lines.append(String(localized: "Removed the lid-closed permission and watchdog.")) }
-        if report.lidSupportSkipped { lines.append(String(localized: "The lid-closed permission was kept (the password prompt was cancelled).")) }
-
+    private func finishReset(_ report: Uninstaller.Report) {
         // What only the app can undo: the login item and its saved settings.
         if SMAppService.mainApp.status == .enabled { try? SMAppService.mainApp.unregister() }
         if let id = Bundle.main.bundleIdentifier { UserDefaults.standard.removePersistentDomain(forName: id) }
+        // Defaults gone on disk; bring the running app in line (without writing them back).
+        coordinator.update(settings: WakeSettings())
+        powerMonitor.watchesLid = false
         activity.clear()
-        lines.append(String(localized: "Removed the login item, saved settings and history."))
+        welcomeOpenAtLogin = true
 
+        var lines = [String(localized: "Reset done.")]
+        if report.lidSupportSkipped { lines.append(String(localized: "The lid-closed permission was kept: the password prompt was cancelled.")) }
         lines.append(contentsOf: report.errors)
-        lines.append(String(localized: "You can now quit remAIn and move it to the Trash."))
-        uninstallSummary = lines.joined(separator: "\n")
-        uninstallBusy = false
+        resetSummary = lines.joined(separator: "\n")
+        resetBusy = false
         refreshState()
     }
 

@@ -71,15 +71,15 @@ Settings → Integrations (and a welcome window on first launch) connects the to
 
 remAIn never connects to the internet and has no third-party dependencies. The app, the `remain` command and the hooks talk to each other over a Unix socket that only your user can open. Everything it stores (activity history, settings) stays on your Mac: history keeps project folder names, never full paths or prompts, and expires after 90 days. The only link in the app is the repository link in About, which opens only if you click it.
 
-## Uninstall
+## Reset and uninstall
 
-Settings → General → **Remove All remAIn Changes…** (or `remain uninstall` in a terminal) takes back everything remAIn put on the Mac:
+Settings → General → **Reset Settings…** (or `remain reset` in a terminal) takes back everything remAIn put on the Mac and returns it to its first-launch state:
 
 - its own entries in each tool's hooks file (yours are left alone; a file that cannot be parsed is never rewritten);
 - the lid-closed `sudoers` rule and watchdog (sleep is switched back on first; macOS asks for your password);
 - the login item, saved settings and activity history.
 
-The app itself is left for you to move to the Trash.
+To uninstall, reset, quit remAIn and move the app to the Trash.
 
 ## Install
 

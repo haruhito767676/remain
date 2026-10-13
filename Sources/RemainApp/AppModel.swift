@@ -133,6 +133,27 @@ final class AppModel {
         snapshot.preventLidSleep ? String(localized: "Keeps running if you close the lid") : nil
     }
 
+    /// The menu item for the manual hold; while a timer runs it says how long is left.
+    var keepAwakeTitle: String {
+        if case .until(let end) = snapshot.manual {
+            return String(localized: "Keep Awake (\(remaining(until: end)) left)")
+        }
+        return String(localized: "Keep Awake")
+    }
+
+    /// The preset the user picked in the menu, so its checkmark can stay on while the timer runs.
+    @ObservationIgnored private var pickedMinutes: Int?
+
+    func keepAwake(minutes: Int?) {
+        pickedMinutes = minutes
+        coordinator.setManual(minutes: minutes)
+    }
+
+    func isKeepingAwake(forMinutes minutes: Int) -> Bool {
+        if case .until = snapshot.manual { return pickedMinutes == minutes }
+        return false
+    }
+
     /// Extra line shown while agents are working, so a running manual timer does not disappear from view.
     var manualHoldLine: String? {
         guard snapshot.workingCount > 0 else { return nil }

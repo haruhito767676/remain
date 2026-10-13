@@ -31,16 +31,18 @@ struct MenuContent: View {
 
         Divider()
 
-        Toggle("Keep Awake", isOn: Binding(
-            get: { model.snapshot.manual != .off },
-            set: { model.coordinator.setManual($0 ? .indefinite : .off) }
-        ))
-
-        Menu("Keep Awake For") {
-            Button("30 Minutes") { model.coordinator.setManual(minutes: 30) }
-            Button("1 Hour") { model.coordinator.setManual(minutes: 60) }
-            Button("2 Hours") { model.coordinator.setManual(minutes: 120) }
-            Button("4 Hours") { model.coordinator.setManual(minutes: 240) }
+        // One item: its title shows the running timer, the checkmark shows which choice is active.
+        Menu(model.keepAwakeTitle) {
+            keepAwakeChoice("Off", isOn: model.snapshot.manual == .off) { model.coordinator.setManual(.off) }
+            Divider()
+            keepAwakeChoice("30 Minutes", minutes: 30)
+            keepAwakeChoice("1 Hour", minutes: 60)
+            keepAwakeChoice("2 Hours", minutes: 120)
+            keepAwakeChoice("4 Hours", minutes: 240)
+            Divider()
+            keepAwakeChoice("Indefinitely", isOn: model.snapshot.manual == .indefinite) {
+                model.keepAwake(minutes: nil)
+            }
         }
 
         if model.hasBattery {
@@ -66,6 +68,14 @@ struct MenuContent: View {
 
         Button("Quit remAIn") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
+    }
+
+    private func keepAwakeChoice(_ title: LocalizedStringKey, minutes: Int) -> some View {
+        keepAwakeChoice(title, isOn: model.isKeepingAwake(forMinutes: minutes)) { model.keepAwake(minutes: minutes) }
+    }
+
+    private func keepAwakeChoice(_ title: LocalizedStringKey, isOn: Bool, action: @escaping () -> Void) -> some View {
+        Toggle(title, isOn: Binding(get: { isOn }, set: { _ in action() }))
     }
 
     private func showSettings() {

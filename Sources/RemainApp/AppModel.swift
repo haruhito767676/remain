@@ -32,7 +32,7 @@ final class AppModel {
         do {
             try server.start { request in await coordinator.handle(request) }
         } catch {
-            hooksError = String(localized: "IPC server failed: \(String(describing: error))")
+            hooksError = String(localized: "Could not start receiving hook events: \(String(describing: error))")
         }
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [coordinator] _ in
             MainActor.assumeIsolated { coordinator.shutdown() }
@@ -78,7 +78,7 @@ final class AppModel {
             return String(localized: "Keeping Mac awake until \(Self.clock(end)) (\(remaining(until: end)) left)")
         case .off: break
         }
-        if s.waitingCount > 0 { return String(localized: "Waiting for your input") }
+        if s.waitingCount > 0 { return String(localized: "An agent is waiting for you") }
         return String(localized: "Sleep allowed")
     }
 
@@ -101,9 +101,9 @@ final class AppModel {
         guard snapshot.workingCount > 0 else { return nil }
         switch snapshot.manual {
         case .off: return nil
-        case .indefinite: return String(localized: "Manual hold: on")
+        case .indefinite: return String(localized: "Manual: on")
         case .until(let end):
-            return String(localized: "Manual hold: until \(Self.clock(end)) (\(remaining(until: end)) left)")
+            return String(localized: "Manual: until \(Self.clock(end)) (\(remaining(until: end)) left)")
         }
     }
 

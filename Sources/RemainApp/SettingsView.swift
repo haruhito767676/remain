@@ -43,7 +43,7 @@ struct GeneralSettingsView: View {
                     get: { model.settings.keepDisplayOn },
                     set: { value in model.update { $0.keepDisplayOn = value } }
                 ))
-                Picker("Stop holding after silence of", selection: Binding(
+                Picker("Release automatically after no activity for", selection: Binding(
                     get: { model.settings.sessionTimeout },
                     set: { value in model.update { $0.sessionTimeout = value } }
                 )) {
@@ -55,7 +55,7 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Agents")
             } footer: {
-                Text("Interruptions and closed sessions are detected automatically. This timeout is only a safety net for a session that stops reporting for any other reason.")
+                Text("Interruptions and closed sessions are detected automatically. This is only a safety net for when an agent goes quiet for any other reason.")
             }
 
             Section {
@@ -99,7 +99,7 @@ struct GeneralSettingsView: View {
                         if value { model.requestNotificationAuthorization() }
                     }
                 ))
-                Picker("Only for tasks longer than", selection: Binding(
+                Picker("Only for work that took longer than", selection: Binding(
                     get: { model.settings.minimumNotifiableDuration },
                     set: { value in model.update { $0.minimumNotifiableDuration = value } }
                 )) {
@@ -119,15 +119,19 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("When Agents Finish")
             } footer: {
-                Text("The action runs 10 seconds after the last task ends, and is skipped if you start new work. The length filter applies to the action as well.")
+                Text("The action runs 10 seconds after the last task ends. It is skipped if you start new work, or if the work was shorter than the time chosen above.")
             }
 
             Section {
-                LabeledContent("Hooks") {
-                    if model.hooksInstalled {
-                        Button("Remove") { model.uninstallHooks() }
-                    } else {
-                        Button("Install") { model.installHooks() }
+                LabeledContent("Integration") {
+                    HStack {
+                        Text(model.hooksInstalled ? "Installed" : "Not installed")
+                            .foregroundStyle(.secondary)
+                        if model.hooksInstalled {
+                            Button("Remove") { model.uninstallHooks() }
+                        } else {
+                            Button("Install") { model.installHooks() }
+                        }
                     }
                 }
                 if let error = model.hooksError {

@@ -22,7 +22,7 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     }
 
     func needsAttention(cwd: String?) {
-        post(title: String(localized: "An agent needs your input"), body: project(cwd) ?? String(localized: "A session is waiting for you."))
+        post(title: String(localized: "An agent needs your input"), body: project(cwd) ?? String(localized: "An agent is waiting for you."))
     }
 
     func holdSuspended(reason: String) {

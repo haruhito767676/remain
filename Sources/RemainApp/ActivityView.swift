@@ -117,7 +117,7 @@ struct ActivityView: View {
 
     private static func name(of interval: HoldInterval) -> String {
         if !interval.projects.isEmpty { return interval.projects.sorted().joined(separator: ", ") }
-        return interval.sources.contains(.agent) ? String(localized: "Agent") : String(localized: "Manual hold")
+        return interval.sources.contains(.agent) ? String(localized: "Agent") : String(localized: "Manual")
     }
 
     private static func range(of interval: HoldInterval) -> String {

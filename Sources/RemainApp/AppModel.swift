@@ -285,9 +285,12 @@ final class AppModel {
     func installIntegration(_ agent: AgentKind) { runIntegration { try $0.install(agent) } }
     func removeIntegration(_ agent: AgentKind) { runIntegration { try $0.uninstall(agent) } }
 
-    /// A tool that is on this Mac but not connected, or connected to a stale path.
+    /// A connection that broke, or nothing connected at all while a tool is on this Mac. A tool the user
+    /// switched off on purpose does not count, as long as something else is connected.
     var needsAttention: Bool {
-        AgentKind.integrable.contains { integrations[$0] == .notInstalled || integrations[$0] == .needsRepair }
+        let states = AgentKind.integrable.map { integrations[$0] ?? .notDetected }
+        if states.contains(.needsRepair) { return true }
+        return !states.contains(.installed) && states.contains(.notInstalled)
     }
 
     /// Only the tools that are on this Mac (or already connected). With none found, list them all so

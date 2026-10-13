@@ -17,6 +17,21 @@ public struct AgentSession: Equatable, Sendable {
     /// How far into the transcript interruption scanning has progressed.
     public var scanOffset: UInt64?
     public var agent: AgentKind = .claudeCode
+    /// The tool said work continues in the background, so silence does not mean "interrupted".
+    public var background = false
+}
+
+extension AgentSession {
+    /// A session starting from `event`. The transcript is only scanned for interruptions when we know
+    /// how that tool records them.
+    static func begin(_ event: AgentEvent, at now: Date) -> AgentSession {
+        let scans = event.agent.scansTranscriptForInterruption
+        let offset = scans ? (event.transcriptSize ?? (event.transcriptPath != nil ? 0 : nil)) : nil
+        return AgentSession(
+            id: event.sessionID, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
+            pid: event.pid, transcriptPath: scans ? event.transcriptPath : nil, scanOffset: offset, agent: event.agent
+        )
+    }
 }
 
 /// Something worth telling the user about, emitted when the engine's state changes.
@@ -151,26 +166,25 @@ public struct WakeEngine: Sendable {
         case .prompt:
             // A brand-new conversation has no transcript file yet when its first prompt fires,
             // so a missing size means "start scanning from the beginning".
-            let offset = event.transcriptSize ?? (event.transcriptPath != nil ? 0 : nil)
-            sessions[id] = AgentSession(
-                id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
-                pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: offset, agent: event.agent
-            )
+            sessions[id] = AgentSession.begin(event, at: now)
             return []
         case .start:
             // For tools that only tell us "a model call is starting": keep the session if there is one.
             if var session = sessions[id] {
                 session.phase = .working
+                session.background = false
                 session.lastSeen = now
                 session.pid = event.pid ?? session.pid
                 sessions[id] = session
             } else {
-                let offset = event.transcriptSize ?? (event.transcriptPath != nil ? 0 : nil)
-                sessions[id] = AgentSession(
-                    id: id, phase: .working, startedAt: now, lastSeen: now, cwd: event.cwd,
-                    pid: event.pid, transcriptPath: event.transcriptPath, scanOffset: offset, agent: event.agent
-                )
+                sessions[id] = AgentSession.begin(event, at: now)
             }
+            return []
+        case .background:
+            guard var session = sessions[id] else { return [] }
+            session.background = true
+            session.lastSeen = now
+            sessions[id] = session
             return []
         case .interrupted:
             // The user is present: end quietly, like an interruption found in the transcript.
@@ -181,6 +195,7 @@ public struct WakeEngine: Sendable {
             // must not resurrect a finished session.
             guard var session = sessions[id] else { return [] }
             session.phase = .working
+            session.background = false
             session.lastSeen = now
             session.pid = event.pid ?? session.pid
             sessions[id] = session
@@ -227,7 +242,7 @@ public struct WakeEngine: Sendable {
     @discardableResult
     public mutating func expire(at now: Date) -> Expiry {
         var expiry = Expiry()
-        let alive = sessions.filter { now.timeIntervalSince($0.value.lastSeen) < settings.sessionTimeout }
+        let alive = sessions.filter { now.timeIntervalSince($0.value.lastSeen) < timeout(for: $0.value) }
         expiry.sessionsTimedOut = sessions.count - alive.count
         sessions = alive
         if case .until(let end) = manual, end <= now {
@@ -235,6 +250,15 @@ public struct WakeEngine: Sendable {
             expiry.manualElapsed = true
         }
         return expiry
+    }
+
+    /// How long a session may stay silent before it is dropped: the general safety net, or the shorter
+    /// per-tool limit for tools whose interruptions are invisible (unless a background task was announced).
+    func timeout(for session: AgentSession) -> TimeInterval {
+        if !session.background, let quiet = session.agent.quietTimeout {
+            return min(quiet, settings.sessionTimeout)
+        }
+        return settings.sessionTimeout
     }
 
     /// Sessions that currently keep the Mac awake (working, or waiting if so configured).
@@ -319,7 +343,7 @@ public struct WakeEngine: Sendable {
 
     /// The next moment at which `expire` would change something, if any.
     public func nextDeadline() -> Date? {
-        var deadlines = sessions.values.map { $0.lastSeen.addingTimeInterval(settings.sessionTimeout) }
+        var deadlines = sessions.values.map { $0.lastSeen.addingTimeInterval(timeout(for: $0)) }
         if case .until(let end) = manual { deadlines.append(end) }
         if let since = lidSince, !lidLimitHit { deadlines.append(since.addingTimeInterval(settings.lidClosedLimit)) }
         return deadlines.min()

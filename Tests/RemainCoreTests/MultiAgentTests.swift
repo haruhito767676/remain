@@ -45,7 +45,7 @@ import Testing
             decodeEvent(.antigravity, "Stop", #"{"conversationId":"c","fullyIdle":\#(idle),"terminationReason":"model_stop"}"#)?.kind
         }
         #expect(kind("true") == .finish)
-        #expect(kind("false") == .activity) // background commands still running
+        #expect(kind("false") == .background) // background commands still running
         #expect(decodeEvent(.antigravity, "Stop", #"{"conversationId":"c"}"#)?.kind == .finish)
     }
 
@@ -254,5 +254,105 @@ import Testing
 
     @Test func unparseableInputIsNotEchoed() {
         #expect(loggable(.claudeCode, "my secret not json") == "(unparsed)")
+    }
+}
+
+
+@Suite struct QuietTimeoutTests {
+    private func ag(_ kind: AgentEvent.Kind, _ id: String = "ag") -> AgentEvent {
+        AgentEvent(sessionID: id, kind: kind, agent: .antigravity)
+    }
+
+    @Test func aStoppedAntigravityRunIsDroppedAfterFiveQuietMinutes() {
+        // The stop button fires no hook: a call starts and nothing more is ever heard.
+        var engine = WakeEngine()
+        engine.handle(ag(.start), at: t0)
+        engine.expire(at: at(299))
+        #expect(engine.snapshot().prevention == .system)
+        let expiry = engine.expire(at: at(300))
+        #expect(expiry.sessionsTimedOut == 1)
+        #expect(engine.snapshot().prevention == .none)
+    }
+
+    @Test func activityKeepsAnAntigravityRunAlive() {
+        var engine = WakeEngine()
+        engine.handle(ag(.start), at: t0)
+        engine.handle(ag(.activity), at: at(250))
+        engine.expire(at: at(500)) // 250 s of silence only
+        #expect(engine.snapshot().prevention == .system)
+    }
+
+    @Test func claudeCodeIsNotSubjectToTheQuietRule() {
+        // Its interruptions are detected directly, so a long silent tool run must not be cut off.
+        var engine = WakeEngine()
+        engine.handle(event(.prompt), at: t0)
+        engine.expire(at: at(1800))
+        #expect(engine.snapshot().prevention == .system)
+    }
+
+    @Test func aBackgroundTaskExemptsAnAntigravityRunFromTheQuietRule() {
+        var engine = WakeEngine()
+        engine.handle(ag(.start), at: t0)
+        engine.handle(ag(.background), at: at(60)) // Stop with fullyIdle=false: a command is still running
+        engine.expire(at: at(60 + 3000))
+        #expect(engine.snapshot().prevention == .system) // 50 quiet minutes later it still holds
+        engine.expire(at: at(60 + 3600))
+        #expect(engine.snapshot().prevention == .none)    // ... until the general safety net
+    }
+
+    @Test func anyLaterEventEndsTheBackgroundExemption() {
+        var engine = WakeEngine()
+        engine.handle(ag(.start), at: t0)
+        engine.handle(ag(.background), at: at(10))
+        engine.handle(ag(.start), at: at(20)) // the agent woke up again
+        engine.expire(at: at(20 + 300))
+        #expect(engine.snapshot().prevention == .none)
+    }
+
+    @Test func aWronglyDroppedRunComesBackWithTheNextModelCall() {
+        var engine = WakeEngine()
+        engine.handle(ag(.start), at: t0)
+        engine.expire(at: at(400)) // a very long silent call was cut off ...
+        engine.handle(ag(.activity), at: at(401)) // its PostInvocation arrives: ignored (unknown session)
+        #expect(engine.snapshot().prevention == .none)
+        engine.handle(ag(.start), at: at(402)) // ... but the next PreInvocation starts it again
+        #expect(engine.snapshot().prevention == .system)
+    }
+
+    @Test func theQuietLimitIsPartOfTheDeadlineSchedule() {
+        var engine = WakeEngine()
+        engine.handle(ag(.start), at: t0)
+        #expect(engine.nextDeadline() == at(300))
+    }
+
+    @Test func antigravityTranscriptIsNeverScannedForInterruptions() {
+        var engine = WakeEngine()
+        engine.handle(AgentEvent(sessionID: "ag", kind: .start, transcriptPath: "/x/transcript_full.jsonl", agent: .antigravity), at: t0)
+        #expect(engine.sessions["ag"]?.scanOffset == nil)
+        #expect(engine.sessions["ag"]?.transcriptPath == nil)
+    }
+
+    @Test func theQuietLimitHonoursAShorterGeneralTimeout() {
+        var settings = WakeSettings()
+        settings.sessionTimeout = 120
+        var engine = WakeEngine(settings: settings)
+        engine.handle(ag(.start), at: t0)
+        engine.expire(at: at(121))
+        #expect(engine.snapshot().prevention == .none)
+    }
+}
+
+@MainActor
+@Suite struct QuietTimeoutCoordinatorTests {
+    @Test func aQuietAntigravityRunIsRecordedAsTimedOut() {
+        let clock = TestClock()
+        let log = ActivityLog(store: MemoryActivityStore(), now: { t0 })
+        let coordinator = WakeCoordinator(assertions: FakeAssertions(), probe: FakeProbe(), activity: log,
+                                          pollInterval: .seconds(3600), now: { clock.current })
+        coordinator.receive(AgentEvent(sessionID: "ag", kind: .start, agent: .antigravity))
+        clock.advance(301)
+        coordinator.update(settings: coordinator.settings) // any refresh notices the expiry
+        #expect(log.intervals.first?.endReason == .timedOut)
+        #expect(log.intervals.first?.agents == [.antigravity])
     }
 }

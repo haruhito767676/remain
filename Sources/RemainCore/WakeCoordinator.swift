@@ -166,7 +166,7 @@ public final class WakeCoordinator {
                 let size = TranscriptScanner.fileSize(atPath: path).map(String.init) ?? "missing"
                 return "transcript=\((path as NSString).lastPathComponent) scanned=\(s.scanOffset.map(String.init) ?? "none")/size=\(size)"
             } ?? "transcript=none"
-            return "\(s.id.prefix(8)) \(s.phase.rawValue) age=\(Int(t.timeIntervalSince(s.startedAt)))s idle=\(Int(t.timeIntervalSince(s.lastSeen)))s \(pid) \(file)"
+            return "\(s.id.prefix(8)) \(s.agent.cliName) \(s.phase.rawValue)\(s.background ? "+background" : "") age=\(Int(t.timeIntervalSince(s.startedAt)))s idle=\(Int(t.timeIntervalSince(s.lastSeen)))s \(pid) \(file)"
         }
         let p = engine.power
         let power = "power: onBattery=\(p.onBattery) battery=\(p.batteryPercent.map { "\($0)%" } ?? "n/a") lowPower=\(p.lowPowerMode) thermal=\(p.thermal) blocked=\(String(describing: snapshot.blockedBy))"

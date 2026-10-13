@@ -10,6 +10,9 @@ public struct AgentEvent: Codable, Equatable, Sendable {
         case start
         /// The agent is still active (e.g. a tool is running). Only refreshes known sessions.
         case activity
+        /// The agent stopped for now but work continues in the background (a long command): stay awake,
+        /// and do not apply the per-tool quiet timeout until something else is heard.
+        case background
         /// The agent is blocked on the user (permission prompt, idle prompt).
         case attention
         /// The agent finished, failed, or the session ended.

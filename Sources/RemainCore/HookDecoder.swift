@@ -42,7 +42,7 @@ struct AntigravityPayload: Decodable {
             kind = .activity
         case "Stop":
             // fullyIdle == false: background commands are still running, the agent is not done.
-            kind = fullyIdle == false ? .activity : .finish
+            kind = fullyIdle == false ? .background : .finish
         default:
             return nil
         }

@@ -60,7 +60,7 @@ Works with the Claude Code CLI, desktop app and the VS Code extension, since all
 | Tool | How it is followed |
 | --- | --- |
 | Claude Code | hooks in `~/.claude/settings.json` (CLI, desktop, VS Code extension) |
-| Antigravity | hooks in `~/.gemini/config/hooks.json`; model calls count as work, `Stop` only ends it when the agent is fully idle |
+| Antigravity | hooks in `~/.gemini/config/hooks.json`; model calls count as work. Its stop button fires no hook and leaves no trace in its log, so a run that goes quiet for 5 minutes is considered over, unless `Stop` said a background command is still running (`fullyIdle: false`) |
 | anything else | `remain run -- <command>` holds while the command runs |
 
 Settings → Integrations (and a welcome window on first launch) connects the tools it finds. If the app is moved, the hooks it wrote are re-pointed automatically at launch. `remain doctor` shows what is connected and what is not; `remain debug on` records raw hook calls (field names only for Claude Code and Codex, since their payloads contain your prompts).

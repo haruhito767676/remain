@@ -5,7 +5,6 @@
 "1 Hour" = "1時間";
 "2 Hours" = "2時間";
 "4 Hours" = "4時間";
-"Keep Display On" = "ディスプレイの消灯も防ぐ";
 "Settings…" = "設定…";
 "Quit remAIn" = "remAInを終了";
 /* Status line */
@@ -20,7 +19,6 @@
 /* Settings: agents */
 "Agents" = "エージェント";
 "Keep awake while an agent waits for me" = "入力待ちの間もスリープを防ぐ";
-"Keep the display on" = "ディスプレイの消灯も防ぐ";
 "Release automatically after no activity for" = "反応がなくなってから解除するまで";
 "5 minutes" = "5分";
 "30 minutes" = "30分";
@@ -139,6 +137,7 @@
 "Reset" = "リセット";
 "Reset done." = "リセットしました。";
 "The lid-closed permission was kept: the password prompt was cancelled." = "パスワードの入力がキャンセルされたため、蓋を閉じても動作を続けるための許可は残っています。";
-
 "This deletes all settings, connections and history." = "すべての設定、連携、履歴を削除します。";
 "Could not start listening to your agents: %@" = "エージェントの状態を受け取れませんでした: %@";
+
+"Keep the display on while preventing sleep" = "スリープを防ぐ間は、ディスプレイも消さない";

@@ -52,11 +52,6 @@ struct MenuContent: View {
             }
         ))
 
-        Toggle("Keep Display On", isOn: Binding(
-            get: { model.settings.keepDisplayOn },
-            set: { value in model.update { $0.keepDisplayOn = value } }
-        ))
-
         Divider()
 
         Button("Settings…") {

@@ -40,7 +40,7 @@ struct GeneralSettingsView: View {
                     get: { model.settings.holdWhileWaiting },
                     set: { value in model.update { $0.holdWhileWaiting = value } }
                 ))
-                Toggle("Keep the display on", isOn: Binding(
+                Toggle("Keep the display on while preventing sleep", isOn: Binding(
                     get: { model.settings.keepDisplayOn },
                     set: { value in model.update { $0.keepDisplayOn = value } }
                 ))

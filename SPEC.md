@@ -1,13 +1,13 @@
 # remAIn 技術仕様書 (SPEC)
 
-本書は remAIn の内部仕様（構成、イベントモデル、各ツールとの連携、スリープ制御、電源ガード、ふた閉じモード、アクティビティログ、IPC、CLI、UI、ビルドと配布）を定義する。利用者向けの説明は README を参照。対象バージョン: 1.0.0。
+本書は remAIn の内部仕様（構成、イベントモデル、各エージェントとの連携、スリープ制御、電源ガード、ふた閉じモード、アクティビティログ、IPC、CLI、UI、ビルドと配布）を定義する。利用者向けの説明は README を参照。対象バージョン: 1.0.0。
 
 ---
 
 ## 1. アーキテクチャ概要
 
 ```
- Claude Code / Codex / Antigravity            任意のコマンド
+ AI エージェント                              任意のコマンド
         │ フック (stdin に JSON)                  │ remain run -- <cmd>
         ▼                                         ▼
  ┌─────────────────────────── remain (CLI) ───────────────────────────┐
@@ -45,17 +45,17 @@ CLI はアプリ内の `Contents/Helpers/remain` に同梱される。フック�
 
 ## 2. イベントモデル
 
-各ツールのフックは `AgentEvent` に正規化される。
+各エージェントのフックは `AgentEvent` に正規化される。
 
 | `Kind` | 意味 | エンジンの動き |
 |---|---|---|
 | `prompt` | 利用者がプロンプトを送った | セッションを新規作成（既存は作り直し）。`working` |
-| `start` | モデル呼び出しの開始（`prompt` 相当のフックがないツール用） | 既存セッションを更新、なければ作成。`background` を解除 |
+| `start` | モデル呼び出しの開始（`prompt` 相当のフックがないエージェント用） | 既存セッションを更新、なければ作成。`background` を解除 |
 | `activity` | 動作中（ツール実行など） | 既存セッションの `lastSeen` を更新。**未知のセッションは無視** |
 | `background` | 一旦止まったが、バックグラウンドで作業が続く | `background = true`。沈黙タイムアウトの短縮を外す |
 | `attention` | 利用者の入力待ち（許可ダイアログ等） | `waiting` へ。作業中からの遷移のとき `needsAttention` を通知 |
 | `finish` | 完了・失敗・セッション終了 | セッションを外す。最初の 1 回だけ `sessionFinished` を通知 |
-| `interrupted` | 利用者が中断した（ツールが直接教える場合） | 静かに外す（通知・完了アクションなし） |
+| `interrupted` | 利用者が中断した（エージェントが直接教える場合） | 静かに外す（通知・完了アクションなし） |
 
 `activity` が未知のセッションを無視するのは意図的である。`Stop` のあとに遅れて届いたフックが、終わったセッションを復活させないため。
 
@@ -66,16 +66,16 @@ AgentSession { id, phase(working|waiting), startedAt, lastSeen, cwd,
                pid, transcriptPath, scanOffset, agent, background }
 ```
 
-- 識別子はツールごとのセッション ID（Claude/Codex: `session_id`、Antigravity: `conversationId`、`remain run`: `run-<8 桁>`）。複数の並列セッションを同時に追える。
+- 識別子はエージェントごとのセッション ID（Claude/Codex: `session_id`、Antigravity: `conversationId`、`remain run`: `run-<8 桁>`）。複数の並列セッションを同時に追える。
 - `cwd` の最後の要素（フォルダ名）だけが、通知とログに使われる。フルパスは保存しない。
 
 ---
 
-## 3. ツール連携
+## 3. エージェントとの連携
 
-連携とは、各ツールの設定ファイルに remAIn のフックを書き込むことである。書き込み・削除は、remAIn が書いた項目だけを対象とする。
+対応エージェントは Antigravity、Claude Code、Codex の 3 つ（それ以外は `remain run` で追える）。連携とは、各エージェントの設定ファイルに remAIn のフックを書き込むことである。書き込み・削除は、remAIn が書いた項目だけを対象とする。
 
-| ツール | 設定ファイル | フックイベント |
+| エージェント | 設定ファイル | フックイベント |
 |---|---|---|
 | Claude Code | `~/.claude/settings.json` | `UserPromptSubmit` `PreToolUse` `PostToolUse` `Notification` `Stop` `StopFailure` `SessionEnd` |
 | Codex | `~/.codex/hooks.json` | `UserPromptSubmit` `PreToolUse` `PostToolUse` `PermissionRequest` `Stop` `Interrupt` `SessionEnd` |
@@ -84,13 +84,13 @@ AgentSession { id, phase(working|waiting), startedAt, lastSeen, cwd,
 - フックのコマンドは `'<remain の絶対パス>' hook`（Codex は `hook codex`、Antigravity は `hook antigravity <Event>`）。タイムアウトは 5 秒、Codex の `SessionEnd` と `Interrupt` は 3 秒（Codex が長い値を丸めて毎回警告するため）。
 - Claude Code と Codex は同じ `{"hooks": {イベント: [{hooks: [...]}]}}` 形式。Antigravity はトップレベルのキーがフック名で、remAIn は `remain` というキー 1 つだけを持つ。Antigravity の `PreToolUse` は判断（allow/deny）を返す必要があるため、触れない。
 - **既存の設定を壊さない**: 他のフックと他のキーはそのまま残す。書き出しは原子的で、元のファイルは `<名前>.remain-backup` に一度だけコピーする。JSON として読めないファイルは上書きせず、エラーとして報告する。
-- 判定は `IntegrationState`: `notDetected`（ツールが見つからない）/ `notInstalled` / `installed` / `needsRepair`（フックが別の remAIn を指している）。ツールの検出は、データフォルダまたはアプリの有無で行い、ツール自体は実行しない。
+- 判定は `IntegrationState`: `notDetected`（エージェントが見つからない）/ `notInstalled` / `installed` / `needsRepair`（フックが別の remAIn を指している）。エージェントの検出は、データフォルダまたはアプリの有無で行い、エージェント自体は実行しない。
 - `needsRepair` は、アプリが移動された場合に起きる。アプリは起動時に、バンドルされた状態であれば自動で修復する（開発中のビルドは対象外）。
-- アプリの設定画面では、ツールごとのトグルがインストール／削除に対応する。`needsRepair` では「修復」ボタンが出る。
+- アプリの設定画面では、エージェントごとのトグルがインストール／削除に対応する。`needsRepair` では「修復」ボタンが出る。
 
 ### 3.1 フックが返す出力
 
-| ツール | 出力 |
+| エージェント | 出力 |
 |---|---|
 | Claude Code | **何も出力しない**。`UserPromptSubmit` の標準出力はモデルの入力に入るため |
 | Codex | `Stop` のみ `{}`。それ以外は無出力（`UserPromptSubmit` の出力は文脈になる） |
@@ -115,9 +115,9 @@ AgentSession { id, phase(working|waiting), startedAt, lastSeen, cwd,
 
 ## 4. 中断の検出
 
-「止まった」ことは、ツールごとに別の方法で知る。沈黙の長さだけで推測しない。
+「止まった」ことは、エージェントごとに別の方法で知る。沈黙の長さだけで推測しない。
 
-| ツール | 方法 |
+| エージェント | 方法 |
 |---|---|
 | Claude Code | (1) 監視対象プロセス（フックの親をたどって見つけた `claude`）が消えたら終了。(2) transcript（JSON Lines）の末尾に、`user` エントリの `[Request interrupted by user…]` が現れたら中断。assistant の出力や tool_result 内の同じ文字列は無視し、書きかけの行は判定しない |
 | Codex | `Interrupt` フックで直接知る |
@@ -125,10 +125,10 @@ AgentSession { id, phase(working|waiting), startedAt, lastSeen, cwd,
 | `remain run` | 実行中のコマンド自身の PID を監視する |
 
 - **生存確認**: セッションがある間だけ、3 秒ごとに `checkLiveness()` が走る。PID の生存（`kill(pid, 0)`）と、transcript の追記部分のスキャンを行う。`scanOffset` は、最後に調べた完全な行の直後を指す。
-- **PID の再利用対策**: Claude Code と Codex、Antigravity は、PID が生きているだけでなく、その実行ファイル名がツールのものと一致することも確認する（`remain run` は対象外）。調べられない場合は生きているとみなす。
+- **PID の再利用対策**: Claude Code と Codex、Antigravity は、PID が生きているだけでなく、その実行ファイル名がそのエージェントのものと一致することも確認する（`remain run` は対象外）。調べられない場合は生きているとみなす。
 - 新しい会話では最初のプロンプト時点で transcript がまだない。この場合は先頭（オフセット 0）から調べる。
 - 中断・プロセス終了は「利用者がそこにいる」とみなし、通知も完了アクションも出さない。
-- **安全網**: どのツールも、`sessionTimeout`（既定 1 時間）の間まったく反応がなければ、セッションを外す。Antigravity はこれと 5 分の小さいほうが適用される。
+- **安全網**: どのエージェントも、`sessionTimeout`（既定 1 時間）の間まったく反応がなければ、セッションを外す。Antigravity はこれと 5 分の小さいほうが適用される。
 
 ---
 
@@ -259,7 +259,7 @@ HoldInterval { id, start, end, sources(agent|manual), projects(フォルダ名),
 - Unix ドメインソケット `~/Library/Application Support/remAIn/remain.sock`。ディレクトリは `0700`、ソケットは `0600`（自分のユーザーだけが接続できる）。
 - 改行区切りの JSON。1 接続 1 リクエスト、1 レスポンス。読み書きのタイムアウトは 1 秒、1 メッセージの上限は 1 MiB。
 - リクエスト: `event(AgentEvent)` / `status` / `sessions` / `keepAwake(minutes)` / `release`。レスポンス: `{ ok, message?, snapshot? }`。
-- フックの失敗（アプリ未起動など）は、フックを呼んだツールの動作に影響させない。
+- フックの失敗（アプリ未起動など）は、フックを呼んだエージェントの動作に影響させない。
 
 ---
 
@@ -272,7 +272,7 @@ HoldInterval { id, start, end, sources(agent|manual), projects(フォルダ名),
 | `on [分]` `off` | 手動の防止（無期限、または N 分）／解除 |
 | `run [--] <コマンド>` | コマンドの間だけ防ぐ。終了コードを引き継ぐ。30 秒ごとに `activity` を送る |
 | `install-hooks [agent]` `uninstall-hooks [agent]` | 連携の書き込み／削除 |
-| `doctor` | アプリの稼働、各ツールの連携、ふた閉じの準備、デバッグログを一覧する |
+| `doctor` | アプリの稼働、各エージェントの連携、ふた閉じの準備、デバッグログを一覧する |
 | `reset`（別名 `uninstall`） | フック、ふた閉じの設定、データを削除する |
 | `debug [on\|off]` | フックの生の呼び出しをログに記録する（診断用。既定はオフ。Claude/Codex はイベント名のみ） |
 | `version` | バージョン |
@@ -300,7 +300,7 @@ VoiceOver には `remAIn: <状態>` を読ませる。
 ### 12.2 メニュー（`MenuBarExtra` の `.menu` スタイル、実体は NSMenu）
 
 1. 状態の行（「通常どおりスリープします」「エージェントが作業中」「9:33までスリープを防止中（残り45分）」「スリープを許可中: 理由」など）。手動の防止だけの状態では、押すと解除される。それ以外は押しても何も起きない（無効表示の薄い灰色を避けるため、ボタンとして置く）
-2. 必要なときだけ: 「エージェントの設定を完了…」（連携が壊れているとき、または連携が 1 つもないとき。利用者が意図してオフにしたツールでは出さない）、エージェントの作業中に手動の防止が重なっているときの「手動: …」行
+2. 必要なときだけ: 「エージェントの設定を完了…」（連携が壊れているとき、または連携が 1 つもないとき。利用者が意図してオフにしたエージェントでは出さない）、エージェントの作業中に手動の防止が重なっているときの「手動: …」行
 3. 「スリープを防ぐ」サブメニュー: オフ／30 分／1 時間／2 時間／4 時間／無期限（チェックが現在の選択）
 4. 「蓋を閉じても動作を続ける」（バッテリーのある Mac のみ。準備前に押すと設定へ案内する）
 5. 「設定…」「remAInについて」「remAInを終了」
@@ -314,7 +314,7 @@ VoiceOver には `remAIn: <状態>` を読ませる。
 
 ### 12.4 ウェルカム画面
 
-初回起動時のみ（リセット後は再び出る）。見つかったツールの連携トグルと、「ログイン時に開く」（既定オン）を出す。閉じたときに、通知の許可を求め、ログイン項目の選択を反映する。
+初回起動時のみ（リセット後は再び出る）。見つかったエージェントの連携トグルと、「ログイン時に開く」（既定オン）を出す。閉じたときに、通知の許可を求め、ログイン項目の選択を反映する。
 
 ### 12.5 その他
 
@@ -337,7 +337,7 @@ VoiceOver には `remAIn: <状態>` を読ませる。
 
 設定の「設定をリセット…」（確認ダイアログあり）または `remain reset`。各ステップは独立していて、1 つが失敗しても、残りは実行される。
 
-1. 各ツールの remAIn のフックを削除（読み取れない設定ファイルは触らず、報告する）
+1. 各エージェントの remAIn のフックを削除（読み取れない設定ファイルは触らず、報告する）
 2. ふた閉じ: スリープを戻し、sudoers ルールと見張り役を削除
 3. データ: `activity.jsonl` `activity-open.json` `hook-debug.jsonl` `debug` `lid-heartbeat` `lid-watchdog.sh`
 4. （アプリのみ）ログイン項目の解除、保存済みの設定と初回起動の記録を削除、実行中の設定を既定へ戻す
@@ -365,7 +365,7 @@ VoiceOver には `remAIn: <状態>` を読ませる。
 | `~/Library/Application Support/remAIn/` | `remain.sock`、`activity.jsonl`、`activity-open.json`、`lid-heartbeat`、`lid-watchdog.sh`、（診断オン時）`hook-debug.jsonl` と `debug` |
 | `~/Library/LaunchAgents/dev.remain.lid-watchdog.plist` | ふた閉じの見張り役（セットアップ時のみ） |
 | `/etc/sudoers.d/remain` | ふた閉じの sudo ルール（セットアップ時のみ） |
-| 各ツールの設定ファイル | remAIn のフック（§3）。初回書き込み時のバックアップ `*.remain-backup` |
+| 各エージェントの設定ファイル | remAIn のフック（§3）。初回書き込み時のバックアップ `*.remain-backup` |
 
 外部への通信は行わない。履歴にはフォルダ名のみを保存し、フルパスやプロンプトは保存しない。
 

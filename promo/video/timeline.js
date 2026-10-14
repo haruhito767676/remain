@@ -74,7 +74,10 @@ function scene2(t) {
   const working = t >= startAt && t < finishAt;
   const finished = t >= finishAt;
   const menuOpen = t >= 6.4 && t < 10.4;
-  const shown = t < 1.2 ? 1 : Math.min(8, 1 + (t - 1.2) / 0.5);
+  // The log, the way a terminal prints it: the prompt is typed, then each line pops in whole.
+  const times = [0, 1.0, 2.4, 3.0, 3.6, 4.1, 4.6, 5.0];
+  const visible = times.filter((x) => t >= x).length;
+  const shown = t >= 1.0 && t < 2.0 ? 1 + (t - 1.0) : visible;
   const state = finished ? 'done' : 'short';
   const push = ease(prog(t, 5.0, 6.0)) * (1 - ease(prog(t, 12.8, 13.8)));
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
@@ -84,7 +87,7 @@ function scene2(t) {
   return {
     icons: true, dock: true, cam,
     menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
-    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, inactive: false })],
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, tick: t, inactive: false })],
     notifs: nVis > 0.01 ? [notif] : [],
     black: ease(prog(t, 14.2, 15.4)) * 0.97,
   };

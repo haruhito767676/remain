@@ -115,12 +115,19 @@ function win({ kind, x, y, w, h, inactive, fading, title, body, z = 10 }) {
     <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="title">${title}</div></div><div class="body">${body}</div></div>`);
 }
 
-// `shown` = how many log entries are visible (a fraction types the next line out); omit for all of them.
-function terminalBody(state, shown = 99) {
+// A terminal shows its log the way a terminal does: lines pop in whole, the prompt is typed key by key,
+// and the spinner glyph and the clock tick. `shown` is how many entries are visible (omit for all);
+// a fractional value types the prompt line out. `tick` is seconds, for the spinner and the cursor.
+function terminalBody(state, shown = 99, tick = 0) {
   const t = T.term;
+  const glyphs = ['✻', '✽', '✢', '✳'];
+  const spin = glyphs[Math.floor(tick * 4) % glyphs.length];
+  const seconds = 192 + Math.floor(tick);
+  const working = `Working… (${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s · esc to interrupt)`;
+  const ask = (n) => `<span class="askline">&gt; ${t.ask.slice(0, n)}${n < t.ask.length ? '▌' : ''}</span>\n`;
   const entries = [
     `<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`,
-    `<span class="askline">&gt; ${t.ask}</span>\n`,
+    ask(t.ask.length),
     `<span class="orange">●</span> ${t.steps[0]}`,
     `<span class="orange">●</span> ${t.steps[1]}`,
     `<span class="orange">●</span> ${t.steps[2]}`,
@@ -129,9 +136,11 @@ function terminalBody(state, shown = 99) {
   ];
   if (state === 'interrupted') entries.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
   else if (state === 'done') entries.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
-  else entries.push(`\n<span class="orange">✻</span> <span class="dim">${state === 'short' ? t.workingShort : t.working}</span>`);
-  const visible = entries.slice(0, Math.ceil(shown)).map((e, i) => (i === Math.ceil(shown) - 1 && shown % 1 !== 0 ? `<span style="opacity:${(shown % 1).toFixed(2)}">${e}</span>` : e));
-  return `<div class="log">${visible.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
+  else entries.push(`\n<span class="orange">${spin}</span> <span class="dim">${state === 'short' ? working : t.working}</span>`);
+  const count = Math.ceil(shown);
+  if (shown % 1 !== 0 && count === 2) entries[1] = ask(Math.round(t.ask.length * (shown % 1)));
+  const cursorOn = Math.floor(tick * 2) % 2 === 0;
+  return `<div class="log">${entries.slice(0, count).join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
 }
 
 function caffeinateBody() {
@@ -184,7 +193,7 @@ function chatBody(running = true) {
       <div class="composer">${c.composer}</div></div>`;
 }
 
-const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown), ...o });
+const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 

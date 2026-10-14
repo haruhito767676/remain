@@ -116,9 +116,8 @@
 "Repair" = "修復";
 "Finish setting up your agents…" = "エージェントの連携を設定する…";
 "Welcome to remAIn" = "remAInへようこそ";
-"Keeps your Mac awake only while AI agents work. Choose the tools to follow." = "AIエージェントが働いている間だけ、Macを起こしておきます。見守るツールを選んでください。";
+"Detects AI agent activity and keeps your Mac from sleeping.\nChoose the tools to connect." = "AIエージェントの作業を自動検知して、Macのスリープを防止します。\n連携させるツールを選んでください。";
 "Done" = "完了";
-"It has to be running to follow your agents." = "起動していないと、エージェントを見守れません。";
 "About remAIn" = "remAInについて";
 /* Uninstall */
 "Reset Settings…" = "設定をリセット…";

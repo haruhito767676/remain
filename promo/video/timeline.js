@@ -183,7 +183,11 @@ function scene2Core(t) {
 function scene2(t) {
   const L = 11.6;
   const spec = scene2Core(Math.max(0, t - L));
-  if (t >= L) return spec;
+  if (t >= L) {
+    const c3 = easeOut(prog(t, 13.6, 14.2)) * (1 - ease(prog(t, 22.0, 22.6)));
+    const c4 = easeOut(prog(t, 23.4, 24.0)) * (1 - ease(prog(t, 28.0, 28.6)));
+    return { ...spec, overlays: [text(T.cap2c, 'caption', `opacity:${c3.toFixed(3)}`), text(T.cap2d, 'caption', `opacity:${c4.toFixed(3)}`)] };
+  }
   const finderIn = easeOut(prog(t, 1.0, 1.7)), finderOut = ease(prog(t, 4.3, 4.8));
   const fv = finderIn * (1 - finderOut);
   const picked = t >= 3.2, opened = t >= 3.7;

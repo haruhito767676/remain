@@ -23,6 +23,8 @@ const TEXT = {
     cap6: 'Nothing leaves your Mac.',
     cap2a: 'Enter remAIn.',
     cap2b: 'It just sits in your menu bar.',
+    cap2c: 'Awake only while it works.',
+    cap2d: 'Finished. Back to normal.',
     finale: 'Now, remain asleep.',
     download: 'Download remAIn · macOS 14+ · MIT',
     // The desktop

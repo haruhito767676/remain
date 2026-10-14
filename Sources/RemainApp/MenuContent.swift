@@ -4,7 +4,6 @@ import RemainCore
 /// Rendered by `MenuBarExtra` in its default `.menu` style, i.e. a real NSMenu.
 struct MenuContent: View {
     let model: AppModel
-    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         // Buttons rather than plain Text: a Text row is a disabled menu item and renders in a
@@ -73,8 +72,7 @@ struct MenuContent: View {
     }
 
     private func showSettings() {
-        NSApp.activate()
-        openSettings()
+        SettingsOpener.show()
     }
 
     /// The standard macOS About panel: name, icon and version come from the bundle.

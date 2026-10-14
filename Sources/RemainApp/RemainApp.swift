@@ -6,6 +6,17 @@ import RemainCore
 @MainActor
 enum SettingsOpener {
     static var open: (() -> Void)?
+
+    /// Brings Settings to the front *and* makes it the key window. A menu bar app is not the active
+    /// app, and without this the window appears dimmed behind whatever was in front.
+    static func show() {
+        NSApp.activate(ignoringOtherApps: true)
+        open?()
+        DispatchQueue.main.async {
+            let window = NSApp.windows.first { $0.isVisible && $0.identifier?.rawValue.localizedCaseInsensitiveContains("settings") == true }
+            window?.makeKeyAndOrderFront(nil)
+        }
+    }
 }
 
 @MainActor
@@ -18,8 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Opening the app again while it runs (Finder, Spotlight, `open`) shows Settings. A menu bar icon
     /// can be pushed out of sight by the notch or a crowded menu bar, and this is the way back in.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        NSApp.activate()
-        SettingsOpener.open?()
+        SettingsOpener.show()
         return false
     }
 }

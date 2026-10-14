@@ -352,7 +352,7 @@ final class AppModel {
             }
         }
         welcomeWindow = window
-        NSApp.activate()
+        NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 

@@ -249,7 +249,7 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .finder .body { display: grid; grid-template-columns: 200px 1fr; }
 .finder .fside { background: #232327; padding: 14px 12px; font-size: 15px; color: #d4d6dd; border-right: 1px solid rgba(255,255,255,.06); }
 .finder .fside div { padding: 7px 12px; border-radius: 8px; margin-bottom: 3px; } .finder .fside .sel { background: rgba(255,255,255,.12); }
-.finder .fgrid { display: grid; grid-template-columns: repeat(5, 200px); grid-auto-rows: 160px; padding: 20px 24px; gap: 0; align-content: start; }
+.finder .fgrid { display: grid; grid-template-columns: repeat(5, 200px); grid-auto-rows: 150px; padding: 20px 24px; gap: 0; align-content: start; }
 .finder .fi { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; font-size: 14.5px; color: #e6e8ee; text-align: center; padding-top: 8px; }
 .finder .fi img { width: 92px; height: 92px; margin-bottom: 9px; padding: 8px; border-radius: 16px; box-sizing: content-box; }
 .finder .fi.sel img { background: rgba(255,255,255,.16); }

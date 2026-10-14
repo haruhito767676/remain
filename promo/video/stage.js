@@ -99,7 +99,8 @@ const TEXT = {
       caffeinate: 'caffeinate -i',
       caffeinateTitle: 'Terminal — caffeinate',
     },
-    ide: { tab: 'rateLimit.ts', agent: 'Agent', done: 'Finished. 4 files changed.', steps: ['Read middleware.ts', 'Add a token bucket per client', 'Wire it into the router', 'Run the test suite'], input: 'Ask anything…', status: 'Main · 0 problems · TypeScript' },
+    ide: { tab: 'rateLimit.ts', agent: 'Agent', done: 'Finished. 4 files changed.', steps: ['Read middleware.ts', 'Add a token bucket per client', 'Wire it into the router', 'Run the test suite'],
+      sub: [['src/api/middleware.ts · 84 lines'], ['Edited src/api/rateLimit.ts  +42 −3', 'Created src/api/bucket.ts  +28'], ['Edited src/api/router.ts  +6 −1'], ['$ npm test', '48 passed · 0 failed']], input: 'Ask anything…', status: 'Main · 0 problems · TypeScript' },
     chat: {
       side: ['New chat', 'Projects', 'Recent', 'Fix flaky login test', 'Add rate limiting', 'Write the API docs'],
       history: ['Fix flaky login test', 'Add rate limiting', 'Write the API docs', 'Migrate to Postgres 16', 'Speed up the CI build', 'Refactor the auth module',
@@ -195,7 +196,7 @@ function caffeinateBody() {
   return `<div class="log"><span class="prompt">$ ${T.term.caffeinate}</span>\n<span class="dim">▌</span></div>`;
 }
 
-function ideBody(done = false, doneSteps = 2) {
+function ideBody(done = false, shown = 999) {
   const c = T.ide;
   const code = [
     ['<span class="k">import</span> { Router } <span class="k">from</span> <span class="s">"express"</span>;'],
@@ -223,10 +224,17 @@ function ideBody(done = false, doneSteps = 2) {
     ['<span class="c">// Called from the router</span>'],
     ['<span class="k">export default</span> <span class="f">rateLimit</span>;'],
   ].map((l, i) => `<div><span class="n">${i + 1}</span>${l[0]}</div>`).join('');
-  const steps = c.steps.map((s, i) => `<div class="step ${done || i < doneSteps ? 'done' : ''}"><i></i><span>${s}</span></div>`).join('') + (done ? `<p style="margin-top:14px">${c.done}</p>` : '');
+  // The agent panel streams its work: a step, then what it did, one entry at a time (`shown` entries so far).
+  const flat = [];
+  c.steps.forEach((st, i) => { flat.push({ step: st, i }); (c.sub[i] || []).forEach((l) => flat.push({ sub: l, i })); });
+  const n = done ? flat.length : Math.min(Math.ceil(shown), flat.length);
+  const cur = n ? flat[n - 1].i : -1;
+  const steps = flat.slice(0, n).map((e) => e.step
+    ? `<div class="step ${done || e.i < cur ? 'done' : 'now'}"><i></i><span>${e.step}</span></div>`
+    : `<div class="sub">${e.sub}</div>`).join('') + (done ? `<p style="margin-top:14px">${c.done}</p>` : '');
   return `<div class="activity"><i></i><i></i><i></i><i></i></div>
-    <div class="editor"><div class="tabs"><span>${c.tab}</span></div><div class="code">${code}</div></div>
     <div class="agent"><h4>${c.agent}</h4>${steps}<div class="input">${c.input}</div></div>
+    <div class="editor"><div class="tabs"><span>${c.tab}</span></div><div class="code">${code}</div></div>
     <div class="status">${c.status}</div>`;
 }
 
@@ -242,7 +250,7 @@ function chatBody(running = true) {
 }
 
 const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
-const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done, o.steps), ...o });
+const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done, o.shown), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 
 // A MacBook seen from the front and above. The lid hinges over the keyboard: --beta is how far it is

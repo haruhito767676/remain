@@ -75,18 +75,18 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 
 /* IDE */
 .ide { background: #1b1c21; }
-.ide .body { display: grid; grid-template-columns: 52px 1fr 440px; grid-template-rows: 1fr 26px; }
+.ide .body { display: grid; grid-template-columns: 52px 440px 1fr; grid-template-rows: 1fr 26px; }
 .ide .activity { background: #17181c; padding-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 22px; grid-row: 1; }
 .ide .activity i { width: 22px; height: 22px; border: 2px solid #6b6f7b; border-radius: 6px; display: block; }
 .ide .activity i:nth-child(2) { border-radius: 50%; } .ide .activity i:nth-child(3) { border-radius: 3px 10px 3px 10px; }
-.ide .editor { padding: 0; grid-row: 1; background: #1e1f25; overflow: hidden; }
+.ide .editor { padding: 0; grid-row: 1; grid-column: 3; background: #1e1f25; overflow: hidden; }
 .ide .tabs { height: 38px; background: #17181c; display: flex; align-items: flex-end; font-size: 14px; }
 .ide .tabs span { padding: 9px 18px; background: #1e1f25; border-top: 2px solid #4c8dff; color: #d7d9e0; }
 .ide .code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 15px; line-height: 1.62; padding: 12px 0; white-space: pre; }
 .ide .code div { padding-left: 14px; }
 .ide .code .n { display: inline-block; width: 44px; color: #5a5e6b; text-align: right; margin-right: 18px; }
 .ide .k { color: #c792ea; } .ide .f { color: #82aaff; } .ide .s { color: #c3e88d; } .ide .c { color: #637080; } .ide .t { color: #ffcb6b; }
-.ide .agent { background: #1a1b20; border-left: 1px solid rgba(255,255,255,.08); grid-row: 1; padding: 14px 18px; font-size: 14.5px; line-height: 1.5; color: #c9ccd6; position: relative; }
+.ide .agent { background: #1a1b20; border-right: 1px solid rgba(255,255,255,.08); grid-row: 1; grid-column: 2; overflow: hidden; padding: 14px 18px; font-size: 14.5px; line-height: 1.5; color: #c9ccd6; position: relative; }
 .ide .agent h4 { font-size: 14px; color: #e6e8ee; margin-bottom: 14px; font-weight: 600; }
 .ide .step { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 11px; }
 .ide .step i { flex: none; width: 16px; height: 16px; border-radius: 50%; margin-top: 3px; border: 2px solid #4c8dff; }
@@ -241,3 +241,6 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 
 .keycap { position: absolute; left: 50%; bottom: 190px; transform: translateX(-50%); z-index: 90; padding: 10px 34px; font-size: 34px; font-weight: 600; border-radius: 14px;
   color: #fff; background: linear-gradient(#4a4b52, #34353b); border: 1px solid rgba(255,255,255,.2); box-shadow: 0 4px 0 #1d1e22, 0 14px 30px rgba(0,0,0,.5); }
+
+.ide .step.now i { border-color: #4c8dff; border-top-color: transparent; }
+.ide .sub { margin: -6px 0 10px 26px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: #8d92a1; }

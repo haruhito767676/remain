@@ -133,6 +133,5 @@
 "Keep the display on while preventing sleep" = "スリープを防ぐ間は、ディスプレイも消さない";
 "Notifications are off in System Settings" = "通知はシステム設定でオフになっています";
 "Open System Settings…" = "システム設定を開く…";
-"Keep Awake (%@ left)" = "スリープを防ぐ(残り%@)";
 "Off" = "オフ";
 "Indefinitely" = "無期限";

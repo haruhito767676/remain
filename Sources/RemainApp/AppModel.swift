@@ -126,14 +126,6 @@ final class AppModel {
         return Date()
     }
 
-    /// The menu item for the manual hold; while a timer runs it says how long is left.
-    var keepAwakeTitle: String {
-        if case .until(let end) = snapshot.manual {
-            return String(localized: "Keep Awake (\(remaining(until: end)) left)")
-        }
-        return String(localized: "Keep Awake")
-    }
-
     /// The preset the user picked in the menu, so its checkmark can stay on while the timer runs.
     @ObservationIgnored private var pickedMinutes: Int?
 

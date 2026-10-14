@@ -25,8 +25,8 @@ struct MenuContent: View {
 
         Divider()
 
-        // One item: its title shows the running timer, the checkmark shows which choice is active.
-        Menu(model.keepAwakeTitle) {
+        // The checkmark shows which choice is active; the time left is in the status row above.
+        Menu("Keep Awake") {
             keepAwakeChoice("Off", isOn: model.snapshot.manual == .off) { model.coordinator.setManual(.off) }
             Divider()
             keepAwakeChoice("30 Minutes", minutes: 30)

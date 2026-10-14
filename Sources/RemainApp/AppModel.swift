@@ -76,7 +76,7 @@ final class AppModel {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(20))
                 guard let self else { return }
-                // Keeps "time left" and "today" in the menu and the Activity tab current.
+                // Keeps "time left" in the menu and the Activity tab current.
                 if snapshot.prevention != .none { clockTick = Date() }
             }
         }
@@ -124,14 +124,6 @@ final class AppModel {
     var now: Date {
         _ = clockTick
         return Date()
-    }
-
-    /// "Kept awake for 2h 14m today", or nil while there is nothing worth showing.
-    var todaySummary: String? {
-        let intervals = ActivitySummary.all(activity.intervals, open: activity.open, now: now)
-        let seconds = ActivitySummary.daily(intervals, now: now, days: 1).first?.total ?? 0
-        guard seconds >= 60 else { return nil }
-        return String(localized: "Kept awake for \(ActivityView.format(seconds)) today")
     }
 
     /// Shown while the Mac would keep running with its lid closed.

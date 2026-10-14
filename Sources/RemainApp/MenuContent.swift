@@ -25,12 +25,6 @@ struct MenuContent: View {
         if let lid = model.lidLine {
             Button(lid) {}
         }
-        if let today = model.todaySummary {
-            Button(today) {
-                model.settingsTab = .activity
-                showSettings()
-            }
-        }
 
         Divider()
 

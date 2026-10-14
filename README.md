@@ -50,7 +50,7 @@ When agents finish, remAIn can also:
 
 It needs a network connection to be useful (tether on the move). Off by default; the first activation shows a warning.
 
-**Activity log.** Every stretch of time remAIn kept the Mac awake is recorded: start, end, agent or manual, the project folder name and why it ended (finished, interrupted, Claude Code closed, timer, power guard, ...). The menu shows today's total and Settings → Activity shows a 14-day chart, per-project totals and recent history. Data lives in `~/Library/Application Support/remAIn/activity.jsonl` (JSON Lines, 90 days, never leaves the Mac, folder names only). The running interval is checkpointed every minute, so a crash loses at most a minute.
+**Activity log.** Every stretch of time remAIn kept the Mac awake is recorded: start, end, agent or manual, the project folder name and why it ended (finished, interrupted, Claude Code closed, timer, power guard, ...). Settings → Activity shows a 14-day chart, per-project totals and recent history. Data lives in `~/Library/Application Support/remAIn/activity.jsonl` (JSON Lines, 90 days, never leaves the Mac, folder names only). The running interval is checkpointed every minute, so a crash loses at most a minute.
 
 The UI is localized (English, 日本語) and follows the system language. Translations live in `Resources/<lang>.lproj/Localizable.strings`; English strings in the code are the keys.
 

@@ -34,6 +34,7 @@ const TEXT = {
     menuStatus: { idle: 'Sleeps as usual', one: 'An agent is working', many: '3 agents working' },
     menuItems: ['Keep Awake', 'Keep Running with Lid Closed', 'Settings…', 'About remAIn', 'Quit remAIn'],
     notif: { title: 'An agent finished its work', body: 'web-app · took 14m 32s' },
+    notifStop: { title: 'An agent stopped unexpectedly', body: 'web-app · Keep-awake has ended.' },
     // Window contents (invented)
     term: {
       title: 'web-app — claude — 100×30',
@@ -93,7 +94,7 @@ const TEXT = {
       ],
       working: 'Working… (2h 41m · esc to interrupt)',
       workingShort: 'Working… (3m 12s · esc to interrupt)',
-      interrupted: 'Interrupted · What should Claude do instead?',
+      error: 'Error: connection lost',
       done: 'Worked for 14m 32s',
       footer: '? for shortcuts · ← for agents',
       caffeinate: 'caffeinate -i',
@@ -180,13 +181,13 @@ function terminalBody(state, shown = 999, tick = 0) {
     .replace('✓', '<span class="ok">✓</span>').replace('✗', '<span class="bad">✗</span>');
   // An interrupted run stops partway through the log; a finished one continues far beyond what the
   // first part showed (the terminal scrolls, so only its newest lines are in view).
-  const log = (state === 'interrupted' ? t.log.slice(0, 11) : t.log).map(style);
+  const log = (state === 'error' ? t.log.slice(0, 11) : t.log).map(style);
   const entries = [`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`, ask(t.ask.length), ...log];
   if (state === 'done') entries.push(...t.logLate.map(style), `<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
   const count = Math.min(Math.ceil(shown), entries.length);
   if (shown % 1 !== 0 && count === 2) entries[1] = ask(Math.round(t.ask.length * (shown % 1)));
   const visible = entries.slice(0, count);
-  if (state === 'interrupted' && count >= entries.length) visible.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
+  if (state === 'error' && count >= entries.length) visible.push(`\n<span class="bad">⎿  ${t.error}</span>`);
   if (state === 'short' && shown >= 2) visible.push(`\n<span class="orange">${spin}</span> <span class="dim">${working}</span>`);
   const cursorOn = Math.floor(tick * 2) % 2 === 0;
   return `<div class="log">${visible.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
@@ -238,20 +239,20 @@ function ideBody(done = false, shown = 999) {
     <div class="status">${c.status}</div>`;
 }
 
-function chatBody(running = true) {
+function chatBody(running = true, tick = 0) {
   const c = T.chat;
   return `<div class="side"><h4>${c.title} ⌄</h4><div>${c.side[0]}</div><div>${c.side[1]}</div>
       <div class="group">${c.side[2]}</div>${c.history.map((h, i) => `<div class="${i === 1 ? 'sel' : ''}">${h}</div>`).join('')}</div>
     <div class="main"><div class="bubble">${c.user}</div>
       <p>${c.lead}</p><ul>${c.bullets.map((b) => `<li><code>${b}</code></li>`).join('')}</ul>
       <div class="block">${c.block}</div>
-      ${running ? `<div class="run"><i></i>${c.running}</div>` : `<div class="run">✓ ${c.done}</div>`}
+      ${running ? `<div class="run"><i style="transform:rotate(${(tick * 360).toFixed(0)}deg)"></i>${c.running}</div>` : `<div class="run">✓ ${c.done}</div>`}
       <div class="composer">${c.composer}</div></div>`;
 }
 
 const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done, o.shown), ...o });
-const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
+const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false, o.tick), ...o });
 
 // A MacBook seen from the front and above. The lid hinges over the keyboard: --beta is how far it is
 // from closed (0 = shut, 100+ = open).
@@ -346,7 +347,7 @@ const SCENES = {
   // 4: the one left is interrupted halfway; the icon is back to the moon
   4: () => ({
     menubar: { app: 'terminal', icon: 'moon', active: false }, dock: true, icons: true,
-    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state: 'interrupted' }), $(`<div class="caption">${T.cap4}</div>`),
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state: 'error' }), $(`<div class="caption">${T.cap4}</div>`),
       $(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px"></div>`)],
   }),
   // 5: lid closed, still running

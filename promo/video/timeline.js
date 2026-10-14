@@ -105,38 +105,41 @@ function scene3(t) {
   const ideIn = easeOut(prog(t, 0.5, 1.2)), chatIn = easeOut(prog(t, 1.8, 2.5)), termIn = easeOut(prog(t, 3.1, 3.8));
   const ideOut = ease(prog(t, 13.2, 13.9)), chatOut = ease(prog(t, 15.6, 16.3));
   const ideDone = t >= 11.4, chatDone = t >= 14.0;
-  const interrupted = t >= 20.0;
+  const interrupted = t >= 20.0;   // the run dies with an error
   const alive = (inn, out) => inn > 0 && out < 1;
   const layers = [];
   if (alive(ideIn, ideOut)) layers.push(pop(ideWin({ x: 70, y: 84, w: 1130, h: 680, inactive: true, done: ideDone, shown: Math.max(0, (t - 1.2) / 0.95), z: 10 }), ideIn * (1 - ideOut)));
-  if (alive(chatIn, chatOut)) layers.push(pop(chatWin({ x: 520, y: 130, w: 1050, h: 620, inactive: true, running: !chatDone, z: 11 }), chatIn * (1 - chatOut)));
+  if (alive(chatIn, chatOut)) layers.push(pop(chatWin({ x: 520, y: 130, w: 1050, h: 620, inactive: true, running: !chatDone, tick: t, z: 11 }), chatIn * (1 - chatOut)));
   // The terminal lives on: it glides to the middle and grows once the other two are gone.
   const g = ease(prog(t, 16.4, 17.8));
   const geo = { x: lerp(1000, 300, g), y: lerp(260, 130, g), w: lerp(860, 1100, g), h: lerp(560, 700, g) };
   const shown = interrupted ? 999 : t < 3.1 ? 0 : Math.min(13, 1 + (t - 3.1) * 0.7);
-  if (termIn > 0) layers.push(pop(terminalWin({ ...geo, state: interrupted ? 'interrupted' : 'short', shown, tick: Math.max(0, t - 3.1), z: 12 }), termIn));
+  if (termIn > 0) layers.push(pop(terminalWin({ ...geo, state: interrupted ? 'error' : 'short', shown, tick: Math.max(0, t - 3.1), z: 12 }), termIn));
 
   const app = t < 1.8 ? 'ide' : t < 3.1 ? 'chat' : 'terminal';
-  const icon = t >= 23.0 ? 'moon' : 'sparkles';
+  const icon = t >= 23.5 ? 'moon' : 'sparkles';
   // Two looks at the menu: three agents at work, and, once the stopped one is over, "Sleeps as usual".
-  const m1 = t >= 7.2 && t < 9.6, m3 = t >= 23.6 && t < 25.8;
+  const m1 = t >= 7.2 && t < 9.6, m3 = t >= 25.0 && t < 27.0;
   const menuOpen = m1 || m3;
   const status = m1 ? 'many' : 'idle';
   const pushA = ease(prog(t, 5.6, 7.2)) * (1 - ease(prog(t, 9.6, 11.2)));
-  const pushC = ease(prog(t, 22.0, 23.6)) * (1 - ease(prog(t, 25.8, 27.4)));
+  const pushC = ease(prog(t, 21.6, 23.2)) * (1 - ease(prog(t, 27.0, 28.6)));
   const push = Math.max(pushA, pushC);
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
+  const nIn = easeOut(prog(t, 23.5, 24.2)), nOut = ease(prog(t, 26.0, 26.5)), nVis = nIn * (1 - nOut);
+  const notif = $(`<div class="notif" style="opacity:${nVis.toFixed(3)};transform:translateX(${((1 - nIn) * 60 + nOut * 40).toFixed(1)}px)"><img src="assets/icons/remain.png"><div><b>${T.notifStop.title}</b><span>${T.notifStop.body}</span></div><em>now</em></div>`);
   const c3 = easeOut(prog(t, 3.6, 4.3)) * (1 - ease(prog(t, 5.0, 5.5)));
-  const c4 = easeOut(prog(t, 20.6, 21.3)) * (1 - ease(prog(t, 25.6, 26.2)));
+  const c4 = easeOut(prog(t, 20.6, 21.3)) * (1 - ease(prog(t, 26.8, 27.4)));
   return {
     icons: true, dock: true, cam,
     menubar: { app, icon, active: menuOpen, menu: menuOpen ? { status } : null },
     layers,
+    notifs: nVis > 0.01 ? [notif] : [],
     overlays: [
       text(T.cap3, 'caption', `opacity:${c3.toFixed(3)}`),
       text(T.cap4, 'caption', `opacity:${c4.toFixed(3)}`),
     ],
-    black: ease(prog(t, 27.2, 28.4)) * 0.97,
+    black: ease(prog(t, 28.6, 29.8)) * 0.97,
   };
 }
 
@@ -163,7 +166,7 @@ function scene5(t) {
 }
 
 const SCENE_FNS = { '0': scene0, '2': scene2, '3': scene3, '5': scene5 };
-const DURATIONS = { '0': 6.5, '2': 18.0, '3': 28.4, '5': 12.6 };
+const DURATIONS = { '0': 6.5, '2': 18.0, '3': 29.8, '5': 12.6 };
 
 async function seek(id, t) {
   await ensureWallpaper();

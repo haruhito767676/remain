@@ -246,7 +246,7 @@ struct WelcomeView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Welcome to remAIn").font(.title2.bold())
-            Text("remAIn keeps your Mac awake while an AI agent is working, and lets it sleep when the work is done. Connect the tools you use:")
+            Text("Keeps your Mac awake only while AI agents work. Choose the tools to follow.")
                 .fixedSize(horizontal: false, vertical: true)
             Form {
                 ForEach(model.visibleIntegrations, id: \.self) { agent in
@@ -255,10 +255,11 @@ struct WelcomeView: View {
             }
             .formStyle(.grouped)
             .scrollDisabled(true)
-            .frame(height: CGFloat(model.visibleIntegrations.count) * 44 + 40)
+            .frame(height: CGFloat(model.visibleIntegrations.count) * 38 + 24)
+            .padding(.top, -12)
             VStack(alignment: .leading, spacing: 4) {
                 Toggle("Open at login", isOn: $model.welcomeOpenAtLogin)
-                Text("remAIn has to be running to notice your agents.")
+                Text("It has to be running to follow your agents.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             if let error = model.integrationError {

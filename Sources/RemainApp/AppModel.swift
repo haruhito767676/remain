@@ -61,6 +61,10 @@ final class AppModel {
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [coordinator] _ in
             MainActor.assumeIsolated { coordinator.shutdown() }
         }
+        // Coming back from System Settings (notifications, login items): show what changed there.
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshState() }
+        }
         powerMonitor.onChange = { [coordinator, weak self] state in
             coordinator.update(power: state)
             self?.hasBattery = state.batteryPercent != nil

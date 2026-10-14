@@ -61,6 +61,35 @@ const TEXT = {
         '● Editing README.md  (+12 −0)',
         '● Running npm test -- --coverage',
         '  ✓ 48 passed · 94% coverage',
+        '● Reading docs/api.md',
+        '● Editing docs/api.md  (+18 −2)',
+        '● Running npm run build',
+        '  ✓ Build succeeded',
+      ],
+      // The same job, much later: what the terminal shows when the run is over.
+      logLate: [
+        '● Searching for "x-forwarded-for" in src/',
+        '● Editing src/api/clientId.ts  (+11 −2)',
+        '● Editing tests/clientId.test.ts  (+22 −0)',
+        '● Running npm test',
+        '  ✓ 51 passed',
+        '● Running npm run lint',
+        '  ✓ No issues',
+        '● Editing docs/rate-limiting.md  (+31 −0)',
+        '● Reading CHANGELOG.md',
+        '● Editing CHANGELOG.md  (+5 −0)',
+        '● Running npm test -- --coverage',
+        '  ✓ 52 passed · 96% coverage',
+        '● Running git diff --stat',
+        '  8 files changed, 214 insertions(+), 19 deletions(-)',
+        '● Creating commit "Add per-client rate limiting"',
+        '  ✓ Committed 3f9c2e1',
+        '',
+        'Done. Per-client rate limiting is in place:',
+        '  · 60 requests per minute per client, set in src/config/limits.ts',
+        '  · Over the limit, the API answers 429 with a Retry-After header',
+        '  · 8 new tests cover it, and the full suite passes',
+        '',
       ],
       working: 'Working… (2h 41m · esc to interrupt)',
       workingShort: 'Working… (3m 12s · esc to interrupt)',
@@ -137,30 +166,29 @@ function win({ kind, x, y, w, h, inactive, fading, title, body, z = 10 }) {
 // A terminal shows its log the way a terminal does: lines pop in whole, the prompt is typed key by key,
 // and the spinner glyph and the clock tick. `shown` is how many entries are visible (omit for all);
 // a fractional value types the prompt line out. `tick` is seconds, for the spinner and the cursor.
-function terminalBody(state, shown = 99, tick = 0, rows = 99) {
+function terminalBody(state, shown = 999, tick = 0) {
   const t = T.term;
   const glyphs = ['✻', '✽', '✢', '✳'];
   const spin = glyphs[Math.floor(tick * 4) % glyphs.length];
-  const seconds = 192 + Math.floor(tick);
-  const working = `Working… (${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s · esc to interrupt)`;
+  const sec = Math.floor(tick);
+  const elapsed = sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${String(sec % 60).padStart(2, '0')}s`;
+  const working = `Working… (${elapsed} · esc to interrupt)`;
   const ask = (n) => `<span class="askline">&gt; ${t.ask.slice(0, n)}${n < t.ask.length ? '▌' : ''}</span>\n`;
   const style = (line) => line
     .replace('●', '<span class="orange">●</span>')
     .replace('✓', '<span class="ok">✓</span>').replace('✗', '<span class="bad">✗</span>');
-  // An interrupted run stops partway through the log.
+  // An interrupted run stops partway through the log; a finished one continues far beyond what the
+  // first part showed (the terminal scrolls, so only its newest lines are in view).
   const log = (state === 'interrupted' ? t.log.slice(0, 11) : t.log).map(style);
   const entries = [`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`, ask(t.ask.length), ...log];
-  const weights = [3, 2, ...log.map(() => 1)];
-  if (state === 'interrupted') { entries.push(`  <span class="dim">⎿  ${t.interrupted}</span>`); weights.push(1); }
-  else if (state === 'done') { entries.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`); weights.push(1); }
-  else { entries.push(`\n<span class="orange">${spin}</span> <span class="dim">${state === 'short' ? working : t.working}</span>`); weights.push(2); }
-  const count = Math.ceil(shown);
+  if (state === 'done') entries.push(...t.logLate.map(style), `<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
+  const count = Math.min(Math.ceil(shown), entries.length);
   if (shown % 1 !== 0 && count === 2) entries[1] = ask(Math.round(t.ask.length * (shown % 1)));
-  let first = 0;                                    // like a real terminal, old lines scroll off the top
-  let used = weights.slice(0, count).reduce((a, b) => a + b, 0);
-  while (used > rows && first < count - 1) used -= weights[first++];
+  const visible = entries.slice(0, count);
+  if (state === 'interrupted' && count >= entries.length) visible.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
+  if (state === 'short' && shown >= 2) visible.push(`\n<span class="orange">${spin}</span> <span class="dim">${working}</span>`);
   const cursorOn = Math.floor(tick * 2) % 2 === 0;
-  return `<div class="log">${entries.slice(first, count).join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
+  return `<div class="log">${visible.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
 }
 
 function caffeinateBody() {

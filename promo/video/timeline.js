@@ -75,9 +75,12 @@ function scene2(t) {
   const finished = t >= finishAt;
   const menuOpen = t >= 7.7 && t < 10.8;
   // The log, the way a terminal prints it: the prompt is typed, then each line pops in whole.
-  const times = [0, 1.0, ...Array.from({ length: 21 }, (_, i) => 2.3 + i * 0.18)];
+  // 17 lines at full speed, then the log slows down a little before the camera leaves it.
+  const lineAt = [...Array.from({ length: 17 }, (_, i) => 2.3 + i * 0.18)];
+  [0.28, 0.35, 0.45, 0.55, 0.7, 0.85, 1.0].forEach((gap) => lineAt.push(lineAt[lineAt.length - 1] + gap));
+  const times = [0, 1.0, ...lineAt];
   const visible = times.filter((x) => t >= x).length;
-  const shown = t >= 1.0 && t < 2.0 ? 1 + (t - 1.0) : visible;
+  const shown = finished ? 999 : t >= 1.0 && t < 2.0 ? 1 + (t - 1.0) : visible;
   const state = finished ? 'done' : 'short';
   const push = ease(prog(t, 6.3, 7.3)) * (1 - ease(prog(t, 13.2, 14.2)));
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };

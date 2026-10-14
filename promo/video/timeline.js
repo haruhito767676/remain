@@ -203,6 +203,42 @@ function scene3(t) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Scene 6: peace of mind. The Activity screen, "stored only on your Mac"
+// ---------------------------------------------------------------------------------------------
+function scene6(t) {
+  const inn = easeOut(prog(t, 0.2, 1.4));
+  const drift = prog(t, 0, 8.4);                                    // a slow push so the picture is never still
+  const cap = easeOut(prog(t, 1.8, 2.5)) * (1 - ease(prog(t, 7.2, 8.0)));
+  const shot = $(`<img class="shot" src="../../docs/media/shot-settings-activity-dark-${lang}.webp" style="opacity:${inn.toFixed(3)};transform:translate(-50%,-52%) scale(${(lerp(0.95, 1, inn) * (1 + 0.05 * drift)).toFixed(4)})">`);
+  return {
+    blur: 26, shade: 0.45,
+    layers: [shot],
+    overlays: [text(T.cap6, 'caption', `bottom:46px;opacity:${cap.toFixed(3)}`)],
+    black: ease(prog(t, 7.6, 8.6)) * 0.97,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Scene 7: the end. "AI" settles back into lowercase: the agents are done
+// ---------------------------------------------------------------------------------------------
+function scene7(t) {
+  const moon = easeOut(prog(t, 0.3, 1.2));
+  const head = easeOut(prog(t, 1.0, 1.9));
+  const settle = prog(t, 3.2, 4.2);                                  // "AI" -> "ai"
+  const lower = settle > 0.5;
+  const glow = 1 - ease(prog(t, 3.2, 4.8));                          // the colour fades as it calms down
+  const scale = 1 - 0.1 * Math.sin(Math.PI * settle);
+  const at = T.finale.indexOf('ai'), pre = T.finale.slice(0, at), post = T.finale.slice(at + 2);
+  const dl = easeOut(prog(t, 4.8, 5.6));
+  const h = $(`<div class="finale">
+    <img class="moon" src="assets/symbols/moon.png" style="opacity:${moon.toFixed(3)};transform:scale(${lerp(0.8, 1, moon).toFixed(3)})">
+    <h1 style="opacity:${head.toFixed(3)};transform:translateY(${((1 - head) * 16).toFixed(1)}px)">${pre}<span style="display:inline-block;transform:scale(${scale.toFixed(3)});transform-origin:50% 70%;position:relative">
+      <span style="opacity:${(1 - glow).toFixed(3)}">${lower ? 'ai' : 'AI'}</span><span class="ai" style="position:absolute;left:0;top:0;opacity:${glow.toFixed(3)};filter:drop-shadow(0 0 ${(glow * 22).toFixed(0)}px rgba(143,176,255,.6))">${lower ? 'ai' : 'AI'}</span></span>${post}</h1>
+    <div class="dl" style="opacity:${(dl * 0.92).toFixed(3)};transform:translateY(${((1 - dl) * 14).toFixed(1)}px)"><img src="assets/icons/remain.png">${T.download}</div></div>`);
+  return { blur: 26, shade: 0.72, overlays: [h], black: ease(prog(t, 8.6, 9.8)) * 0.97 };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Scene 5: the lid closes and the Mac keeps going; then why it stops by itself
 // ---------------------------------------------------------------------------------------------
 function scene5(t) {
@@ -224,8 +260,8 @@ function scene5(t) {
   };
 }
 
-const SCENE_FNS = { '0': scene0, '1': scene1, '2': scene2, '3': scene3, '5': scene5 };
-const DURATIONS = { '0': 6.5, '1': 43.0, '2': 18.0, '3': 29.8, '5': 12.6 };
+const SCENE_FNS = { '0': scene0, '1': scene1, '2': scene2, '3': scene3, '5': scene5, '6': scene6, '7': scene7 };
+const DURATIONS = { '0': 6.5, '1': 43.0, '2': 18.0, '3': 29.8, '5': 12.6, '6': 8.6, '7': 9.8 };
 
 async function seek(id, t) {
   await ensureWallpaper();

@@ -58,6 +58,51 @@ struct GeneralSettingsView: View {
             }
 
             Section {
+                Toggle("Notify when a task finishes", isOn: Binding(
+                    get: { model.settings.notifyOnFinish },
+                    set: { value in
+                        model.update { $0.notifyOnFinish = value }
+                        if value { model.requestNotificationAuthorization() }
+                    }
+                ))
+                Toggle("Notify when an agent needs my input", isOn: Binding(
+                    get: { model.settings.notifyOnAttention },
+                    set: { value in
+                        model.update { $0.notifyOnAttention = value }
+                        if value { model.requestNotificationAuthorization() }
+                    }
+                ))
+                if model.notificationsDenied, model.settings.notifyOnFinish || model.settings.notifyOnAttention {
+                    LabeledContent("Notifications are off in System Settings") {
+                        Button("Open System Settings…") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                    }
+                }
+                Picker("Only for work that took longer than", selection: Binding(
+                    get: { model.settings.minimumNotifiableDuration },
+                    set: { value in model.update { $0.minimumNotifiableDuration = value } }
+                )) {
+                    Text("Any length").tag(TimeInterval(0))
+                    Text("30 seconds").tag(TimeInterval(30))
+                    Text("1 minute").tag(TimeInterval(60))
+                    Text("5 minutes").tag(TimeInterval(5 * 60))
+                }
+                Picker("When all tasks are done", selection: Binding(
+                    get: { model.settings.completionAction },
+                    set: { value in model.update { $0.completionAction = value } }
+                )) {
+                    Text("Do nothing").tag(CompletionAction.nothing)
+                    Text("Turn the display off").tag(CompletionAction.turnDisplayOff)
+                    Text("Put the Mac to sleep").tag(CompletionAction.sleepMac)
+                }
+            } header: {
+                Text("When Agents Finish")
+            }
+
+            Section {
                 if model.hasBattery {
                     Picker("Let the Mac sleep when the battery is below", selection: Binding(
                         get: { model.settings.batteryCutoffPercent },
@@ -118,51 +163,6 @@ struct GeneralSettingsView: View {
                 } footer: {
                     Text("Asks for your password once.")
                 }
-            }
-
-            Section {
-                Toggle("Notify when a task finishes", isOn: Binding(
-                    get: { model.settings.notifyOnFinish },
-                    set: { value in
-                        model.update { $0.notifyOnFinish = value }
-                        if value { model.requestNotificationAuthorization() }
-                    }
-                ))
-                Toggle("Notify when an agent needs my input", isOn: Binding(
-                    get: { model.settings.notifyOnAttention },
-                    set: { value in
-                        model.update { $0.notifyOnAttention = value }
-                        if value { model.requestNotificationAuthorization() }
-                    }
-                ))
-                if model.notificationsDenied, model.settings.notifyOnFinish || model.settings.notifyOnAttention {
-                    LabeledContent("Notifications are off in System Settings") {
-                        Button("Open System Settings…") {
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }
-                    }
-                }
-                Picker("Only for work that took longer than", selection: Binding(
-                    get: { model.settings.minimumNotifiableDuration },
-                    set: { value in model.update { $0.minimumNotifiableDuration = value } }
-                )) {
-                    Text("Any length").tag(TimeInterval(0))
-                    Text("30 seconds").tag(TimeInterval(30))
-                    Text("1 minute").tag(TimeInterval(60))
-                    Text("5 minutes").tag(TimeInterval(5 * 60))
-                }
-                Picker("When all tasks are done", selection: Binding(
-                    get: { model.settings.completionAction },
-                    set: { value in model.update { $0.completionAction = value } }
-                )) {
-                    Text("Do nothing").tag(CompletionAction.nothing)
-                    Text("Turn the display off").tag(CompletionAction.turnDisplayOff)
-                    Text("Put the Mac to sleep").tag(CompletionAction.sleepMac)
-                }
-            } header: {
-                Text("When Agents Finish")
             }
 
             Section {

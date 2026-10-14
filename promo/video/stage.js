@@ -299,7 +299,8 @@ const SCENES = {
 // ---------- Render ----------
 
 function render(id) {
-  const spec = SCENES[id]();
+  const lid = /^lid-(\d+)$/.exec(id);
+  const spec = lid ? { wallpaper: 'blur', shade: 0.5, layers: [laptop3d(Number(lid[1]))] } : SCENES[id]();
   const cam = document.getElementById('camera');
   document.querySelectorAll('#stage > .caption, #stage > .big, #stage > .finale').forEach((e) => e.remove());
   cam.innerHTML = '';

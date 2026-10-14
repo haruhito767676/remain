@@ -92,6 +92,36 @@ const TEXT = {
         '  · 8 new tests cover it, and the full suite passes',
         '',
       ],
+      // Other jobs for the trouble scene, so no two parts of the video show the same prompt or log.
+      jobs: {
+        sleep: {
+          ask: 'Migrate the database from MySQL to Postgres 16', cut: 13, error: 'Error: request timed out',
+          log: [
+            '● Reading db/schema.sql', '● Reading src/db/connection.ts', '● Searching for "mysql" in src/',
+            '● Editing package.json  (+2 −1)', '● Running npm install', '  ✓ 3 packages changed',
+            '● Editing src/db/connection.ts  (+24 −18)', '● Creating db/migrations/001_init.sql  (+212 −0)',
+            '● Running npm run migrate', '  ✓ 14 tables migrated', '● Editing src/models/user.ts  (+9 −7)',
+            '● Editing src/models/order.ts  (+14 −11)', '● Running npm test', '  ✓ 61 passed  ✗ 3 failed',
+            '● Editing src/models/order.ts  (+6 −4)',
+          ],
+        },
+        night: {
+          ask: 'Write the API reference for the public endpoints', cut: 99, error: '',
+          log: [
+            '● Reading src/api/router.ts', '● Reading src/api/schemas.ts', '● Searching for "@route" in src/',
+            '● Creating docs/api/index.md  (+48 −0)', '● Creating docs/api/users.md  (+96 −0)',
+            '● Creating docs/api/orders.md  (+128 −0)', '● Running npm run docs:check', '  ✓ 0 broken links',
+            '● Reading docs/api/orders.md', '● Editing docs/api/orders.md  (+14 −3)',
+            '● Creating docs/api/errors.md  (+57 −0)', '● Running npm run docs:build', '  ✓ Built 18 pages',
+          ],
+          logLate: [
+            '● Editing docs/api/users.md  (+22 −4)', '● Creating docs/api/webhooks.md  (+74 −0)',
+            '● Running npm run docs:check', '  ✓ 0 broken links', '● Running npm run docs:build', '  ✓ Built 21 pages',
+            '', 'Done. The public API is documented:', '  · 14 endpoints across users, orders and webhooks',
+            '  · Every page has a request and a response example', '  · The docs build passes with no broken links', '',
+          ],
+        },
+      },
       working: 'Working… (2h 41m · esc to interrupt)',
       workingShort: 'Working… (3m 12s · esc to interrupt)',
       error: 'Error: connection lost',
@@ -125,7 +155,7 @@ const T = TEXT[lang] || TEXT.en;
 
 // ---------- Building blocks ----------
 
-function menubar({ app, icon, active, menu, battery = 82, clock = T.clock }) {
+function menubar({ app, icon, active, menu, battery = 82, lowBattery = false, clock = T.clock }) {
   const names = T.menus[app];
   const left = names.map((n, i) => `<span class="${i === 0 ? 'appname' : ''}">${n}</span>`).join('');
   const status = icon ? `<span class="slot status ${active ? 'active' : ''}" id="status"><img src="assets/symbols/${icon}.png">${menu ? menuHtml(menu) : ''}</span>` : '';
@@ -133,7 +163,7 @@ function menubar({ app, icon, active, menu, battery = 82, clock = T.clock }) {
     <div class="right">${status}
       <span class="slot"><img src="assets/symbols/search.png"></span>
       <span class="slot"><img src="assets/symbols/wifi.png"></span>
-      <span class="battery ${battery <= 10 ? 'low' : ''}" style="--level:${battery}%"><i></i><b></b></span>
+      <span class="battery ${battery <= 10 || lowBattery ? 'low' : ''}" style="--level:${battery}%"><i></i><b></b></span>
       <span class="slot"><img src="assets/symbols/controls.png"></span>
       <span class="clock">${clock}</span></div></div>`);
 }
@@ -168,26 +198,27 @@ function win({ kind, x, y, w, h, inactive, fading, title, body, z = 10 }) {
 // A terminal shows its log the way a terminal does: lines pop in whole, the prompt is typed key by key,
 // and the spinner glyph and the clock tick. `shown` is how many entries are visible (omit for all);
 // a fractional value types the prompt line out. `tick` is seconds, for the spinner and the cursor.
-function terminalBody(state, shown = 999, tick = 0) {
+function terminalBody(state, shown = 999, tick = 0, job = null) {
   const t = T.term;
+  const j = { ask: t.ask, log: t.log, logLate: t.logLate, error: t.error, cut: 11, ...(job ? T.term.jobs[job] : {}) };
   const glyphs = ['✻', '✽', '✢', '✳'];
   const spin = glyphs[Math.floor(tick * 4) % glyphs.length];
   const sec = Math.floor(tick);
   const elapsed = sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${String(sec % 60).padStart(2, '0')}s`;
   const working = `Working… (${elapsed} · esc to interrupt)`;
-  const ask = (n) => `<span class="askline">&gt; ${t.ask.slice(0, n)}${n < t.ask.length ? '▌' : ''}</span>\n`;
+  const ask = (n) => `<span class="askline">&gt; ${j.ask.slice(0, n)}${n < j.ask.length ? '▌' : ''}</span>\n`;
   const style = (line) => line
     .replace('●', '<span class="orange">●</span>')
     .replace('✓', '<span class="ok">✓</span>').replace('✗', '<span class="bad">✗</span>');
   // An interrupted run stops partway through the log; a finished one continues far beyond what the
   // first part showed (the terminal scrolls, so only its newest lines are in view).
-  const log = (state === 'error' ? t.log.slice(0, 11) : t.log).map(style);
-  const entries = [`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`, ask(t.ask.length), ...log];
-  if (state === 'done') entries.push(...t.logLate.map(style), `<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
+  const log = (state === 'error' ? j.log.slice(0, j.cut) : j.log).map(style);
+  const entries = [`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`, ask(j.ask.length), ...log];
+  if (state === 'done') entries.push(...(j.logLate || []).map(style), `<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
   const count = Math.min(Math.ceil(shown), entries.length);
-  if (shown % 1 !== 0 && count === 2) entries[1] = ask(Math.round(t.ask.length * (shown % 1)));
+  if (shown % 1 !== 0 && count === 2) entries[1] = ask(Math.round(j.ask.length * (shown % 1)));
   const visible = entries.slice(0, count);
-  if (state === 'error' && count >= entries.length) visible.push(`\n<span class="bad">⎿  ${t.error}</span>`);
+  if (state === 'error' && count >= entries.length) visible.push(`\n<span class="bad">⎿  ${j.error}</span>`);
   if (state === 'short' && shown >= 2) visible.push(`\n<span class="orange">${spin}</span> <span class="dim">${working}</span>`);
   const cursorOn = Math.floor(tick * 2) % 2 === 0;
   return `<div class="log">${visible.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
@@ -250,7 +281,7 @@ function chatBody(running = true, tick = 0) {
       <div class="composer">${c.composer}</div></div>`;
 }
 
-const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
+const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick, o.job), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done, o.shown), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false, o.tick), ...o });
 

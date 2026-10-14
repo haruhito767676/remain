@@ -9,6 +9,9 @@ const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(x));  // gentle in an
 const easeOut = (x) => 1 - Math.pow(1 - clamp01(x), 3);
 const prog = (t, a, b) => clamp01((t - a) / (b - a));
 const lerp = (a, b, x) => a + (b - a) * x;
+// A Dock icon hopping while its app launches: three bounces that die down over a second.
+const hop = (t, a) => { const u = (t - a) / 1.0; return u < 0 || u > 1 ? 0 : 34 * Math.abs(Math.sin(Math.PI * 3 * u)) * (1 - u); };
+const popWin = (el, p) => { el.style.opacity = p.toFixed(3); el.style.transform = `scale(${lerp(0.93, 1, p).toFixed(3)})`; return el; };
 
 const stageEl = document.getElementById('stage');
 const camEl = document.getElementById('camera');
@@ -28,8 +31,9 @@ function frame(spec) {
   wallpaperEl.style.filter = spec.blur ? `blur(${spec.blur}px) saturate(1.1)` : 'none';
   if (spec.icons) camEl.appendChild(desktopIcons());
   (spec.layers || []).forEach((l) => camEl.appendChild(l));
-  if (spec.dock) camEl.appendChild(dock(spec.running));
+  if (spec.dock) camEl.appendChild(dock(spec.running, spec.bounce));
   if (spec.menubar) camEl.appendChild(menubar(spec.menubar));
+  if (spec.ui !== undefined) camEl.querySelectorAll('.menubar, .dock, .desktop-icons').forEach((e) => { e.style.opacity = spec.ui.toFixed(3); });
   if (spec.shade) { const s = $('<div class="shade"></div>'); s.style.opacity = spec.shade; camEl.appendChild(s); }
   (spec.notifs || []).forEach((n) => camEl.appendChild(n));
   (spec.overlays || []).forEach((o) => { o.classList.add('overlay'); o.style.zIndex = 90; stageEl.appendChild(o); });
@@ -63,13 +67,14 @@ function scene0(t) {
   const collapseSide = (el) => { const w = el.getBoundingClientRect().width; el.style.cssText = `display:inline-block;overflow:hidden;white-space:nowrap;vertical-align:bottom;max-width:${(w * (1 - collapse)).toFixed(1)}px;opacity:${(1 - collapse).toFixed(3)}`; };
   collapseSide(h.querySelector('#s1')); collapseSide(h.querySelector('#s2'));
   h.remove();
+  h.style.opacity = (fade * (1 - ease(prog(t, 6.2, 7.0)))).toFixed(3);
   return { blur: 26, shade: 0.55, overlays: [h] };
 }
 
 // ---------------------------------------------------------------------------------------------
 // Scene 1: the trouble. Sleep cuts the run; caffeinate keeps the Mac up all night; the battery dies
 // ---------------------------------------------------------------------------------------------
-function scene1(t) {
+function scene1Core(t) {
   const popIn = (el, p) => { el.style.opacity = p.toFixed(3); el.style.transform = `scale(${lerp(0.94, 1, p).toFixed(3)})`; return el; };
   const G = { x: 200, y: 110, w: 1000, h: 700 };
 
@@ -115,8 +120,8 @@ function scene1(t) {
   const cap = (a, c, d) => easeOut(prog(t, a, a + 0.6)) * (1 - ease(prog(t, c, d)));
   const c1 = cap(4.0, 11.2, 11.8), c2 = cap(26.0, 28.8, 29.4), c3 = cap(31.0, 34.8, 35.4), c4 = cap(36.0, 42.0, 42.6);
   return {
-    icons: true, dock: true, cam, shade, black: cut * 0.97,
-    menubar: { app: 'terminal', icon: 'moon', battery: Math.max(battery, off ? 0 : 3), lowBattery: t >= 35.0, clock },
+    icons: true, dock: true, running: ['terminal'], cam, shade, black: cut * 0.97,
+    menubar: { app: 'terminal', icon: null, battery: Math.max(battery, off ? 0 : 3), lowBattery: t >= 35.0, clock },
     layers,
     overlays: [
       text(T.cap1a, 'caption', `opacity:${c1.toFixed(3)}`), text(T.cap1b, 'caption', `opacity:${c2.toFixed(3)}`),
@@ -125,10 +130,27 @@ function scene1(t) {
   };
 }
 
+// The trouble scene opens the way a real session does: the blurred backdrop clears to a bare desktop, then the terminal is launched.
+function scene1(t) {
+  const L = 2.4;
+  const spec = scene1Core(Math.max(0, t - L));
+  if (t < L) {
+    const clear = ease(prog(t, 0, 1.1));
+    spec.blur = lerp(26, 0, clear);
+    spec.shade = lerp(0.55, 0, clear);
+    spec.ui = easeOut(prog(t, 0.5, 1.3));
+    spec.running = t >= 1.5 ? ['terminal'] : [];
+    spec.bounce = { terminal: hop(t, 1.3) };
+    const p = easeOut(prog(t, 1.8, 2.4));
+    spec.layers = p > 0 ? [popWin(spec.layers[0], p)] : [];
+  }
+  return spec;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Scene 2: the solution. An agent works, the menu bar icon sparkles, the menu says so, it ends
 // ---------------------------------------------------------------------------------------------
-function scene2(t) {
+function scene2Core(t) {
   const startAt = 1.5, finishAt = 11.2;
   const working = t >= startAt && t < finishAt;
   const finished = t >= finishAt;
@@ -147,13 +169,33 @@ function scene2(t) {
   const nVis = nIn * (1 - nOut);
   const notif = $(`<div class="notif" style="opacity:${nVis.toFixed(3)};transform:translateX(${((1 - nIn) * 60 + nOut * 40).toFixed(1)}px)"><img src="assets/icons/remain.png"><div><b>${T.notif.title}</b><span>${T.notif.body}</span></div><em>now</em></div>`);
   return {
-    icons: true, dock: true, cam,
+    icons: true, dock: true, running: ['terminal'], cam,
     // The agent has been at it for 14 minutes: while the camera is on the menu bar, the clock runs ahead.
     menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, clock: `Tue Oct 14  11:${String(38 + Math.round(14 * ease(prog(t, 8.6, 11.0)))).padStart(2, '0')}`, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
     layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, tick: t, inactive: false })],
     notifs: nVis > 0.01 ? [notif] : [],
     black: ease(prog(t, 16.8, 18.0)) * 0.97,
   };
+}
+
+// The solution scene starts from a bare desktop: remAIn's icon appears in the menu bar first, then the agent is launched.
+function scene2(t) {
+  const L = 4.2;
+  const spec = scene2Core(Math.max(0, t - L));
+  if (t < L) {
+    spec.ui = 1;
+    spec.running = t >= 3.3 ? ['terminal'] : [];
+    spec.bounce = { terminal: hop(t, 3.1) };
+    const p = easeOut(prog(t, 3.6, 4.2));
+    spec.layers = p > 0 ? [popWin(spec.layers[0], p)] : [];
+    const born = easeOut(prog(t, 1.2, 1.8));
+    if (t < 1.2) spec.menubar = { ...spec.menubar, icon: null };
+    const ring = easeOut(prog(t, 1.9, 2.3)) * (1 - ease(prog(t, 2.8, 3.2)));
+    spec.layers = [...spec.layers, $(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px;opacity:${(ring * (0.6 + 0.4 * Math.sin(t * 7))).toFixed(3)}"></div>`)];
+    spec.black = Math.max(spec.black || 0, (1 - ease(prog(t, 0, 0.8))) * 0.97);
+    void born;
+  }
+  return spec;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -176,7 +218,7 @@ function scene3(t) {
   if (termIn > 0) layers.push(pop(terminalWin({ ...geo, state: interrupted ? 'error' : 'short', shown, tick: Math.max(0, t - 3.1), z: 12 }), termIn));
 
   const app = t < 1.8 ? 'ide' : t < 3.1 ? 'chat' : 'terminal';
-  const icon = t >= 23.5 ? 'moon' : 'sparkles';
+  const icon = t >= 23.5 || t < 0.7 ? 'moon' : 'sparkles';
   // Two looks at the menu: three agents at work, and, once the stopped one is over, "Sleeps as usual".
   const m1 = t >= 7.2 && t < 9.6, m3 = t >= 25.0 && t < 27.0;
   const menuOpen = m1 || m3;
@@ -191,6 +233,8 @@ function scene3(t) {
   const c4 = easeOut(prog(t, 20.6, 21.3)) * (1 - ease(prog(t, 26.8, 27.4)));
   return {
     icons: true, dock: true, cam,
+    running: ['terminal', ...(t >= 0.4 && t < 13.9 ? ['antigravity'] : []), ...(t >= 1.7 && t < 16.3 ? ['chatgpt'] : [])].filter((a) => a !== 'terminal' || t >= 3.0),
+    bounce: { antigravity: hop(t, 0), chatgpt: hop(t, 1.2), terminal: hop(t, 2.5) },
     menubar: { app, icon, active: menuOpen, menu: menuOpen ? { status } : null },
     layers,
     notifs: nVis > 0.01 ? [notif] : [],
@@ -198,7 +242,7 @@ function scene3(t) {
       text(T.cap3, 'caption', `opacity:${c3.toFixed(3)}`),
       text(T.cap4, 'caption', `opacity:${c4.toFixed(3)}`),
     ],
-    black: ease(prog(t, 28.6, 29.8)) * 0.97,
+    black: Math.max(ease(prog(t, 28.6, 29.8)), 1 - ease(prog(t, 0, 0.6))) * 0.97,
   };
 }
 
@@ -261,7 +305,7 @@ function scene5(t) {
 }
 
 const SCENE_FNS = { '0': scene0, '1': scene1, '2': scene2, '3': scene3, '5': scene5, '6': scene6, '7': scene7 };
-const DURATIONS = { '0': 6.5, '1': 43.0, '2': 18.0, '3': 29.8, '5': 12.6, '6': 8.6, '7': 9.8 };
+const DURATIONS = { '0': 7.2, '1': 45.4, '2': 22.2, '3': 29.8, '5': 12.6, '6': 8.6, '7': 9.8 };
 
 async function seek(id, t) {
   await ensureWallpaper();

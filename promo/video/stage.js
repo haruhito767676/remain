@@ -179,9 +179,9 @@ function menuHtml(menu) {
     <div class="item">${quit}<span class="key">⌘Q</span></div></div>`;
 }
 
-function dock(running = ['terminal', 'chatgpt', 'antigravity']) {
+function dock(running = ['terminal', 'chatgpt', 'antigravity'], bounce = {}) {
   const apps = ['finder', 'safari', 'mail', 'notes', 'calendar', 'chrome', 'vscode', 'terminal', 'antigravity', 'chatgpt', 'settings'];
-  const html = apps.map((a) => `<div class="app ${running.includes(a) ? 'running' : ''}"><img src="assets/icons/${a}.png"></div>`).join('');
+  const html = apps.map((a) => `<div class="app ${running.includes(a) ? 'running' : ''}" style="${bounce[a] ? `transform:translateY(${-bounce[a].toFixed(1)}px)` : ''}"><img src="assets/icons/${a}.png"></div>`).join('');
   return $(`<div class="dock">${html}<div class="sep"></div><div class="app"><img src="assets/icons/trash.png"></div></div>`);
 }
 

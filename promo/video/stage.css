@@ -168,7 +168,7 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
   background:
     repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.03) 1px 2px),
     linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.26) 22%, rgba(255,255,255,0) 40%, rgba(255,255,255,.14) 70%, rgba(255,255,255,0) 100%),
-    linear-gradient(180deg, #666a73 0%, #555963 34%, #464952 70%, #383b43 100%);
+    linear-gradient(180deg, #4d5058 0%, #40434b 34%, #34373e 70%, #292b31 100%);
   box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.55), inset 0 0 0 4px rgba(40,43,52,.35), inset 0 -12px 20px rgba(20,22,30,.5), inset 0 8px 14px rgba(255,255,255,.22), 0 2px 0 #4a4d56, 0 6px 0 #383a42; }
 .laptop3d .base::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
   background: conic-gradient(from 210deg at 50% 120%, rgba(255,255,255,.0), rgba(255,255,255,.5) 14%, rgba(255,255,255,0) 30%, rgba(255,255,255,.35) 52%, rgba(255,255,255,0) 70%); mix-blend-mode: soft-light; }
@@ -184,7 +184,7 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .laptop3d .grille { position: absolute; top: 60px; width: 34px; height: 280px; background: radial-gradient(circle, #6a6e7a 1.1px, transparent 1.6px) 0 0 / 7px 7px; opacity: .75; }
 .laptop3d .grille.l { left: 36px; margin-left: -34px; } .laptop3d .grille.r { right: 36px; margin-right: -34px; }
 .laptop3d .pad { position: absolute; left: 50%; width: 360px; margin-left: -180px; top: 384px; height: 150px; border-radius: 12px;
-  background: linear-gradient(180deg, #5a5e68, #50535c); box-shadow: inset 0 0 0 1.5px rgba(20,22,30,.4), inset 0 2px 4px rgba(255,255,255,.18), 0 1px 0 rgba(255,255,255,.25); }
+  background: linear-gradient(180deg, #41444c, #393c43); box-shadow: inset 0 0 0 1.5px rgba(20,22,30,.4), inset 0 2px 4px rgba(255,255,255,.18), 0 1px 0 rgba(255,255,255,.25); }
 .laptop3d .notch { position: absolute; left: 50%; top: 0; width: 150px; height: 11px; margin-left: -75px; border-radius: 0 0 11px 11px; background: rgba(60,66,84,.35); }
 .laptop3d .glow { position: absolute; left: 50%; bottom: -3px; width: 130px; height: 8px; margin-left: -65px; border-radius: 4px; background: #ffd166; box-shadow: 0 0 34px 14px rgba(255,209,102,.75); }
 
@@ -193,11 +193,11 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .laptop3d .lid .outer, .laptop3d .lid .screenface { position: absolute; inset: 0; border-radius: 24px 24px 12px 12px; backface-visibility: hidden; }
 .laptop3d .lid .outer { background:
     repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.03) 1px 2px),
-    linear-gradient(160deg, #6f737d 0%, #5a5e68 45%, #494c55 100%);
+    linear-gradient(160deg, #50535c 0%, #42454d 45%, #35373e 100%);
   box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5), inset 0 0 0 4px rgba(40,43,52,.35), inset 0 -10px 18px rgba(20,22,30,.45), 0 0 0 1px rgba(20,22,30,.5); display: flex; align-items: center; justify-content: center; }
 .laptop3d .lid .outer::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
   background: conic-gradient(from 150deg at 30% 120%, rgba(255,255,255,0), rgba(255,255,255,.6) 16%, rgba(255,255,255,0) 34%, rgba(255,255,255,.4) 60%, rgba(255,255,255,0) 80%); mix-blend-mode: soft-light; }
-.laptop3d .lid .logo { font-size: 150px; line-height: 1; background: linear-gradient(160deg, #d9dce4 0%, #8b909c 48%, #cfd2da 100%); -webkit-background-clip: text; background-clip: text;
+.laptop3d .lid .logo { transform: rotate(180deg); font-size: 150px; line-height: 1; background: linear-gradient(160deg, #b9bdc7 0%, #70747f 48%, #aeb2bc 100%); -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 2px rgba(60,66,84,.35)); }
 .laptop3d .lid .screenface { transform: rotateX(180deg); background: #050609; box-shadow: inset 0 0 0 2px #b4b9c6, inset 0 0 0 3px #1a1b21, inset 0 0 0 11px #0a0b0f, 0 0 0 1px rgba(60,66,84,.6); overflow: hidden; }
 .laptop3d .lid .screenface .inner { position: absolute; inset: 13px; border-radius: 12px; overflow: hidden; background: url(assets/wallpaper-dark.jpg) 50% 62% / 1000px auto; }

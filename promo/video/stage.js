@@ -1,0 +1,260 @@
+// The intro video's stage: a recreated macOS desktop with a camera.
+//
+//   stage.html?scene=2&lang=en        one key frame of a scene (for reference images and review)
+//
+// Every word that appears in the video is in TEXT below, so the wording can be reviewed in one place.
+
+const TEXT = {
+  en: {
+    tagline: ['Just rem', 'ai', 'n awake.'],
+    // On-screen captions
+    cap1a: 'Sleep cuts the run.',
+    cap1b: 'Or it never lets go.',
+    cap2: 'Awake only while an agent works.',
+    cap3: 'Whichever you use. Several at once.',
+    cap4: 'Stopped halfway? It notices.',
+    cap5: 'Close the lid. It keeps going.',
+    pills: ['Heat', 'Low battery', 'Time limit'],
+    cap6: 'Stored only on your Mac.',
+    finale: 'Now, remain asleep.',
+    download: 'Download remAIn · macOS 14+ · MIT',
+    // The desktop
+    clock: 'Tue Oct 14  11:38',
+    menus: {
+      terminal: ['Terminal', 'Shell', 'Edit', 'View', 'Window', 'Help'],
+      ide: ['Antigravity IDE', 'File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Window', 'Help'],
+      chat: ['ChatGPT', 'File', 'Edit', 'View', 'Window', 'Help'],
+      finder: ['Finder', 'File', 'Edit', 'View', 'Go', 'Window', 'Help'],
+    },
+    // remAIn's menu
+    menuStatus: { idle: 'Sleeps as usual', one: 'An agent is working', many: '3 agents working' },
+    menuItems: ['Keep Awake', 'Keep Running with Lid Closed', 'Settings…', 'About remAIn', 'Quit remAIn'],
+    notif: { title: 'An agent finished its work', body: 'web-app · took 14m 32s' },
+    // Window contents (invented)
+    term: {
+      title: 'web-app — claude — 100×30',
+      header: 'Claude Code',
+      path: '~/Projects/web-app',
+      ask: 'Add rate limiting to the API and make the tests pass',
+      steps: ['Reading src/api/middleware.ts', 'Editing src/api/rateLimit.ts  (+42 −3)', 'Running npm test'],
+      result: '46 passed · 2 failed',
+      fixing: 'Fixing tests/rateLimit.test.ts',
+      working: 'Working… (3m 12s · esc to interrupt)',
+      interrupted: '^C  Interrupted by you',
+    },
+    ide: { tab: 'rateLimit.ts', agent: 'Agent', steps: ['Read middleware.ts', 'Add a token bucket per client', 'Wire it into the router', 'Run the test suite'], input: 'Ask anything…', status: 'Main · 0 problems · TypeScript' },
+    chat: {
+      side: ['New chat', 'Projects', 'Recent', 'Fix flaky login test', 'Add rate limiting', 'Write the API docs'],
+      title: 'Codex',
+      user: 'Add rate limiting to the API and make the tests pass',
+      lead: 'I added a token bucket per client and wired it into the router. Changes:',
+      bullets: ['src/api/rateLimit.ts', 'src/api/router.ts', 'tests/rateLimit.test.ts'],
+      block: 'npm install\nnpm test',
+      running: 'Running the tests…',
+      composer: 'Work with Codex',
+    },
+  },
+};
+
+const $ = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
+const params = new URLSearchParams(location.search);
+const lang = params.get('lang') || 'en';
+const T = TEXT[lang] || TEXT.en;
+
+// ---------- Building blocks ----------
+
+function menubar({ app, icon, active, menu, battery = 82, clock = T.clock }) {
+  const names = T.menus[app];
+  const left = names.map((n, i) => `<span class="${i === 0 ? 'appname' : ''}">${n}</span>`).join('');
+  const status = icon ? `<span class="slot status ${active ? 'active' : ''}" id="status"><img src="assets/symbols/${icon}.png">${menu ? menuHtml(menu) : ''}</span>` : '';
+  return $(`<div class="menubar"><div class="left"><span class="apple">&#xF8FF;</span>${left}</div>
+    <div class="right">${status}
+      <span class="slot"><img src="assets/symbols/search.png"></span>
+      <span class="slot"><img src="assets/symbols/wifi.png"></span>
+      <span class="battery" style="--level:${battery}%"><i></i><b></b></span>
+      <span class="slot"><img src="assets/symbols/controls.png"></span>
+      <span class="clock">${clock}</span></div></div>`);
+}
+
+function menuHtml(menu) {
+  const [keep, lid, settings, about, quit] = T.menuItems;
+  return `<div class="menu">
+    <div class="item" style="padding-left:12px">${T.menuStatus[menu.status]}</div><hr>
+    <div class="item ${menu.sub ? 'hl' : ''}">${keep}<span class="chev">›</span></div>
+    <div class="item check">${lid}</div><hr>
+    <div class="item">${settings}<span class="key">⌘,</span></div>
+    <div class="item">${about}</div>
+    <div class="item">${quit}<span class="key">⌘Q</span></div></div>`;
+}
+
+function dock(running = ['terminal', 'chatgpt', 'antigravity']) {
+  const apps = ['finder', 'safari', 'mail', 'notes', 'calendar', 'chrome', 'vscode', 'terminal', 'antigravity', 'chatgpt', 'settings'];
+  const html = apps.map((a) => `<div class="app ${running.includes(a) ? 'running' : ''}"><img src="assets/icons/${a}.png"></div>`).join('');
+  return $(`<div class="dock">${html}<div class="sep"></div><div class="app"><img src="assets/icons/trash.png"></div></div>`);
+}
+
+function desktopIcons() {
+  const names = ['web-app', 'api-server', 'mobile-app', 'docs-site'];
+  return $(`<div class="desktop-icons">${names.map((n) => `<div class="desktop-icon"><img src="assets/icons/folder.png"><span>${n}</span></div>`).join('')}</div>`);
+}
+
+function win({ kind, x, y, w, h, inactive, title, body, z = 10 }) {
+  return $(`<div class="win ${kind} ${inactive ? 'inactive' : ''}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${z}">
+    <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="title">${title}</div></div><div class="body">${body}</div></div>`);
+}
+
+function terminalBody(state) {
+  const t = T.term;
+  const lines = [];
+  lines.push(`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`);
+  lines.push(`<span class="prompt">&gt; ${t.ask}</span>\n`);
+  lines.push(`<span class="orange">●</span> ${t.steps[0]}`);
+  lines.push(`<span class="orange">●</span> ${t.steps[1]}`);
+  lines.push(`<span class="orange">●</span> ${t.steps[2]}`);
+  lines.push(`  <span class="ok">✓</span> ${t.result.split(' · ')[0]}   <span class="bad">✗</span> ${t.result.split(' · ')[1]}`);
+  lines.push(`<span class="orange">●</span> ${t.fixing}`);
+  lines.push('');
+  if (state === 'interrupted') lines.push(`<span class="bad">${t.interrupted}</span>\n\n<span class="prompt">&gt; </span><span class="dim">▌</span>`);
+  else if (state === 'idle') lines.push(`<span class="ok">✓</span> Done.\n\n<span class="prompt">&gt; </span><span class="dim">▌</span>`);
+  else lines.push(`<span class="orange">✻</span> <span class="dim">${t.working}</span>`);
+  return lines.join('\n');
+}
+
+function ideBody() {
+  const c = T.ide;
+  const code = [
+    ['<span class="k">import</span> { Router } <span class="k">from</span> <span class="s">"express"</span>;'],
+    [''],
+    ['<span class="c">// One bucket per client</span>'],
+    ['<span class="k">const</span> buckets = <span class="k">new</span> <span class="t">Map</span>&lt;<span class="t">string</span>, <span class="t">Bucket</span>&gt;();'],
+    [''],
+    ['<span class="k">export function</span> <span class="f">rateLimit</span>(limit = <span class="s">60</span>) {'],
+    ['  <span class="k">return</span> (req, res, next) =&gt; {'],
+    ['    <span class="k">const</span> id = req.ip ?? <span class="s">"unknown"</span>;'],
+    ['    <span class="k">const</span> bucket = buckets.<span class="f">get</span>(id) ?? <span class="f">refill</span>(limit);'],
+    ['    <span class="k">if</span> (bucket.tokens &lt;= <span class="s">0</span>) {'],
+    ['      <span class="k">return</span> res.<span class="f">status</span>(<span class="s">429</span>).<span class="f">end</span>();'],
+    ['    }'],
+    ['    bucket.tokens -= <span class="s">1</span>;'],
+    ['    buckets.<span class="f">set</span>(id, bucket);'],
+    ['    <span class="f">next</span>();'],
+    ['  };'],
+    ['}'],
+    [''],
+    ['<span class="k">function</span> <span class="f">refill</span>(limit: <span class="t">number</span>): <span class="t">Bucket</span> {'],
+    ['  <span class="k">return</span> { tokens: limit, at: Date.<span class="f">now</span>() };'],
+    ['}'],
+    [''],
+    ['<span class="c">// Called from the router</span>'],
+    ['<span class="k">export default</span> <span class="f">rateLimit</span>;'],
+  ].map((l, i) => `<div><span class="n">${i + 1}</span>${l[0]}</div>`).join('');
+  const steps = c.steps.map((s, i) => `<div class="step ${i < 2 ? 'done' : ''}"><i></i><span>${s}</span></div>`).join('');
+  return `<div class="activity"><i></i><i></i><i></i><i></i></div>
+    <div class="editor"><div class="tabs"><span>${c.tab}</span></div><div class="code">${code}</div></div>
+    <div class="agent"><h4>${c.agent}</h4>${steps}<div class="input">${c.input}</div></div>
+    <div class="status">${c.status}</div>`;
+}
+
+function chatBody(running = true) {
+  const c = T.chat;
+  return `<div class="side"><h4>${c.title} ⌄</h4><div>${c.side[0]}</div><div>${c.side[1]}</div>
+      <div class="group">${c.side[2]}</div><div>${c.side[3]}</div><div class="sel">${c.side[4]}</div><div>${c.side[5]}</div></div>
+    <div class="main"><div class="bubble">${c.user}</div>
+      <p>${c.lead}</p><ul>${c.bullets.map((b) => `<li><code>${b}</code></li>`).join('')}</ul>
+      <div class="block">${c.block}</div>
+      ${running ? `<div class="run"><i></i>${c.running}</div>` : ''}
+      <div class="composer">${c.composer}</div></div>`;
+}
+
+const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state), ...o });
+const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(), ...o });
+const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
+
+// ---------- Scenes (one key frame each) ----------
+
+const SCENES = {
+  // 0: the hook. "ai" turns into "AI"
+  0: () => ({
+    wallpaper: 'blur', shade: 0.55,
+    layers: [$(`<div class="big"><h1>${T.tagline[0]}<span class="ai">AI</span>${T.tagline[2]}</h1></div>`)],
+  }),
+  // 1: pain. The Mac is about to sleep and the run is cut off
+  1: () => ({
+    menubar: { app: 'terminal', icon: 'moon' }, dock: true, icons: true, shade: 0.5,
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 640, state: 'working' }), $(`<div class="caption">${T.cap1a}</div>`)],
+  }),
+  // 2: the solution. Zoom on the menu bar; the icon sparkles and the menu says an agent is working
+  2: () => ({
+    menubar: { app: 'terminal', icon: 'sparkles', active: true, menu: { status: 'one' } }, dock: true, icons: true,
+    camera: { focus: 'status', scale: 2.5, dy: 150 },
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 640, state: 'working' })],
+  }),
+  // 3: three agents at once, three kinds of app
+  3: () => ({
+    menubar: { app: 'terminal', icon: 'sparkles', active: false }, dock: true, icons: true,
+    layers: [
+      ideWin({ x: 70, y: 84, w: 1130, h: 680, inactive: true, z: 10 }),
+      chatWin({ x: 560, y: 150, w: 1000, h: 640, inactive: true, z: 11 }),
+      terminalWin({ x: 960, y: 270, w: 880, h: 560, state: 'working', z: 12 }),
+      $(`<div class="caption">${T.cap3}</div>`),
+    ],
+  }),
+  // 4: interrupted halfway; the icon is back to the moon
+  4: () => ({
+    menubar: { app: 'terminal', icon: 'moon', active: false }, dock: true, icons: true,
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 640, state: 'interrupted' }), $(`<div class="caption">${T.cap4}</div>`),
+      $(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px"></div>`)],
+  }),
+  // 5: lid closed, still running
+  5: () => ({
+    wallpaper: 'blur', shade: 0.5,
+    layers: [
+      $(`<div class="laptop"><div class="lid" style="--tilt:-62deg"><div class="screen"><i></i></div></div><div class="base"></div><div class="led"></div></div>`),
+      $(`<div class="caption" style="bottom:130px">${T.cap5}<div class="pills">${T.pills.map((p) => `<span>${p}</span>`).join('')}</div></div>`),
+    ],
+  }),
+  // 6: peace of mind. The Activity screen, "stored only on your Mac"
+  6: () => ({
+    wallpaper: 'blur', shade: 0.45,
+    layers: [$(`<img class="shot" src="../../docs/media/shot-settings-activity-dark-${lang}.webp">`), $(`<div class="caption" style="bottom:46px">${T.cap6}</div>`)],
+  }),
+  // 7: the end
+  7: () => ({
+    wallpaper: 'blur', shade: 0.72,
+    layers: [$(`<div class="finale"><img class="moon" src="assets/symbols/moon.png"><h1>${T.finale}</h1>
+      <div class="dl"><img src="assets/icons/remain.png">${T.download}</div></div>`)],
+  }),
+};
+
+// ---------- Render ----------
+
+function render(id) {
+  const spec = SCENES[id]();
+  const cam = document.getElementById('camera');
+  cam.innerHTML = '';
+  const wp = $(`<div class="wallpaper"></div>`);
+  if (spec.wallpaper === 'blur') wp.style.filter = 'blur(26px) saturate(1.1)';
+  cam.appendChild(wp);
+  if (spec.icons) cam.appendChild(desktopIcons());
+  (spec.layers || []).forEach((l) => cam.appendChild(l));
+  if (spec.dock) cam.appendChild(dock());
+  if (spec.menubar) cam.appendChild(menubar(spec.menubar));
+  if (spec.shade) { const s = $(`<div class="shade"></div>`); s.style.opacity = spec.shade; cam.appendChild(s); }
+  // The shade sits under captions, big text and menus.
+  cam.querySelectorAll('.caption, .big, .finale').forEach((e) => { e.style.zIndex = 90; });
+  if (spec.camera) {
+    const { scale, dy = 0 } = spec.camera;
+    let { x, y } = spec.camera;
+    if (spec.camera.focus === 'status') {
+      const r = document.getElementById('status').getBoundingClientRect();
+      x = r.left + r.width / 2 - 120; y = r.top + r.height / 2 + dy;
+    }
+    // Keep the picture inside the screen: never show the black behind the desktop.
+    const tx = Math.min(0, Math.max(1920 - 1920 * scale, 960 - x * scale));
+    const ty = Math.min(0, Math.max(1080 - 1080 * scale, 540 - y * scale));
+    cam.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  } else cam.style.transform = 'none';
+  document.body.dataset.ready = '1';
+}
+
+render(Number(params.get('scene') || 1));

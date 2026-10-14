@@ -7,7 +7,7 @@
 const TEXT = {
   en: {
     tagline: ['Just rem', 'ai', 'n awake.'],
-    finder: { title: 'Applications', side: ['Recents', 'Applications', 'Desktop', 'Documents', 'Downloads'], apps: [['antigravity', 'Antigravity IDE'], ['calendar', 'Calendar'], ['chatgpt', 'ChatGPT'], ['chrome', 'Google Chrome'], ['mail', 'Mail'], ['notes', 'Notes'], ['remain', 'remAIn'], ['safari', 'Safari'], ['settings', 'System Settings'], ['terminal', 'Terminal'], ['vscode', 'Visual Studio Code']] },
+    finder: { title: 'Applications', side: ['Recents', 'Applications', 'Desktop', 'Documents', 'Downloads'], apps: [['antigravity', 'Antigravity IDE'], ['appstore', 'App Store'], ['calculator', 'Calculator'], ['calendar', 'Calendar'], ['chatgpt', 'ChatGPT'], ['contacts', 'Contacts'], ['facetime', 'FaceTime'], ['chrome', 'Google Chrome'], ['mail', 'Mail'], ['maps', 'Maps'], ['messages', 'Messages'], ['music', 'Music'], ['notes', 'Notes'], ['photos', 'Photos'], ['preview', 'Preview'], ['remain', 'remAIn'], ['safari', 'Safari'], ['settings', 'System Settings'], ['terminal', 'Terminal'], ['vscode', 'Visual Studio Code']] },
     // On-screen captions
     cap1a: 'Sleep cuts the run.',
     cap1b: 'Work done. But the Mac still stays awake.',
@@ -28,6 +28,7 @@ const TEXT = {
     // The desktop
     clock: 'Tue Oct 14  11:38',
     menus: {
+      finder: ['Finder', 'File', 'Edit', 'View', 'Go', 'Window', 'Help'],
       terminal: ['Terminal', 'Shell', 'Edit', 'View', 'Window', 'Help'],
       ide: ['Antigravity IDE', 'File', 'Edit', 'Selection', 'View', 'Go', 'Run', 'Terminal', 'Window', 'Help'],
       chat: ['ChatGPT', 'File', 'Edit', 'View', 'Window', 'Help'],
@@ -159,10 +160,10 @@ const T = TEXT[lang] || TEXT.en;
 
 // ---------- Building blocks ----------
 
-function menubar({ app, icon, active, menu, battery = 82, lowBattery = false, clock = T.clock }) {
+function menubar({ app, icon, active, menu, battery = 82, lowBattery = false, clock = T.clock, pulse = 0 }) {
   const names = T.menus[app];
   const left = names.map((n, i) => `<span class="${i === 0 ? 'appname' : ''}">${n}</span>`).join('');
-  const status = icon ? `<span class="slot status ${active ? 'active' : ''}" id="status"><img src="assets/symbols/${icon}.png">${menu ? menuHtml(menu) : ''}</span>` : '';
+  const status = icon ? `<span class="slot status ${active ? 'active' : ''}" id="status"><img src="assets/symbols/${icon}.png">${pulse > 0 ? `<b class="pulse" style="opacity:${pulse.toFixed(3)}"></b>` : ''}${menu ? menuHtml(menu) : ''}</span>` : '';
   return $(`<div class="menubar"><div class="left"><span class="apple">&#xF8FF;</span>${left}</div>
     <div class="right">${status}
       <span class="slot"><img src="assets/symbols/search.png"></span>

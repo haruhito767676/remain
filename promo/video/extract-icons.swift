@@ -35,6 +35,15 @@ let apps: [(String, [String])] = [
     ("vscode", ["/Applications/Visual Studio Code.app"]),
     ("chatgpt", ["/Applications/ChatGPT.app"]),
     ("antigravity", ["/Applications/Antigravity IDE.app"]),
+    ("appstore", ["/System/Applications/App Store.app"]),
+    ("calculator", ["/System/Applications/Calculator.app"]),
+    ("contacts", ["/System/Applications/Contacts.app"]),
+    ("facetime", ["/System/Applications/FaceTime.app"]),
+    ("maps", ["/System/Applications/Maps.app"]),
+    ("messages", ["/System/Applications/Messages.app"]),
+    ("music", ["/System/Applications/Music.app"]),
+    ("photos", ["/System/Applications/Photos.app"]),
+    ("preview", ["/System/Applications/Preview.app"]),
     ("remain", [NSHomeDirectory() + "/Applications/remAIn.app"]),
 ]
 for (name, paths) in apps {

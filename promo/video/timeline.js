@@ -189,14 +189,13 @@ function scene2(t) {
   const picked = t >= 3.2, opened = t >= 3.7;
   const hopY = opened ? Math.max(0, 22 * Math.sin(Math.PI * prog(t, 3.7, 4.2))) : 0;
   const layers = [];
-  if (fv > 0.001) layers.push(popWin(finderWin({ x: 420, y: 170, w: 1080, h: 640, selected: picked ? 'remAIn' : '', hop: hopY, z: 10 }), fv));
+  if (fv > 0.001) layers.push(popWin(finderWin({ x: 300, y: 120, w: 1320, h: 760, selected: picked ? 'remAIn' : '', hop: hopY, z: 10 }), fv));
   // The pointer glides to the remAIn icon, clicks (3.2) and double-clicks (3.7).
   const pp = ease(prog(t, 1.8, 3.1));
-  const px = lerp(1300, 1176, pp), py = lerp(700, 520, pp);
+  const px = lerp(1400, 640, pp), py = lerp(300, 722, pp);
   if (fv > 0.02) layers.push($(`<svg class="pointer" viewBox="0 0 26 26" style="left:${px.toFixed(1)}px;top:${py.toFixed(1)}px;opacity:${fv.toFixed(2)}"><path d="M4 2 L4 21 L9 16.5 L12.5 24 L16 22.5 L12.6 15 L19.5 15 Z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg>`));
   const born = t >= 4.9;
   const ring = easeOut(prog(t, 5.5, 5.9)) * (1 - ease(prog(t, 8.2, 8.7)));
-  layers.push($(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px;opacity:${(ring * (0.65 + 0.35 * Math.sin(t * 7))).toFixed(3)}"></div>`));
   const push = ease(prog(t, 5.6, 7.0)) * (1 - ease(prog(t, 8.8, 10.2)));
   const launch = easeOut(prog(t, 10.7, 11.3));
   const c1 = easeOut(prog(t, 1.6, 2.2)) * (1 - ease(prog(t, 4.6, 5.1)));
@@ -207,7 +206,7 @@ function scene2(t) {
     cam: { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) },
     running: t >= 10.4 ? ['terminal'] : [],
     bounce: { terminal: hop(t, 10.2) },
-    menubar: { ...spec.menubar, icon: born ? 'moon' : null },
+    menubar: { ...spec.menubar, app: t < 10.4 ? 'finder' : 'terminal', icon: born ? 'moon' : null, pulse: ring * (0.65 + 0.35 * Math.sin(t * 7)) },
     overlays: [text(T.cap2a, 'caption', `opacity:${c1.toFixed(3)}`), text(T.cap2b, 'caption', `opacity:${c2.toFixed(3)}`)],
     black: (1 - ease(prog(t, 0, 0.8))) * 0.97,
   };

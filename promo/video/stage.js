@@ -12,7 +12,7 @@ const TEXT = {
     cap1b: 'Work done. The Mac stays awake.',
     cap1c: 'All night…',
     cap1d: '…until the battery gives out.',
-    lowBattery: { title: 'Low Battery', body: '10% battery remaining. Plug in your Mac to keep working.', ok: 'OK' },
+    lowBattery: { title: 'Low Battery', body: '10% battery remaining.' },
     cap2: 'Awake only while an agent works.',
     cap3: 'Whichever you use. Several at once.',
     cap4: 'Stopped halfway? It notices.',
@@ -226,21 +226,21 @@ const SCENES = {
       $(`<div class="caption">${T.cap1b}</div>`),
     ],
   }),
-  // 1c: fast-forward. The clock runs through the night and the battery drains
+  // 1c: fast-forward, in the same desktop: the camera slides to the clock and the battery, the room darkens
   '1c': () => ({
-    menubar: { app: 'terminal', icon: 'moon', battery: 31, clock: 'Wed Oct 15  3:07' }, dock: true, icons: true, shade: 0.35,
+    menubar: { app: 'terminal', icon: 'moon', battery: 31, clock: 'Wed Oct 15  3:07' }, dock: true, icons: true, shade: 0.55,
+    camera: { x: 1700, y: 17, scale: 2.6 },
     layers: [
       terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', inactive: true, z: 10 }),
-      $(`<div class="timelapse"><div class="time">3:07</div><div class="ff">▶▶</div><div class="bat"><i style="--level:31%"></i>31%</div></div>`),
       $(`<div class="caption">${T.cap1c}</div>`),
     ],
   }),
-  // 1d: low battery warning in the early morning
+  // 1d: the real macOS way: a low-battery banner in the top right
   '1d': () => ({
-    menubar: { app: 'terminal', icon: 'moon', battery: 10, clock: 'Wed Oct 15  5:41', lowBattery: true }, dock: true, icons: true, shade: 0.45,
+    menubar: { app: 'terminal', icon: 'moon', battery: 10, clock: 'Wed Oct 15  5:41' }, dock: true, icons: true, shade: 0.6,
     layers: [
       terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', inactive: true, z: 10 }),
-      $(`<div class="alert"><div class="gauge"></div><b>${T.lowBattery.title}</b><span>${T.lowBattery.body}</span><div class="ok">${T.lowBattery.ok}</div></div>`),
+      $(`<div class="notif"><div class="gauge-s"></div><div><b>${T.lowBattery.title}</b><span>${T.lowBattery.body}</span></div><em>now</em></div>`),
       $(`<div class="caption">${T.cap1d}</div>`),
     ],
   }),
@@ -301,6 +301,7 @@ const SCENES = {
 function render(id) {
   const spec = SCENES[id]();
   const cam = document.getElementById('camera');
+  document.querySelectorAll('#stage > .caption, #stage > .big, #stage > .finale').forEach((e) => e.remove());
   cam.innerHTML = '';
   const wp = $(`<div class="wallpaper"></div>`);
   if (spec.wallpaper === 'blur') wp.style.filter = 'blur(26px) saturate(1.1)';
@@ -311,7 +312,8 @@ function render(id) {
   if (spec.menubar) cam.appendChild(menubar(spec.menubar));
   if (spec.shade) { const s = $(`<div class="shade"></div>`); s.style.opacity = spec.shade; cam.appendChild(s); }
   // The shade sits under captions, big text and menus.
-  cam.querySelectorAll('.caption, .big, .finale').forEach((e) => { e.style.zIndex = 90; });
+  // Captions and titles stay put when the camera zooms: they live above the camera, not inside it.
+  cam.querySelectorAll('.caption, .big, .finale').forEach((e) => { e.style.zIndex = 90; document.getElementById('stage').appendChild(e); });
   if (spec.camera) {
     const { scale, dy = 0 } = spec.camera;
     let { x, y } = spec.camera;

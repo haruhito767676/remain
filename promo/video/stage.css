@@ -167,15 +167,15 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .laptop3d .base { position: absolute; inset: 0; border-radius: 22px 22px 34px 34px;
   background:
     repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.03) 1px 2px),
-    linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 22%, rgba(255,255,255,0) 40%, rgba(255,255,255,.3) 70%, rgba(255,255,255,0) 100%),
-    linear-gradient(180deg, #f3f4f8 0%, #d9dce5 34%, #c2c7d3 70%, #a9aebb 100%);
-  box-shadow: inset 0 0 0 1.5px #fff, inset 0 0 0 4px rgba(150,156,174,.45), inset 0 -12px 20px rgba(84,90,110,.5), inset 0 8px 14px rgba(255,255,255,.7), 0 2px 0 #8a8f9d, 0 6px 0 #6d7280; }
+    linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.26) 22%, rgba(255,255,255,0) 40%, rgba(255,255,255,.14) 70%, rgba(255,255,255,0) 100%),
+    linear-gradient(180deg, #8f939c 0%, #787c86 34%, #636771 70%, #4f525b 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.55), inset 0 0 0 4px rgba(40,43,52,.35), inset 0 -12px 20px rgba(20,22,30,.5), inset 0 8px 14px rgba(255,255,255,.22), 0 2px 0 #4a4d56, 0 6px 0 #383a42; }
 .laptop3d .base::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
   background: conic-gradient(from 210deg at 50% 120%, rgba(255,255,255,.0), rgba(255,255,255,.5) 14%, rgba(255,255,255,0) 30%, rgba(255,255,255,.35) 52%, rgba(255,255,255,0) 70%); mix-blend-mode: soft-light; }
 .laptop3d .hinge { position: absolute; left: 20px; right: 20px; top: -10px; height: 22px; border-radius: 10px;
   background: linear-gradient(#0e0f13, #3a3d48 45%, #14151a); box-shadow: 0 2px 6px rgba(0,0,0,.6); }
 .laptop3d .well { position: absolute; left: 36px; right: 36px; top: 46px; height: 312px; border-radius: 12px; background: #101116;
-  box-shadow: inset 0 3px 8px rgba(0,0,0,.9), 0 1.5px 0 rgba(255,255,255,.8); padding: 11px 12px; display: flex; flex-direction: column; gap: 5px; }
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.9), 0 1.5px 0 rgba(255,255,255,.3); padding: 11px 12px; display: flex; flex-direction: column; gap: 5px; }
 .laptop3d .row { display: flex; gap: 5px; flex: 1; }
 .laptop3d .key { flex: var(--w, 1) 1 0; border-radius: 6px; position: relative; font: 600 9px/1 -apple-system, sans-serif; color: #8e93a3; padding: 5px 0 0 6px;
   background: linear-gradient(180deg, #2f3038 0%, #1d1e24 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 3px rgba(0,0,0,.55), 0 1.5px 2px rgba(0,0,0,.9); }
@@ -184,7 +184,7 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .laptop3d .grille { position: absolute; top: 60px; width: 34px; height: 280px; background: radial-gradient(circle, #6a6e7a 1.1px, transparent 1.6px) 0 0 / 7px 7px; opacity: .75; }
 .laptop3d .grille.l { left: 36px; margin-left: -34px; } .laptop3d .grille.r { right: 36px; margin-right: -34px; }
 .laptop3d .pad { position: absolute; left: 50%; width: 360px; margin-left: -180px; top: 384px; height: 150px; border-radius: 12px;
-  background: linear-gradient(180deg, #cfd3dc, #c3c8d3); box-shadow: inset 0 0 0 1.5px rgba(70,76,94,.35), inset 0 2px 4px rgba(255,255,255,.7), 0 1px 0 rgba(255,255,255,.8); }
+  background: linear-gradient(180deg, #7b7f89, #70747e); box-shadow: inset 0 0 0 1.5px rgba(20,22,30,.4), inset 0 2px 4px rgba(255,255,255,.18), 0 1px 0 rgba(255,255,255,.25); }
 .laptop3d .notch { position: absolute; left: 50%; top: 0; width: 150px; height: 11px; margin-left: -75px; border-radius: 0 0 11px 11px; background: rgba(60,66,84,.35); }
 .laptop3d .glow { position: absolute; left: 50%; bottom: -3px; width: 130px; height: 8px; margin-left: -65px; border-radius: 4px; background: #ffd166; box-shadow: 0 0 34px 14px rgba(255,209,102,.75); }
 
@@ -193,13 +193,13 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .laptop3d .lid .outer, .laptop3d .lid .screenface { position: absolute; inset: 0; border-radius: 24px 24px 12px 12px; backface-visibility: hidden; }
 .laptop3d .lid .outer { background:
     repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.03) 1px 2px),
-    linear-gradient(160deg, #f4f5f8 0%, #d8dce4 45%, #c0c5d1 100%);
-  box-shadow: inset 0 0 0 1.5px #fff, inset 0 0 0 4px rgba(150,156,174,.4), inset 0 -10px 18px rgba(70,76,94,.4), 0 0 0 1px rgba(60,66,84,.5); display: flex; align-items: center; justify-content: center; }
+    linear-gradient(160deg, #9a9ea8 0%, #7f838d 45%, #666a74 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5), inset 0 0 0 4px rgba(40,43,52,.35), inset 0 -10px 18px rgba(20,22,30,.45), 0 0 0 1px rgba(20,22,30,.5); display: flex; align-items: center; justify-content: center; }
 .laptop3d .lid .outer::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
   background: conic-gradient(from 150deg at 30% 120%, rgba(255,255,255,0), rgba(255,255,255,.6) 16%, rgba(255,255,255,0) 34%, rgba(255,255,255,.4) 60%, rgba(255,255,255,0) 80%); mix-blend-mode: soft-light; }
-.laptop3d .lid .logo { font-size: 150px; line-height: 1; background: linear-gradient(160deg, #ffffff 0%, #aeb3c1 48%, #f2f3f7 100%); -webkit-background-clip: text; background-clip: text;
+.laptop3d .lid .logo { font-size: 150px; line-height: 1; background: linear-gradient(160deg, #d9dce4 0%, #8b909c 48%, #cfd2da 100%); -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 2px rgba(60,66,84,.35)); }
-.laptop3d .lid .screenface { transform: rotateY(180deg); background: #050609; box-shadow: inset 0 0 0 2px #b4b9c6, inset 0 0 0 3px #1a1b21, inset 0 0 0 11px #0a0b0f, 0 0 0 1px rgba(60,66,84,.6); overflow: hidden; }
+.laptop3d .lid .screenface { transform: rotateX(180deg); background: #050609; box-shadow: inset 0 0 0 2px #b4b9c6, inset 0 0 0 3px #1a1b21, inset 0 0 0 11px #0a0b0f, 0 0 0 1px rgba(60,66,84,.6); overflow: hidden; }
 .laptop3d .lid .screenface .inner { position: absolute; inset: 13px; border-radius: 12px; overflow: hidden; background: url(assets/wallpaper-dark.jpg) 50% 62% / 1000px auto; }
 .laptop3d .lid .screenface .bar { position: absolute; left: 0; right: 0; top: 0; height: 22px; background: rgba(8,10,40,.45); }
 .laptop3d .lid .screenface .cam { position: absolute; left: 50%; top: 13px; width: 120px; height: 20px; margin-left: -60px; border-radius: 0 0 11px 11px; background: #050609; z-index: 3; }
@@ -223,3 +223,7 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .timelapse .bat { display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 54px; font-weight: 650; }
 .timelapse .bat i { display: block; width: 150px; height: 56px; border-radius: 14px; background: rgba(255,255,255,.2); position: relative; overflow: hidden; }
 .timelapse .bat i::after { content: ""; position: absolute; inset: 5px; width: calc(var(--level) - 10px); max-width: calc(100% - 10px); border-radius: 9px; background: var(--col, #fff); }
+
+.notif .gauge-s { width: 42px; height: 42px; border-radius: 10px; flex: none; background: #3a3a44; position: relative; }
+.notif .gauge-s::before { content: ""; position: absolute; left: 8px; top: 15px; width: 24px; height: 12px; border: 2.5px solid #ff453a; border-radius: 4px; }
+.notif .gauge-s::after { content: ""; position: absolute; left: 11px; top: 18px; width: 5px; height: 6px; border-radius: 1.5px; background: #ff453a; }

@@ -185,6 +185,10 @@ final class AppModel {
             if s.notifyOnFinish, duration >= s.minimumNotifiableDuration {
                 notifier.finished(cwd: cwd, duration: duration)
             }
+        case .sessionStopped(let cwd, let duration):
+            if s.notifyOnFinish, duration >= s.minimumNotifiableDuration {
+                notifier.stopped(cwd: cwd)
+            }
         case .needsAttention(let cwd):
             if s.notifyOnAttention { notifier.needsAttention(cwd: cwd) }
         case .allFinished(let duration):

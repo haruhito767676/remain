@@ -91,7 +91,7 @@ public final class WakeCoordinator {
         recordActivity(expiry: expiry)
         scheduleExpiry()
         ensurePolling()
-        lidEffects.forEach { onEffect?($0) }
+        (expiry.effects + lidEffects).forEach { onEffect?($0) }
     }
 
     /// Opens, updates or closes the activity interval to mirror whether the Mac is being held awake.
@@ -139,9 +139,10 @@ public final class WakeCoordinator {
     /// or the user interrupted it (no `Stop` hook fires for that).
     func checkLiveness() {
         var ended = false
+        var effects: [WakeEffect] = []
         for session in engine.sessions.values {
             if let pid = session.pid, !probe.isAlive(pid: pid, agent: session.agent) {
-                engine.end(session.id)
+                effects += engine.endUnexpectedly(session.id, at: now())
                 endCause = .processExited
                 ended = true
             } else if let path = session.transcriptPath, let offset = session.scanOffset {
@@ -156,6 +157,7 @@ public final class WakeCoordinator {
             }
         }
         if ended { refresh() }
+        effects.forEach { onEffect?($0) }
     }
 
     func describeSessions() -> String {

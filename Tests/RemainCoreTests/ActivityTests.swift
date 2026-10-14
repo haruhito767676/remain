@@ -152,6 +152,35 @@ private func interval(_ start: Double, _ end: Double, _ sources: Set<HoldSource>
         #expect(rig.log.intervals.last?.endReason == .processExited)
     }
 
+    @Test func unexpectedStopsAreReportedButInterruptionsAreNot() {
+        let rig = makeRig()
+        var effects: [WakeEffect] = []
+        rig.coordinator.onEffect = { effects.append($0) }
+
+        // The user interrupts: quiet.
+        rig.coordinator.receive(AgentEvent(sessionID: "s", cwd: "/tmp/x", kind: .prompt, pid: 1, transcriptPath: "/t", transcriptSize: 0))
+        rig.clock.advance(60)
+        rig.probe.next = TranscriptScan(newOffset: 5, interrupted: true)
+        rig.coordinator.checkLiveness()
+        #expect(effects.isEmpty)
+
+        // The process vanishes: reported, with how long it had been working.
+        rig.coordinator.receive(AgentEvent(sessionID: "t", cwd: "/tmp/y", kind: .prompt, pid: 2, transcriptPath: nil, transcriptSize: nil))
+        rig.clock.advance(120)
+        rig.probe.alive = false
+        rig.coordinator.checkLiveness()
+        #expect(effects == [.sessionStopped(cwd: "/tmp/y", duration: 120)])
+
+        // Going silent past the safety timeout is reported once as well.
+        effects.removeAll()
+        rig.probe.alive = true
+        rig.coordinator.receive(AgentEvent(sessionID: "u", cwd: "/tmp/z", kind: .prompt))
+        rig.clock.advance(3601)
+        rig.coordinator.update(settings: rig.coordinator.settings)
+        rig.coordinator.update(settings: rig.coordinator.settings)
+        #expect(effects == [.sessionStopped(cwd: "/tmp/z", duration: 3601)])
+    }
+
     @Test func powerGuardEndsTheIntervalWithTheRightReason() {
         let rig = makeRig()
         rig.coordinator.receive(project("/tmp/x"))

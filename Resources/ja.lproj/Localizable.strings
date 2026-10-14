@@ -45,6 +45,8 @@
 "Could not find the remain command-line helper." = "remainコマンドラインヘルパーが見つかりません。";
 /* Notifications */
 "An agent finished its work" = "エージェントの作業が完了しました";
+"An agent stopped unexpectedly" = "エージェントが予期せず止まりました";
+"Keep-awake has ended." = "スリープ防止を終了しました。";
 "An agent needs your input" = "エージェントが入力を求めています";
 "An agent is waiting for you." = "エージェントがあなたの入力を待っています。";
 "took %@" = "所要時間 %@";

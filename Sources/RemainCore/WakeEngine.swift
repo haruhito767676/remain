@@ -38,6 +38,9 @@ extension AgentSession {
 public enum WakeEffect: Equatable, Sendable {
     /// A working session finished (`Stop`, `StopFailure`, `SessionEnd`).
     case sessionFinished(cwd: String?, duration: TimeInterval)
+    /// A working session ended without telling us (the process vanished, or it went silent past the
+    /// safety timeout), so keeping the Mac awake for it is over.
+    case sessionStopped(cwd: String?, duration: TimeInterval)
     /// A working session is now blocked on the user.
     case needsAttention(cwd: String?)
     /// The last session finished and nothing else (including a manual hold) is holding the Mac.
@@ -225,6 +228,17 @@ public struct WakeEngine: Sendable {
         sessions[id] = nil
     }
 
+    /// Ends a session that vanished on its own (process gone): unlike an interruption the user is not
+    /// necessarily there, so a working session reports `sessionStopped`.
+    public mutating func endUnexpectedly(_ id: String, at now: Date) -> [WakeEffect] {
+        guard let session = sessions.removeValue(forKey: id) else { return [] }
+        return stoppedEffects(for: session, at: now)
+    }
+
+    private func stoppedEffects(for session: AgentSession, at now: Date) -> [WakeEffect] {
+        session.phase == .working ? [.sessionStopped(cwd: session.cwd, duration: now.timeIntervalSince(session.startedAt))] : []
+    }
+
     public mutating func setScanOffset(_ offset: UInt64, for id: String) {
         sessions[id]?.scanOffset = offset
     }
@@ -236,6 +250,7 @@ public struct WakeEngine: Sendable {
     public struct Expiry: Equatable, Sendable {
         public var sessionsTimedOut = 0
         public var manualElapsed = false
+        public var effects: [WakeEffect] = []
     }
 
     /// Drops dead sessions and an elapsed manual timer, and reports what it dropped.
@@ -244,6 +259,7 @@ public struct WakeEngine: Sendable {
         var expiry = Expiry()
         let alive = sessions.filter { now.timeIntervalSince($0.value.lastSeen) < timeout(for: $0.value) }
         expiry.sessionsTimedOut = sessions.count - alive.count
+        expiry.effects = sessions.filter { alive[$0.key] == nil }.values.flatMap { stoppedEffects(for: $0, at: now) }
         sessions = alive
         if case .until(let end) = manual, end <= now {
             manual = .off

@@ -27,6 +27,10 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         post(title: String(localized: "An agent finished its work"), body: [project(cwd), took].compactMap { $0 }.joined(separator: " · "))
     }
 
+    func stopped(cwd: String?) {
+        post(title: String(localized: "An agent stopped unexpectedly"), body: [project(cwd), String(localized: "Keep-awake has ended.")].compactMap { $0 }.joined(separator: " · "))
+    }
+
     func needsAttention(cwd: String?) {
         post(title: String(localized: "An agent needs your input"), body: project(cwd) ?? String(localized: "An agent is waiting for you."))
     }

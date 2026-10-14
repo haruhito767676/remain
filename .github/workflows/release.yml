@@ -29,5 +29,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          NOTES="docs/release/${GITHUB_REF_NAME}.md"
+          if [ -f "$NOTES" ]; then NOTES_ARGS=(--notes-file "$NOTES"); else NOTES_ARGS=(--generate-notes); fi
           gh release create "$GITHUB_REF_NAME" "remAIn-${GITHUB_REF_NAME}.zip" \
-            --title "remAIn ${GITHUB_REF_NAME}" --generate-notes
+            --title "remAIn ${GITHUB_REF_NAME}" "${NOTES_ARGS[@]}"

@@ -29,7 +29,7 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .battery i { display: block; width: 28px; height: 13px; border-radius: 4px; background: rgba(255,255,255,.35); position: relative; overflow: hidden; }
 .battery i::after { content: ""; position: absolute; inset: 1.5px; width: calc(var(--level, 82%) - 3px); border-radius: 2.5px; background: #fff; }
 .battery b { display: block; width: 2px; height: 5px; border-radius: 0 2px 2px 0; background: rgba(255,255,255,.4); }
-.clock { font-weight: 500; letter-spacing: .1px; }
+.clock { font-weight: 500; letter-spacing: .1px; font-variant-numeric: tabular-nums; display: inline-block; min-width: 150px; text-align: right; white-space: pre; }
 
 /* remAIn's menu (drawn like an NSMenu) */
 .menu { position: absolute; top: 33px; right: -4px; width: 300px; padding: 7px; border-radius: 13px; z-index: 60;

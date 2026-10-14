@@ -268,15 +268,14 @@ function scene3(t) {
 // Scene 6: peace of mind. The Activity screen, "stored only on your Mac"
 // ---------------------------------------------------------------------------------------------
 function scene6(t) {
-  const inn = easeOut(prog(t, 0.2, 1.4));
+  const inn = easeOut(prog(t, 0.2, 1.4)) * (1 - ease(prog(t, 7.4, 8.2)));
   const drift = prog(t, 0, 8.4);                                    // a slow push so the picture is never still
   const cap = easeOut(prog(t, 1.8, 2.5)) * (1 - ease(prog(t, 7.2, 8.0)));
   const shot = $(`<img class="shot" src="../../docs/media/shot-settings-activity-dark-${lang}.webp" style="opacity:${inn.toFixed(3)};transform:translate(-50%,-52%) scale(${(lerp(0.95, 1, inn) * (1 + 0.05 * drift)).toFixed(4)})">`);
   return {
-    blur: 26, shade: 0.45,
+    blur: 26, shade: 0.5,
     layers: [shot],
     overlays: [text(T.cap6, 'caption', `bottom:46px;opacity:${cap.toFixed(3)}`)],
-    black: ease(prog(t, 7.6, 8.6)) * 0.97,
   };
 }
 
@@ -297,7 +296,7 @@ function scene7(t) {
     <h1 style="opacity:${head.toFixed(3)};transform:translateY(${((1 - head) * 16).toFixed(1)}px)">${pre}<span style="display:inline-block;transform:scale(${scale.toFixed(3)});transform-origin:50% 70%;position:relative">
       <span style="opacity:${(1 - glow).toFixed(3)}">${lower ? 'ai' : 'AI'}</span><span class="ai" style="position:absolute;left:0;top:0;opacity:${glow.toFixed(3)};filter:drop-shadow(0 0 ${(glow * 22).toFixed(0)}px rgba(143,176,255,.6))">${lower ? 'ai' : 'AI'}</span></span>${post}</h1>
     <div class="dl" style="opacity:${(dl * 0.92).toFixed(3)};transform:translateY(${((1 - dl) * 14).toFixed(1)}px)"><img src="assets/icons/remain.png">${T.download}</div></div>`);
-  return { blur: 26, shade: 0.72, overlays: [h], black: ease(prog(t, 8.6, 9.8)) * 0.97 };
+  return { blur: 26, shade: lerp(0.5, 0.72, ease(prog(t, 0, 1.0))), overlays: [h], black: ease(prog(t, 8.6, 9.8)) * 0.97 };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -313,17 +312,17 @@ function scene5(t) {
   const pills = T.pills.map((p, i) => `<span style="opacity:${pill(7.6 + i * 0.6).toFixed(2)};transform:translateY(${((1 - pill(7.6 + i * 0.6)) * 14).toFixed(1)}px)">${p}</span>`).join('');
   return {
     blur: 26, shade: 0.5,
-    layers: [laptop3d(beta, { leakMul: 1 - dim, screen })],
+    layers: [(() => { const l = laptop3d(beta, { leakMul: 1 - dim, screen }); l.style.opacity = (1 - ease(prog(t, 11.4, 12.4))).toFixed(3); return l; })()],
     overlays: [
       text(T.cap5, 'caption', `bottom:130px;opacity:${c5.toFixed(3)}`),
       text(`${T.cap5b}<div class="pills">${pills}</div>`, 'caption', `bottom:110px;opacity:${c5b.toFixed(3)}`),
     ],
-    black: ease(prog(t, 11.6, 12.6)) * 0.97,
+    black: (1 - ease(prog(t, 0, 0.7))) * 0.97,
   };
 }
 
 const SCENE_FNS = { '0': scene0, '1': scene1, '2': scene2, '3': scene3, '5': scene5, '6': scene6, '7': scene7 };
-const DURATIONS = { '0': 7.2, '1': 45.4, '2': 29.6, '3': 29.8, '5': 12.6, '6': 8.6, '7': 9.8 };
+const DURATIONS = { '0': 7.2, '1': 43.6, '2': 29.6, '3': 29.8, '5': 12.4, '6': 8.2, '7': 9.8 };
 
 async function seek(id, t) {
   await ensureWallpaper();

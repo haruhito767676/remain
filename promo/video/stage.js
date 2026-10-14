@@ -197,10 +197,14 @@ function laptop3d(beta) {
     [1.1, 1.1, 1.1, 1.3, 5.2, 1.3, 1.1, 1.1, 1.1],
   ];
   const keys = rows.map((r, i) => `<div class="row ${i === 0 ? 'fn' : ''}">${r.map((w) => w === 'touch' ? '<span class="key touch"></span>' : `<span class="key" style="--w:${w}"></span>`).join('')}</div>`).join('');
-  return $(`<div class="laptop3d" style="--leak:${beta < 10 ? 1 : 0}"><div class="floor"></div><div class="rig">
+  const slab = (cls, n, from, to) => Array.from({ length: n }, (_, i) => {
+    const t = i / (n - 1), c = Math.round(from + (to - from) * t);
+    return `<div class="${cls}" style="transform:translateZ(${cls === 'bslab' ? -(i + 1) : (i + 1)}px);background:rgb(${c},${c + 2},${c + 8})"></div>`;
+  }).join('');
+  return $(`<div class="laptop3d" style="--leak:${beta < 10 ? 1 : 0}"><div class="floor"></div><div class="rig">${slab('bslab', 16, 60, 24)}
     <div class="base"><div class="notch"></div><div class="grille l"></div><div class="grille r"></div><div class="well">${keys}</div><div class="pad"></div></div>
     <div class="hinge"></div>
-    <div class="lid" style="--beta:${beta}deg"><div class="outer"><span class="logo">&#xF8FF;</span></div>
+    <div class="lid" style="--beta:${beta}deg">${slab('lslab', 8, 48, 66)}<div class="outer"><span class="logo">&#xF8FF;</span></div>
       <div class="screenface"><div class="inner"><div class="bar"></div><div class="win2"></div><div class="dock2"></div></div><div class="cam"></div><div class="glass"></div></div></div>
     <div class="glow"></div>
   </div></div>`);

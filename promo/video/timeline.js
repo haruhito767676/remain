@@ -67,6 +67,57 @@ function scene0(t) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Scene 1: the trouble. Sleep cuts the run; caffeinate keeps the Mac up all night; the battery dies
+// ---------------------------------------------------------------------------------------------
+function scene1(t) {
+  // The run: the prompt is typed, then lines pop in, all the way through the long stretch of the scene.
+  const lineAt = Array.from({ length: 24 }, (_, i) => 2.0 + i * 0.45);
+  const visible = [0, 0.8, ...lineAt].filter((x) => t >= x).length;
+  const finishAt = 14.0;
+  const done = t >= finishAt;
+  const sleeping = ease(prog(t, 5.4, 6.8));              // the display dims and goes out
+  const woke = t >= 9.6;
+  const shown = done ? 999 : t >= 0.8 && t < 1.8 ? 1 + (t - 0.8) : visible;
+  const tick = t;
+  // After the black stretch the same run is simply further along.
+  const term = terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: done ? 'done' : 'short', shown: t >= 7.0 && t < 9.6 ? visible : shown, tick, z: 10 });
+
+  // caffeinate, typed in a second terminal (10.4 -> 12.4)
+  const cIn = easeOut(prog(t, 10.4, 11.0));
+  const typed = T.term.caffeinate.slice(0, Math.floor(T.term.caffeinate.length * prog(t, 11.2, 12.2)));
+  const caff = win({ kind: 'term', x: 760, y: 330, w: 760, h: 300, inactive: true, title: T.term.caffeinateTitle,
+    body: `<div class="log"><span class="prompt">$ ${typed}</span><span class="dim">${t < 12.2 ? '▌' : '\n▌'}</span></div>`, z: 12 });
+  caff.style.opacity = cIn.toFixed(3); caff.style.transform = `scale(${lerp(0.94, 1, cIn).toFixed(3)})`;
+
+  // The night: the clock and battery run ahead, the room darkens (1c), then the battery gives out (1d).
+  const night = ease(prog(t, 20.0, 24.0));                 // 11:52 -> 3:07
+  const dawn = ease(prog(t, 24.6, 28.2));                  // 3:07 -> 6:12
+  const minutes = 915 * night + 185 * dawn;
+  const total = 11 * 60 + 52 + Math.round(minutes);
+  const day = Math.floor(total / 1440), hh = Math.floor((total % 1440) / 60), mm = total % 60;
+  const clock = `${day ? 'Wed Oct 15' : 'Tue Oct 14'}  ${hh}:${String(mm).padStart(2, '0')}`;
+  const battery = Math.max(0, Math.round(lerp(lerp(78, 31, night), 0, dawn)));
+
+  const push = ease(prog(t, 18.4, 20.0));
+  const cam = { x: lerp(960, 1700, push), y: lerp(540, 17, push), scale: lerp(1, 2.6, push) };
+  const dark = Math.max(sleeping * (woke ? 0 : 1), ease(prog(t, 18.6, 21.0)) * 0.55, dawn * 0.35);
+  const wake = woke ? 1 - ease(prog(t, 9.6, 10.4)) : 0;          // the screen comes back
+  const shade = t < 9.6 ? 0.995 * sleeping : Math.max(wake * 0.995, dark);
+  const cap = (a, b, c, d) => easeOut(prog(t, a, a + 0.6)) * (1 - ease(prog(t, c, d)));
+  const c1 = cap(4.0, 0, 8.6, 9.2), c2 = cap(14.8, 0, 18.4, 19.0), c3 = cap(20.4, 0, 24.2, 24.8), c4 = cap(25.0, 0, 32.0, 32.4);
+  const off = t >= 29.6 ? 1 : 0;                             // power gone
+  return {
+    icons: true, dock: true, cam, shade: off ? 1 : shade,
+    menubar: { app: 'terminal', icon: 'moon', battery: Math.max(battery, off ? 0 : 3), clock },
+    layers: [term, ...(cIn > 0 ? [caff] : [])],
+    overlays: [
+      text(T.cap1a, 'caption', `opacity:${c1.toFixed(3)}`), text(T.cap1b, 'caption', `opacity:${c2.toFixed(3)}`),
+      text(T.cap1c, 'caption', `opacity:${c3.toFixed(3)}`), text(T.cap1d, 'caption', `opacity:${c4.toFixed(3)}`),
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Scene 2: the solution. An agent works, the menu bar icon sparkles, the menu says so, it ends
 // ---------------------------------------------------------------------------------------------
 function scene2(t) {
@@ -165,8 +216,8 @@ function scene5(t) {
   };
 }
 
-const SCENE_FNS = { '0': scene0, '2': scene2, '3': scene3, '5': scene5 };
-const DURATIONS = { '0': 6.5, '2': 18.0, '3': 29.8, '5': 12.6 };
+const SCENE_FNS = { '0': scene0, '1': scene1, '2': scene2, '3': scene3, '5': scene5 };
+const DURATIONS = { '0': 6.5, '1': 33.0, '2': 18.0, '3': 29.8, '5': 12.6 };
 
 async function seek(id, t) {
   await ensureWallpaper();

@@ -44,7 +44,7 @@
 | 4 | 0:48–0:56 | **途中で止めても。** 残った 1 つのターミナルにフォーカス。Esc を押すと、`Interrupted · What should Claude do instead?` と出る。数秒で、メニューバーのアイコンが月に戻る。字幕: 「Stopped halfway? It notices.」 | ターミナルとアイコンの間を、行き来する |
 | 5 | 0:56–1:04 | **蓋を閉じても。** MacBook を斜め上から見た絵。作業中に蓋が閉じていき、画面の光は消えるが、手前の縁に小さな灯りが残る（動き続けている印）。字幕: 「Close the lid. It keeps going.」 | 引きの絵 → 灯りに寄る |
 | 5b | 1:04–1:10 | **止まる条件。** 蓋を閉じたまま、字幕が切り替わる: 「And it stops by itself when…」。続けて 3 つの条件を、1 つずつ出す: 「It gets too hot」「The battery runs low」「Your time limit runs out」。最後に灯りが消える。 | 灯りに寄る |
-| 6 | 1:08–1:15 | **安心。** アクティビティの画面（ほかの設定の画面にも、順に寄る）。字幕: 「Nothing leaves your Mac.」 | 画面ごとに寄る |
+| 6 | （削除） | **安心。**（動画からは外した。静止画のため。アクティビティのスクリーンショットはサイトで使う） アクティビティの画面（ほかの設定の画面にも、順に寄る）。字幕: 「Nothing leaves your Mac.」 | 画面ごとに寄る |
 | 7 | 1:15–1:22 | **締め。** 「Now, remAIn asleep.」の「AI」が、すっと小文字に落ち着いて、「Now, remain asleep.」になる。月のアイコン。アプリのアイコンと、「Download remAIn · macOS 14+ · MIT」。 | 引く |
 
 ## 未定の点

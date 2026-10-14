@@ -70,10 +70,10 @@ function scene0(t) {
 // Scene 2: the solution. An agent works, the menu bar icon sparkles, the menu says so, it ends
 // ---------------------------------------------------------------------------------------------
 function scene2(t) {
-  const startAt = 1.5, finishAt = 9.6;
+  const startAt = 1.5, finishAt = 11.2;
   const working = t >= startAt && t < finishAt;
   const finished = t >= finishAt;
-  const menuOpen = t >= 7.7 && t < 10.8;
+  const menuOpen = t >= 8.0 && t < 12.6;
   // The log, the way a terminal prints it: the prompt is typed, then each line pops in whole.
   // 17 lines at full speed, then the log slows down a little before the camera leaves it.
   const lineAt = [...Array.from({ length: 17 }, (_, i) => 2.3 + i * 0.18)];
@@ -82,17 +82,18 @@ function scene2(t) {
   const visible = times.filter((x) => t >= x).length;
   const shown = finished ? 999 : t >= 1.0 && t < 2.0 ? 1 + (t - 1.0) : visible;
   const state = finished ? 'done' : 'short';
-  const push = ease(prog(t, 6.3, 7.3)) * (1 - ease(prog(t, 13.2, 14.2)));
+  const push = ease(prog(t, 6.3, 7.5)) * (1 - ease(prog(t, 15.2, 16.4)));
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
-  const nIn = easeOut(prog(t, 11.2, 11.8)), nOut = ease(prog(t, 12.8, 13.3));
+  const nIn = easeOut(prog(t, 13.0, 13.7)), nOut = ease(prog(t, 14.9, 15.4));
   const nVis = nIn * (1 - nOut);
   const notif = $(`<div class="notif" style="opacity:${nVis.toFixed(3)};transform:translateX(${((1 - nIn) * 60 + nOut * 40).toFixed(1)}px)"><img src="assets/icons/remain.png"><div><b>${T.notif.title}</b><span>${T.notif.body}</span></div><em>now</em></div>`);
   return {
     icons: true, dock: true, cam,
-    menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
+    // The agent has been at it for 14 minutes: while the camera is on the menu bar, the clock runs ahead.
+    menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, clock: `Tue Oct 14  11:${String(38 + Math.round(14 * ease(prog(t, 8.6, 11.0)))).padStart(2, '0')}`, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
     layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, tick: t, inactive: false })],
     notifs: nVis > 0.01 ? [notif] : [],
-    black: ease(prog(t, 14.6, 15.8)) * 0.97,
+    black: ease(prog(t, 16.8, 18.0)) * 0.97,
   };
 }
 
@@ -119,7 +120,7 @@ function scene5(t) {
 }
 
 const SCENE_FNS = { '0': scene0, '2': scene2, '5': scene5 };
-const DURATIONS = { '0': 6.5, '2': 15.8, '5': 12.6 };
+const DURATIONS = { '0': 6.5, '2': 18.0, '5': 12.6 };
 
 async function seek(id, t) {
   await ensureWallpaper();

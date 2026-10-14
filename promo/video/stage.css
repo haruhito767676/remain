@@ -150,3 +150,26 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .finale h1 { font-size: 120px; font-weight: 700; letter-spacing: -3px; }
 .finale .dl { margin-top: 46px; display: inline-flex; align-items: center; gap: 18px; font-size: 32px; font-weight: 600; opacity: .92; }
 .finale .dl img { width: 64px; height: 64px; }
+
+/* Terminal: the layout of an agent CLI (prompt echo, log, bordered input, footer) */
+.term .askline { display: block; background: #2a2d3c; margin: 0 -22px; padding: 2px 22px; color: #fff; }
+.term .inputbox { position: absolute; left: 22px; right: 22px; bottom: 16px; font-size: 16px; line-height: 1.55; }
+.term .inputbox .rule { height: 1px; background: #4a4e63; margin: 6px 0; }
+.term .inputbox .cursor { color: #8f93a6; }
+.term .body { overflow: hidden; }
+.win.fading { opacity: .55; transform: scale(.965); }
+.win { transition: none; }
+.laptop3d { z-index: 85; position: absolute; left: 50%; top: 38%; width: 1000px; height: 700px; margin: -350px 0 0 -500px; perspective: 2600px; perspective-origin: 50% 20%; }
+.laptop3d .rig { position: absolute; left: 50px; top: 280px; width: 900px; height: 560px; transform-style: preserve-3d; transform: rotateX(68deg); }
+.laptop3d .base { position: absolute; inset: 0; border-radius: 22px; background: linear-gradient(#d9dce3, #aeb2bf); box-shadow: 0 0 0 2px rgba(255,255,255,.25) inset; }
+.laptop3d .deck { position: absolute; left: 40px; right: 40px; top: 36px; height: 270px; border-radius: 10px; background:
+  repeating-linear-gradient(90deg, #1b1c22 0 46px, #2a2b33 46px 50px), #1b1c22; opacity: .95; }
+.laptop3d .pad { position: absolute; left: 50%; width: 300px; margin-left: -150px; top: 340px; height: 170px; border-radius: 12px; background: rgba(0,0,0,.07); border: 1.5px solid rgba(0,0,0,.14); }
+.laptop3d .glow { position: absolute; left: 50%; bottom: -3px; width: 120px; height: 8px; margin-left: -60px; border-radius: 4px; background: #ffd166; box-shadow: 0 0 30px 12px rgba(255,209,102,.7); }
+.laptop3d .lid { position: absolute; left: 0; top: 0; width: 900px; height: 540px; transform-origin: 50% 0%; transform-style: preserve-3d; transform: rotateX(var(--beta, 40deg)); }
+.laptop3d .lid .outer, .laptop3d .lid .screenface { position: absolute; inset: 0; border-radius: 22px; backface-visibility: hidden; }
+.laptop3d .lid .outer { background: linear-gradient(#e6e8ee, #b4b8c4); display: flex; align-items: center; justify-content: center; color: #8d92a0; font-size: 110px; }
+.laptop3d .lid .screenface { transform: rotateY(180deg); background: #0b0c12; box-shadow: 0 0 0 10px #15161c inset; border: 2px solid #8d92a0; overflow: hidden; }
+.laptop3d .lid .screenface .inner { position: absolute; inset: 16px; border-radius: 10px; background: url(assets/wallpaper-dark.jpg) 50% 62% / 1000px auto; }
+.laptop3d .lid .screenface i { position: absolute; left: 50px; top: 60px; width: 400px; height: 240px; border-radius: 10px; background: rgba(24,26,38,.96); }
+.laptop3d .lid .screenface i::after { content: ""; position: absolute; left: 22px; top: 26px; width: 250px; height: 8px; border-radius: 4px; background: #d97757; box-shadow: 0 26px 0 #3a3d52, 0 52px 0 #3a3d52, 0 78px 0 #3a3d52, 0 104px 0 #3a3d52; }

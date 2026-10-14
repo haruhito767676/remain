@@ -9,7 +9,7 @@ const TEXT = {
     tagline: ['Just rem', 'ai', 'n awake.'],
     // On-screen captions
     cap1a: 'Sleep cuts the run.',
-    cap1b: 'Or it never lets go.',
+    cap1b: 'Or stays awake all night.',
     cap2: 'Awake only while an agent works.',
     cap3: 'Whichever you use. Several at once.',
     cap4: 'Stopped halfway? It notices.',
@@ -39,12 +39,20 @@ const TEXT = {
       steps: ['Reading src/api/middleware.ts', 'Editing src/api/rateLimit.ts  (+42 −3)', 'Running npm test'],
       result: '46 passed · 2 failed',
       fixing: 'Fixing tests/rateLimit.test.ts',
-      working: 'Working… (3m 12s · esc to interrupt)',
-      interrupted: '^C  Interrupted by you',
+      working: 'Working… (2h 41m · esc to interrupt)',
+      workingShort: 'Working… (3m 12s · esc to interrupt)',
+      interrupted: 'Interrupted · What should Claude do instead?',
+      done: 'Worked for 14m 32s',
+      footer: '? for shortcuts · ← for agents',
+      caffeinate: 'caffeinate -i',
+      caffeinateTitle: 'Terminal — caffeinate',
     },
-    ide: { tab: 'rateLimit.ts', agent: 'Agent', steps: ['Read middleware.ts', 'Add a token bucket per client', 'Wire it into the router', 'Run the test suite'], input: 'Ask anything…', status: 'Main · 0 problems · TypeScript' },
+    ide: { tab: 'rateLimit.ts', agent: 'Agent', done: 'Finished. 4 files changed.', steps: ['Read middleware.ts', 'Add a token bucket per client', 'Wire it into the router', 'Run the test suite'], input: 'Ask anything…', status: 'Main · 0 problems · TypeScript' },
     chat: {
       side: ['New chat', 'Projects', 'Recent', 'Fix flaky login test', 'Add rate limiting', 'Write the API docs'],
+      history: ['Fix flaky login test', 'Add rate limiting', 'Write the API docs', 'Migrate to Postgres 16', 'Speed up the CI build', 'Refactor the auth module',
+        'Add dark mode', 'Upgrade dependencies', 'Explain this stack trace', 'Draft the release notes', 'Debug the upload timeout', 'Clean up unused CSS'],
+      done: 'Done. All tests pass.',
       title: 'Codex',
       user: 'Add rate limiting to the API and make the tests pass',
       lead: 'I added a token bucket per client and wired it into the router. Changes:',
@@ -98,8 +106,8 @@ function desktopIcons() {
   return $(`<div class="desktop-icons">${names.map((n) => `<div class="desktop-icon"><img src="assets/icons/folder.png"><span>${n}</span></div>`).join('')}</div>`);
 }
 
-function win({ kind, x, y, w, h, inactive, title, body, z = 10 }) {
-  return $(`<div class="win ${kind} ${inactive ? 'inactive' : ''}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${z}">
+function win({ kind, x, y, w, h, inactive, fading, title, body, z = 10 }) {
+  return $(`<div class="win ${kind} ${inactive ? 'inactive' : ''} ${fading ? 'fading' : ''}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;z-index:${z}">
     <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="title">${title}</div></div><div class="body">${body}</div></div>`);
 }
 
@@ -107,20 +115,23 @@ function terminalBody(state) {
   const t = T.term;
   const lines = [];
   lines.push(`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`);
-  lines.push(`<span class="prompt">&gt; ${t.ask}</span>\n`);
+  lines.push(`<span class="askline">&gt; ${t.ask}</span>\n`);
   lines.push(`<span class="orange">●</span> ${t.steps[0]}`);
   lines.push(`<span class="orange">●</span> ${t.steps[1]}`);
   lines.push(`<span class="orange">●</span> ${t.steps[2]}`);
   lines.push(`  <span class="ok">✓</span> ${t.result.split(' · ')[0]}   <span class="bad">✗</span> ${t.result.split(' · ')[1]}`);
   lines.push(`<span class="orange">●</span> ${t.fixing}`);
-  lines.push('');
-  if (state === 'interrupted') lines.push(`<span class="bad">${t.interrupted}</span>\n\n<span class="prompt">&gt; </span><span class="dim">▌</span>`);
-  else if (state === 'idle') lines.push(`<span class="ok">✓</span> Done.\n\n<span class="prompt">&gt; </span><span class="dim">▌</span>`);
-  else lines.push(`<span class="orange">✻</span> <span class="dim">${t.working}</span>`);
-  return lines.join('\n');
+  if (state === 'interrupted') lines.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
+  else if (state === 'done') lines.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
+  else lines.push(`\n<span class="orange">✻</span> <span class="dim">${state === 'short' ? t.workingShort : t.working}</span>`);
+  return `<div class="log">${lines.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
 }
 
-function ideBody() {
+function caffeinateBody() {
+  return `<div class="log"><span class="prompt">$ ${T.term.caffeinate}</span>\n<span class="dim">▌</span></div>`;
+}
+
+function ideBody(done = false) {
   const c = T.ide;
   const code = [
     ['<span class="k">import</span> { Router } <span class="k">from</span> <span class="s">"express"</span>;'],
@@ -148,7 +159,7 @@ function ideBody() {
     ['<span class="c">// Called from the router</span>'],
     ['<span class="k">export default</span> <span class="f">rateLimit</span>;'],
   ].map((l, i) => `<div><span class="n">${i + 1}</span>${l[0]}</div>`).join('');
-  const steps = c.steps.map((s, i) => `<div class="step ${i < 2 ? 'done' : ''}"><i></i><span>${s}</span></div>`).join('');
+  const steps = c.steps.map((s, i) => `<div class="step ${done || i < 2 ? 'done' : ''}"><i></i><span>${s}</span></div>`).join('') + (done ? `<p style="margin-top:14px">${c.done}</p>` : '');
   return `<div class="activity"><i></i><i></i><i></i><i></i></div>
     <div class="editor"><div class="tabs"><span>${c.tab}</span></div><div class="code">${code}</div></div>
     <div class="agent"><h4>${c.agent}</h4>${steps}<div class="input">${c.input}</div></div>
@@ -158,16 +169,16 @@ function ideBody() {
 function chatBody(running = true) {
   const c = T.chat;
   return `<div class="side"><h4>${c.title} ⌄</h4><div>${c.side[0]}</div><div>${c.side[1]}</div>
-      <div class="group">${c.side[2]}</div><div>${c.side[3]}</div><div class="sel">${c.side[4]}</div><div>${c.side[5]}</div></div>
+      <div class="group">${c.side[2]}</div>${c.history.map((h, i) => `<div class="${i === 1 ? 'sel' : ''}">${h}</div>`).join('')}</div>
     <div class="main"><div class="bubble">${c.user}</div>
       <p>${c.lead}</p><ul>${c.bullets.map((b) => `<li><code>${b}</code></li>`).join('')}</ul>
       <div class="block">${c.block}</div>
-      ${running ? `<div class="run"><i></i>${c.running}</div>` : ''}
+      ${running ? `<div class="run"><i></i>${c.running}</div>` : `<div class="run">✓ ${c.done}</div>`}
       <div class="composer">${c.composer}</div></div>`;
 }
 
 const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state), ...o });
-const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(), ...o });
+const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 
 // ---------- Scenes (one key frame each) ----------
@@ -178,39 +189,58 @@ const SCENES = {
     wallpaper: 'blur', shade: 0.55,
     layers: [$(`<div class="big"><h1>${T.tagline[0]}<span class="ai">AI</span>${T.tagline[2]}</h1></div>`)],
   }),
-  // 1: pain. The Mac is about to sleep and the run is cut off
+  // 1: pain. The Mac is about to sleep and an hours-long run is cut off
   1: () => ({
     menubar: { app: 'terminal', icon: 'moon' }, dock: true, icons: true, shade: 0.5,
-    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 640, state: 'working' }), $(`<div class="caption">${T.cap1a}</div>`)],
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state: 'working' }), $(`<div class="caption">${T.cap1a}</div>`)],
+  }),
+  // 1b: pain, the other way: caffeinate keeps the Mac awake all night, long after the agent is done
+  '1b': () => ({
+    menubar: { app: 'terminal', icon: 'moon', battery: 31, clock: 'Wed Oct 15  3:07' }, dock: true, icons: true, shade: 0.12,
+    layers: [
+      terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', inactive: true, z: 10 }),
+      win({ kind: 'term', x: 760, y: 330, w: 760, h: 300, title: T.term.caffeinateTitle, body: caffeinateBody(), z: 12 }),
+      $(`<div class="caption">${T.cap1b}</div>`),
+    ],
   }),
   // 2: the solution. Zoom on the menu bar; the icon sparkles and the menu says an agent is working
   2: () => ({
     menubar: { app: 'terminal', icon: 'sparkles', active: true, menu: { status: 'one' } }, dock: true, icons: true,
     camera: { focus: 'status', scale: 2.5, dy: 150 },
-    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 640, state: 'working' })],
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state: 'short' })],
   }),
   // 3: three agents at once, three kinds of app
   3: () => ({
     menubar: { app: 'terminal', icon: 'sparkles', active: false }, dock: true, icons: true,
     layers: [
       ideWin({ x: 70, y: 84, w: 1130, h: 680, inactive: true, z: 10 }),
-      chatWin({ x: 560, y: 150, w: 1000, h: 640, inactive: true, z: 11 }),
-      terminalWin({ x: 960, y: 270, w: 880, h: 560, state: 'working', z: 12 }),
+      chatWin({ x: 520, y: 130, w: 1050, h: 620, inactive: true, z: 11 }),
+      terminalWin({ x: 1000, y: 260, w: 860, h: 560, state: 'short', z: 12 }),
       $(`<div class="caption">${T.cap3}</div>`),
     ],
   }),
-  // 4: interrupted halfway; the icon is back to the moon
+  // 3b: the other two agents finish and their windows go away; only one is still working
+  '3b': () => ({
+    menubar: { app: 'terminal', icon: 'sparkles', active: false }, dock: true, icons: true,
+    layers: [
+      ideWin({ x: 70, y: 84, w: 1130, h: 680, inactive: true, fading: true, done: true, z: 10 }),
+      chatWin({ x: 520, y: 130, w: 1050, h: 620, inactive: true, fading: true, running: false, z: 11 }),
+      terminalWin({ x: 1000, y: 260, w: 860, h: 560, state: 'short', z: 12 }),
+    ],
+  }),
+  // 4: the one left is interrupted halfway; the icon is back to the moon
   4: () => ({
     menubar: { app: 'terminal', icon: 'moon', active: false }, dock: true, icons: true,
-    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 640, state: 'interrupted' }), $(`<div class="caption">${T.cap4}</div>`),
+    layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state: 'interrupted' }), $(`<div class="caption">${T.cap4}</div>`),
       $(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px"></div>`)],
   }),
   // 5: lid closed, still running
   5: () => ({
     wallpaper: 'blur', shade: 0.5,
     layers: [
-      $(`<div class="laptop"><div class="lid" style="--tilt:-62deg"><div class="screen"><i></i></div></div><div class="base"></div><div class="led"></div></div>`),
-      $(`<div class="caption" style="bottom:130px">${T.cap5}<div class="pills">${T.pills.map((p) => `<span>${p}</span>`).join('')}</div></div>`),
+      $(`<div class="laptop3d"><div class="rig"><div class="base"><div class="deck"></div><div class="pad"></div><div class="glow"></div></div>
+        <div class="lid" style="--beta:58deg"><div class="outer">&#xF8FF;</div><div class="screenface"><div class="inner"><i></i></div></div></div></div></div>`),
+      $(`<div class="caption" style="bottom:110px">${T.cap5}<div class="pills">${T.pills.map((p) => `<span>${p}</span>`).join('')}</div></div>`),
     ],
   }),
   // 6: peace of mind. The Activity screen, "stored only on your Mac"
@@ -218,7 +248,7 @@ const SCENES = {
     wallpaper: 'blur', shade: 0.45,
     layers: [$(`<img class="shot" src="../../docs/media/shot-settings-activity-dark-${lang}.webp">`), $(`<div class="caption" style="bottom:46px">${T.cap6}</div>`)],
   }),
-  // 7: the end
+  // 7: the end. "AI" has gone back to lowercase: the agents are done
   7: () => ({
     wallpaper: 'blur', shade: 0.72,
     layers: [$(`<div class="finale"><img class="moon" src="assets/symbols/moon.png"><h1>${T.finale}</h1>
@@ -257,4 +287,4 @@ function render(id) {
   document.body.dataset.ready = '1';
 }
 
-render(Number(params.get('scene') || 1));
+render(params.get('scene') || '1');

@@ -39,6 +39,7 @@
 /* Settings: Claude Code */
 "Remove" = "削除";
 "Open at login" = "ログイン時に開く";
+"Open remAIn at login" = "ログイン時にremAInを開く";
 /* Errors */
 "Launch at login: %@" = "ログイン時の起動: %@";
 "Could not find the remain command-line helper." = "remainコマンドラインヘルパーが見つかりません。";

@@ -249,15 +249,19 @@ struct WelcomeView: View {
             Text("Detects AI agent activity and keeps your Mac from sleeping.\nChoose the tools to connect.")
                 .fixedSize(horizontal: false, vertical: true)
             Form {
-                ForEach(model.visibleIntegrations, id: \.self) { agent in
-                    IntegrationRow(model: model, agent: agent)
+                Section {
+                    ForEach(model.visibleIntegrations, id: \.self) { agent in
+                        IntegrationRow(model: model, agent: agent)
+                    }
+                }
+                Section {
+                    Toggle("Open remAIn at login", isOn: $model.welcomeOpenAtLogin)
                 }
             }
             .formStyle(.grouped)
             .scrollDisabled(true)
-            .frame(height: CGFloat(model.visibleIntegrations.count) * 38 + 24)
+            .frame(height: CGFloat(model.visibleIntegrations.count) * 38 + 24 + 46)
             .padding(.top, -12)
-            Toggle("Open at login", isOn: $model.welcomeOpenAtLogin)
             if let error = model.integrationError {
                 Text(error).foregroundStyle(.red)
             }

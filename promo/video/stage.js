@@ -43,9 +43,11 @@ const TEXT = {
       log: [
         '● Reading src/api/middleware.ts',
         '● Reading src/api/router.ts',
+        '● Reading src/config/limits.ts',
         '● Searching for "rateLimit" in src/',
         '● Editing src/api/rateLimit.ts  (+42 −3)',
         '● Editing src/api/router.ts  (+6 −1)',
+        '● Editing src/config/limits.ts  (+4 −0)',
         '● Running npm test',
         '  ✓ 46 passed   ✗ 2 failed',
         '● Reading tests/rateLimit.test.ts',
@@ -54,6 +56,11 @@ const TEXT = {
         '  ✓ 48 passed',
         '● Checking types with tsc --noEmit',
         '  ✓ No errors',
+        '● Running npm run lint',
+        '  ✓ No issues',
+        '● Editing README.md  (+12 −0)',
+        '● Running npm test -- --coverage',
+        '  ✓ 48 passed · 94% coverage',
       ],
       working: 'Working… (2h 41m · esc to interrupt)',
       workingShort: 'Working… (3m 12s · esc to interrupt)',
@@ -141,7 +148,7 @@ function terminalBody(state, shown = 99, tick = 0, rows = 99) {
     .replace('●', '<span class="orange">●</span>')
     .replace('✓', '<span class="ok">✓</span>').replace('✗', '<span class="bad">✗</span>');
   // An interrupted run stops partway through the log.
-  const log = (state === 'interrupted' ? t.log.slice(0, 9) : t.log).map(style);
+  const log = (state === 'interrupted' ? t.log.slice(0, 11) : t.log).map(style);
   const entries = [`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`, ask(t.ask.length), ...log];
   const weights = [3, 2, ...log.map(() => 1)];
   if (state === 'interrupted') { entries.push(`  <span class="dim">⎿  ${t.interrupted}</span>`); weights.push(1); }
@@ -206,7 +213,7 @@ function chatBody(running = true) {
       <div class="composer">${c.composer}</div></div>`;
 }
 
-const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick, Math.floor((o.h - 44 - 140) / 25.5)), ...o });
+const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 
@@ -361,8 +368,11 @@ function render(id) {
     const ty = Math.min(0, Math.max(1080 - 1080 * scale, 540 - y * scale));
     cam.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   } else cam.style.transform = 'none';
+  scrollTerminals();
   document.body.dataset.ready = '1';
 }
 
-Object.assign(window, { $, T, menubar, menuHtml, dock, desktopIcons, win, terminalWin, ideWin, chatWin, laptop3d, caffeinateBody });
+// A terminal follows its newest line: when the log is taller than the window, the oldest lines scroll off the top.
+function scrollTerminals() { document.querySelectorAll('.term .log').forEach((el) => { el.scrollTop = el.scrollHeight; }); }
+Object.assign(window, { scrollTerminals, $, T, menubar, menuHtml, dock, desktopIcons, win, terminalWin, ideWin, chatWin, laptop3d, caffeinateBody });
 if (params.get('mode') !== 'video') render(params.get('scene') || '1');

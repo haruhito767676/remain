@@ -70,18 +70,18 @@ function scene0(t) {
 // Scene 2: the solution. An agent works, the menu bar icon sparkles, the menu says so, it ends
 // ---------------------------------------------------------------------------------------------
 function scene2(t) {
-  const startAt = 1.5, finishAt = 9.0;
+  const startAt = 1.5, finishAt = 9.6;
   const working = t >= startAt && t < finishAt;
   const finished = t >= finishAt;
-  const menuOpen = t >= 7.0 && t < 10.4;
+  const menuOpen = t >= 7.7 && t < 10.8;
   // The log, the way a terminal prints it: the prompt is typed, then each line pops in whole.
-  const times = [0, 1.0, ...Array.from({ length: 14 }, (_, i) => 2.3 + i * 0.22)];
+  const times = [0, 1.0, ...Array.from({ length: 21 }, (_, i) => 2.3 + i * 0.18)];
   const visible = times.filter((x) => t >= x).length;
   const shown = t >= 1.0 && t < 2.0 ? 1 + (t - 1.0) : visible;
   const state = finished ? 'done' : 'short';
-  const push = ease(prog(t, 5.6, 6.6)) * (1 - ease(prog(t, 12.8, 13.8)));
+  const push = ease(prog(t, 6.3, 7.3)) * (1 - ease(prog(t, 13.2, 14.2)));
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
-  const nIn = easeOut(prog(t, 10.8, 11.4)), nOut = ease(prog(t, 12.4, 12.9));
+  const nIn = easeOut(prog(t, 11.2, 11.8)), nOut = ease(prog(t, 12.8, 13.3));
   const nVis = nIn * (1 - nOut);
   const notif = $(`<div class="notif" style="opacity:${nVis.toFixed(3)};transform:translateX(${((1 - nIn) * 60 + nOut * 40).toFixed(1)}px)"><img src="assets/icons/remain.png"><div><b>${T.notif.title}</b><span>${T.notif.body}</span></div><em>now</em></div>`);
   return {
@@ -89,7 +89,7 @@ function scene2(t) {
     menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
     layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, tick: t, inactive: false })],
     notifs: nVis > 0.01 ? [notif] : [],
-    black: ease(prog(t, 14.2, 15.4)) * 0.97,
+    black: ease(prog(t, 14.6, 15.8)) * 0.97,
   };
 }
 
@@ -116,11 +116,12 @@ function scene5(t) {
 }
 
 const SCENE_FNS = { '0': scene0, '2': scene2, '5': scene5 };
-const DURATIONS = { '0': 6.5, '2': 15.4, '5': 12.6 };
+const DURATIONS = { '0': 6.5, '2': 15.8, '5': 12.6 };
 
 async function seek(id, t) {
   await ensureWallpaper();
   frame(SCENE_FNS[id](t));
+  scrollTerminals();
   await document.fonts.ready;
   await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
   return true;

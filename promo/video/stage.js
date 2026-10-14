@@ -18,7 +18,7 @@ const TEXT = {
     cap4: 'Stopped halfway? It notices.',
     cap5: 'Close the lid. It keeps going.',
     cap5b: 'And it stops by itself when…',
-    pills: ['It gets too hot', 'The battery runs low', 'Time is up'],
+    pills: ['It gets too hot', 'The battery runs low', 'Your time limit runs out'],
     cap6: 'Stored only on your Mac.',
     finale: 'Now, remain asleep.',
     download: 'Download remAIn · macOS 14+ · MIT',

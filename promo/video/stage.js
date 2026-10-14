@@ -7,6 +7,7 @@
 const TEXT = {
   en: {
     tagline: ['Just rem', 'ai', 'n awake.'],
+    finder: { title: 'Applications', side: ['Recents', 'Applications', 'Desktop', 'Documents', 'Downloads'], apps: [['antigravity', 'Antigravity IDE'], ['calendar', 'Calendar'], ['chatgpt', 'ChatGPT'], ['chrome', 'Google Chrome'], ['mail', 'Mail'], ['notes', 'Notes'], ['remain', 'remAIn'], ['safari', 'Safari'], ['settings', 'System Settings'], ['terminal', 'Terminal'], ['vscode', 'Visual Studio Code']] },
     // On-screen captions
     cap1a: 'Sleep cuts the run.',
     cap1b: 'Work done. But the Mac still stays awake.',
@@ -20,6 +21,8 @@ const TEXT = {
     cap5b: 'And it stops by itself when…',
     pills: ['It gets too hot', 'The battery runs low', 'Your time limit runs out'],
     cap6: 'Nothing leaves your Mac.',
+    cap2a: 'Enter remAIn.',
+    cap2b: 'It just sits in your menu bar.',
     finale: 'Now, remain asleep.',
     download: 'Download remAIn · macOS 14+ · MIT',
     // The desktop
@@ -128,6 +131,7 @@ const TEXT = {
       done: 'Worked for 14m 32s',
       footer: '? for shortcuts · ← for agents',
       caffeinate: 'caffeinate -i',
+      shellTitle: 'Terminal — zsh',
       caffeinateTitle: 'Terminal — caffeinate',
     },
     ide: { tab: 'rateLimit.ts', agent: 'Agent', done: 'Finished. 4 files changed.', steps: ['Read middleware.ts', 'Add a token bucket per client', 'Wire it into the router', 'Run the test suite'],
@@ -281,6 +285,14 @@ function chatBody(running = true, tick = 0) {
       <div class="composer">${c.composer}</div></div>`;
 }
 
+// A Finder window on the Applications folder, icon view; `selected` is the name of the highlighted app.
+function finderBody(selected = '', hop = 0) {
+  const f = T.finder;
+  const side = f.side.map((n, i) => `<div class="${i === 1 ? 'sel' : ''}">${n}</div>`).join('');
+  const apps = f.apps.map(([icon, name]) => `<div class="fi ${name === selected ? 'sel' : ''}"><img src="assets/icons/${icon}.png" style="${name === selected && hop ? `transform:translateY(${-hop.toFixed(1)}px)` : ''}"><span>${name}</span></div>`).join('');
+  return `<div class="fside">${side}</div><div class="fgrid">${apps}</div>`;
+}
+const finderWin = (o) => win({ kind: 'finder', title: T.finder.title, body: finderBody(o.selected, o.hop), ...o });
 const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick, o.job), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done, o.shown), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false, o.tick), ...o });
@@ -442,5 +454,5 @@ function render(id) {
 
 // A terminal follows its newest line: when the log is taller than the window, the oldest lines scroll off the top.
 function scrollTerminals() { document.querySelectorAll('.term .log').forEach((el) => { el.scrollTop = el.scrollHeight; }); }
-Object.assign(window, { scrollTerminals, $, T, menubar, menuHtml, dock, desktopIcons, win, terminalWin, ideWin, chatWin, laptop3d, caffeinateBody });
+Object.assign(window, { finderWin, scrollTerminals, $, T, menubar, menuHtml, dock, desktopIcons, win, terminalWin, ideWin, chatWin, laptop3d, caffeinateBody });
 if (params.get('mode') !== 'video') render(params.get('scene') || '1');

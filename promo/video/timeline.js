@@ -95,7 +95,7 @@ function scene1Core(t) {
   } else {
     const cIn = easeOut(prog(t, 14.0, 14.6));
     const typed = T.term.caffeinate.slice(0, Math.floor(T.term.caffeinate.length * prog(t, 14.8, 15.8)));
-    const caff = win({ kind: 'term', x: 760, y: 330, w: 760, h: 300, inactive: true, title: T.term.caffeinateTitle,
+    const caff = win({ kind: 'term', x: 760, y: 330, w: 760, h: 300, inactive: true, title: t < 15.9 ? T.term.shellTitle : T.term.caffeinateTitle,
       body: `<div class="log"><span class="prompt">$ ${typed}</span><span class="dim">${t < 15.8 ? '▌' : '\n▌'}</span></div>`, z: 12 });
     popIn(caff, cIn);
     layers = [terminalWin({ ...G, state: bDone ? 'done' : 'short', job: 'night', shown: bShown, tick: Math.max(0, t - 16.4), z: 10 }), ...(cIn > 0 ? [caff] : [])];
@@ -178,24 +178,39 @@ function scene2Core(t) {
   };
 }
 
-// The solution scene starts from a bare desktop: remAIn's icon appears in the menu bar first, then the agent is launched.
+// The solution scene starts from a bare desktop: remAIn is opened from the Applications folder, its icon settles in the
+// menu bar (the camera visits it), and only then is the agent launched.
 function scene2(t) {
-  const L = 4.2;
+  const L = 11.6;
   const spec = scene2Core(Math.max(0, t - L));
-  if (t < L) {
-    spec.ui = 1;
-    spec.running = t >= 3.3 ? ['terminal'] : [];
-    spec.bounce = { terminal: hop(t, 3.1) };
-    const p = easeOut(prog(t, 3.6, 4.2));
-    spec.layers = p > 0 ? [popWin(spec.layers[0], p)] : [];
-    const born = easeOut(prog(t, 1.2, 1.8));
-    if (t < 1.2) spec.menubar = { ...spec.menubar, icon: null };
-    const ring = easeOut(prog(t, 1.9, 2.3)) * (1 - ease(prog(t, 2.8, 3.2)));
-    spec.layers = [...spec.layers, $(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px;opacity:${(ring * (0.6 + 0.4 * Math.sin(t * 7))).toFixed(3)}"></div>`)];
-    spec.black = Math.max(spec.black || 0, (1 - ease(prog(t, 0, 0.8))) * 0.97);
-    void born;
-  }
-  return spec;
+  if (t >= L) return spec;
+  const finderIn = easeOut(prog(t, 1.0, 1.7)), finderOut = ease(prog(t, 4.3, 4.8));
+  const fv = finderIn * (1 - finderOut);
+  const picked = t >= 3.2, opened = t >= 3.7;
+  const hopY = opened ? Math.max(0, 22 * Math.sin(Math.PI * prog(t, 3.7, 4.2))) : 0;
+  const layers = [];
+  if (fv > 0.001) layers.push(popWin(finderWin({ x: 420, y: 170, w: 1080, h: 640, selected: picked ? 'remAIn' : '', hop: hopY, z: 10 }), fv));
+  // The pointer glides to the remAIn icon, clicks (3.2) and double-clicks (3.7).
+  const pp = ease(prog(t, 1.8, 3.1));
+  const px = lerp(1300, 1176, pp), py = lerp(700, 520, pp);
+  if (fv > 0.02) layers.push($(`<svg class="pointer" viewBox="0 0 26 26" style="left:${px.toFixed(1)}px;top:${py.toFixed(1)}px;opacity:${fv.toFixed(2)}"><path d="M4 2 L4 21 L9 16.5 L12.5 24 L16 22.5 L12.6 15 L19.5 15 Z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg>`));
+  const born = t >= 4.9;
+  const ring = easeOut(prog(t, 5.5, 5.9)) * (1 - ease(prog(t, 8.2, 8.7)));
+  layers.push($(`<div class="ring" style="left:1563px;top:3px;width:40px;height:28px;opacity:${(ring * (0.65 + 0.35 * Math.sin(t * 7))).toFixed(3)}"></div>`));
+  const push = ease(prog(t, 5.6, 7.0)) * (1 - ease(prog(t, 8.8, 10.2)));
+  const launch = easeOut(prog(t, 10.7, 11.3));
+  const c1 = easeOut(prog(t, 1.6, 2.2)) * (1 - ease(prog(t, 4.6, 5.1)));
+  const c2 = easeOut(prog(t, 6.4, 7.0)) * (1 - ease(prog(t, 8.6, 9.2)));
+  if (launch > 0) layers.unshift(popWin(spec.layers[0], launch));
+  return {
+    ...spec, layers, ui: 1,
+    cam: { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) },
+    running: t >= 10.4 ? ['terminal'] : [],
+    bounce: { terminal: hop(t, 10.2) },
+    menubar: { ...spec.menubar, icon: born ? 'moon' : null },
+    overlays: [text(T.cap2a, 'caption', `opacity:${c1.toFixed(3)}`), text(T.cap2b, 'caption', `opacity:${c2.toFixed(3)}`)],
+    black: (1 - ease(prog(t, 0, 0.8))) * 0.97,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -305,7 +320,7 @@ function scene5(t) {
 }
 
 const SCENE_FNS = { '0': scene0, '1': scene1, '2': scene2, '3': scene3, '5': scene5, '6': scene6, '7': scene7 };
-const DURATIONS = { '0': 7.2, '1': 45.4, '2': 22.2, '3': 29.8, '5': 12.6, '6': 8.6, '7': 9.8 };
+const DURATIONS = { '0': 7.2, '1': 45.4, '2': 29.6, '3': 29.8, '5': 12.6, '6': 8.6, '7': 9.8 };
 
 async function seek(id, t) {
   await ensureWallpaper();

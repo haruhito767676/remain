@@ -114,6 +114,7 @@ struct ActivityView: View {
     }
 
     private static func axisLabel(minutes: Int) -> String {
+        if minutes == 0 { return "0" }
         if minutes < 60 { return "\(minutes)m" }
         if minutes % 60 == 0 { return "\(minutes / 60)h" }
         return "\(minutes / 60)h\(minutes % 60)m"

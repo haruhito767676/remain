@@ -73,13 +73,13 @@ function scene2(t) {
   const startAt = 1.5, finishAt = 9.0;
   const working = t >= startAt && t < finishAt;
   const finished = t >= finishAt;
-  const menuOpen = t >= 6.4 && t < 10.4;
+  const menuOpen = t >= 7.0 && t < 10.4;
   // The log, the way a terminal prints it: the prompt is typed, then each line pops in whole.
-  const times = [0, 1.0, 2.4, 3.0, 3.6, 4.1, 4.6, 5.0];
+  const times = [0, 1.0, ...Array.from({ length: 14 }, (_, i) => 2.3 + i * 0.22)];
   const visible = times.filter((x) => t >= x).length;
   const shown = t >= 1.0 && t < 2.0 ? 1 + (t - 1.0) : visible;
   const state = finished ? 'done' : 'short';
-  const push = ease(prog(t, 5.0, 6.0)) * (1 - ease(prog(t, 12.8, 13.8)));
+  const push = ease(prog(t, 5.6, 6.6)) * (1 - ease(prog(t, 12.8, 13.8)));
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
   const nIn = easeOut(prog(t, 10.8, 11.4)), nOut = ease(prog(t, 12.4, 12.9));
   const nVis = nIn * (1 - nOut);

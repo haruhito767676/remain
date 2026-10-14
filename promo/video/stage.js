@@ -14,7 +14,7 @@ const TEXT = {
     cap1d: '…until the battery gives out.',
     lowBattery: { title: 'Low Battery', body: '10% battery remaining.' },
     cap2: 'Awake only while an agent works.',
-    cap3: 'Whichever you use. Several at once.',
+    cap3: 'Any agent. All at once.',
     cap4: 'Stopped halfway? It notices.',
     cap5: 'Close the lid. It keeps going.',
     cap5b: 'And it stops by itself when…',
@@ -40,9 +40,21 @@ const TEXT = {
       header: 'Claude Code',
       path: '~/Projects/web-app',
       ask: 'Add rate limiting to the API and make the tests pass',
-      steps: ['Reading src/api/middleware.ts', 'Editing src/api/rateLimit.ts  (+42 −3)', 'Running npm test'],
-      result: '46 passed · 2 failed',
-      fixing: 'Fixing tests/rateLimit.test.ts',
+      log: [
+        '● Reading src/api/middleware.ts',
+        '● Reading src/api/router.ts',
+        '● Searching for "rateLimit" in src/',
+        '● Editing src/api/rateLimit.ts  (+42 −3)',
+        '● Editing src/api/router.ts  (+6 −1)',
+        '● Running npm test',
+        '  ✓ 46 passed   ✗ 2 failed',
+        '● Reading tests/rateLimit.test.ts',
+        '● Editing tests/rateLimit.test.ts  (+9 −4)',
+        '● Running npm test',
+        '  ✓ 48 passed',
+        '● Checking types with tsc --noEmit',
+        '  ✓ No errors',
+      ],
       working: 'Working… (2h 41m · esc to interrupt)',
       workingShort: 'Working… (3m 12s · esc to interrupt)',
       interrupted: 'Interrupted · What should Claude do instead?',
@@ -118,29 +130,30 @@ function win({ kind, x, y, w, h, inactive, fading, title, body, z = 10 }) {
 // A terminal shows its log the way a terminal does: lines pop in whole, the prompt is typed key by key,
 // and the spinner glyph and the clock tick. `shown` is how many entries are visible (omit for all);
 // a fractional value types the prompt line out. `tick` is seconds, for the spinner and the cursor.
-function terminalBody(state, shown = 99, tick = 0) {
+function terminalBody(state, shown = 99, tick = 0, rows = 99) {
   const t = T.term;
   const glyphs = ['✻', '✽', '✢', '✳'];
   const spin = glyphs[Math.floor(tick * 4) % glyphs.length];
   const seconds = 192 + Math.floor(tick);
   const working = `Working… (${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s · esc to interrupt)`;
   const ask = (n) => `<span class="askline">&gt; ${t.ask.slice(0, n)}${n < t.ask.length ? '▌' : ''}</span>\n`;
-  const entries = [
-    `<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`,
-    ask(t.ask.length),
-    `<span class="orange">●</span> ${t.steps[0]}`,
-    `<span class="orange">●</span> ${t.steps[1]}`,
-    `<span class="orange">●</span> ${t.steps[2]}`,
-    `  <span class="ok">✓</span> ${t.result.split(' · ')[0]}   <span class="bad">✗</span> ${t.result.split(' · ')[1]}`,
-    `<span class="orange">●</span> ${t.fixing}`,
-  ];
-  if (state === 'interrupted') entries.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
-  else if (state === 'done') entries.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
-  else entries.push(`\n<span class="orange">${spin}</span> <span class="dim">${state === 'short' ? working : t.working}</span>`);
+  const style = (line) => line
+    .replace('●', '<span class="orange">●</span>')
+    .replace('✓', '<span class="ok">✓</span>').replace('✗', '<span class="bad">✗</span>');
+  // An interrupted run stops partway through the log.
+  const log = (state === 'interrupted' ? t.log.slice(0, 9) : t.log).map(style);
+  const entries = [`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`, ask(t.ask.length), ...log];
+  const weights = [3, 2, ...log.map(() => 1)];
+  if (state === 'interrupted') { entries.push(`  <span class="dim">⎿  ${t.interrupted}</span>`); weights.push(1); }
+  else if (state === 'done') { entries.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`); weights.push(1); }
+  else { entries.push(`\n<span class="orange">${spin}</span> <span class="dim">${state === 'short' ? working : t.working}</span>`); weights.push(2); }
   const count = Math.ceil(shown);
   if (shown % 1 !== 0 && count === 2) entries[1] = ask(Math.round(t.ask.length * (shown % 1)));
+  let first = 0;                                    // like a real terminal, old lines scroll off the top
+  let used = weights.slice(0, count).reduce((a, b) => a + b, 0);
+  while (used > rows && first < count - 1) used -= weights[first++];
   const cursorOn = Math.floor(tick * 2) % 2 === 0;
-  return `<div class="log">${entries.slice(0, count).join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
+  return `<div class="log">${entries.slice(first, count).join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor" style="opacity:${cursorOn ? 1 : 0}">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
 }
 
 function caffeinateBody() {
@@ -193,7 +206,7 @@ function chatBody(running = true) {
       <div class="composer">${c.composer}</div></div>`;
 }
 
-const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
+const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick, Math.floor((o.h - 44 - 140) / 25.5)), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 

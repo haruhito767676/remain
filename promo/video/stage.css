@@ -236,3 +236,5 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .notif .gauge-s { width: 42px; height: 42px; border-radius: 10px; flex: none; background: #3a3a44; position: relative; }
 .notif .gauge-s::before { content: ""; position: absolute; left: 8px; top: 15px; width: 24px; height: 12px; border: 2.5px solid #ff453a; border-radius: 4px; }
 .notif .gauge-s::after { content: ""; position: absolute; left: 11px; top: 18px; width: 5px; height: 6px; border-radius: 1.5px; background: #ff453a; }
+
+.term .log { position: absolute; left: 22px; right: 22px; top: 18px; bottom: 120px; overflow: hidden; }

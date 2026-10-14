@@ -198,10 +198,11 @@ function laptop3d(beta) {
   ];
   const keys = rows.map((r, i) => `<div class="row ${i === 0 ? 'fn' : ''}">${r.map((w) => w === 'touch' ? '<span class="key touch"></span>' : `<span class="key" style="--w:${w}"></span>`).join('')}</div>`).join('');
   return $(`<div class="laptop3d" style="--leak:${beta < 10 ? 1 : 0}"><div class="floor"></div><div class="rig">
-    <div class="base"><div class="notch"></div><div class="grille l"></div><div class="grille r"></div><div class="well">${keys}</div><div class="pad"></div><div class="spill"></div></div>
-    <div class="hinge"></div><div class="glow"></div>
+    <div class="base"><div class="notch"></div><div class="grille l"></div><div class="grille r"></div><div class="well">${keys}</div><div class="pad"></div></div>
+    <div class="hinge"></div>
     <div class="lid" style="--beta:${beta}deg"><div class="outer"><span class="logo">&#xF8FF;</span></div>
       <div class="screenface"><div class="inner"><div class="bar"></div><div class="win2"></div><div class="dock2"></div></div><div class="cam"></div><div class="glass"></div></div></div>
+    <div class="glow"></div>
   </div></div>`);
 }
 

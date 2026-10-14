@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const [lang = 'en', ...rest] = process.argv.slice(2);
-const scenes = rest.length ? rest : [0, 1, '1b', '1c', '1d', 2, 3, '3b', 4, 5, 6, 7];
+const scenes = rest.length ? rest : [0, 1, '1b', '1c', '1d', 2, 3, '3b', 4, 5, '5b', 6, 7];
 mkdirSync(resolve(here, 'out'), { recursive: true });
 
 for (const scene of scenes) {

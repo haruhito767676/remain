@@ -9,7 +9,7 @@ const TEXT = {
     tagline: ['Just rem', 'ai', 'n awake.'],
     // On-screen captions
     cap1a: 'Sleep cuts the run.',
-    cap1b: 'Work done. The Mac stays awake.',
+    cap1b: 'Work done. But the Mac still stays awake.',
     cap1c: 'All night…',
     cap1d: '…until the battery gives out.',
     lowBattery: { title: 'Low Battery', body: '10% battery remaining.' },
@@ -17,7 +17,8 @@ const TEXT = {
     cap3: 'Whichever you use. Several at once.',
     cap4: 'Stopped halfway? It notices.',
     cap5: 'Close the lid. It keeps going.',
-    pills: ['Heat', 'Low battery', 'Time limit'],
+    cap5b: 'And it stops by itself when…',
+    pills: ['It gets too hot', 'The battery runs low', 'Time is up'],
     cap6: 'Stored only on your Mac.',
     finale: 'Now, remain asleep.',
     download: 'Download remAIn · macOS 14+ · MIT',
@@ -235,14 +236,10 @@ const SCENES = {
       $(`<div class="caption">${T.cap1c}</div>`),
     ],
   }),
-  // 1d: the real macOS way: a low-battery banner in the top right
+  // 1d: the battery is empty: the screen goes dark
   '1d': () => ({
-    menubar: { app: 'terminal', icon: 'moon', battery: 10, clock: 'Wed Oct 15  5:41' }, dock: true, icons: true, shade: 0.6,
-    layers: [
-      terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', inactive: true, z: 10 }),
-      $(`<div class="notif"><div class="gauge-s"></div><div><b>${T.lowBattery.title}</b><span>${T.lowBattery.body}</span></div><em>now</em></div>`),
-      $(`<div class="caption">${T.cap1d}</div>`),
-    ],
+    wallpaper: 'black',
+    layers: [$(`<div class="caption">${T.cap1d}</div>`)],
   }),
   // 2: the solution. Zoom on the menu bar; the icon sparkles and the menu says an agent is working
   2: () => ({
@@ -278,10 +275,12 @@ const SCENES = {
   // 5: lid closed, still running
   5: () => ({
     wallpaper: 'blur', shade: 0.5,
-    layers: [
-      laptop3d(58),
-      $(`<div class="caption" style="bottom:110px">${T.cap5}<div class="pills">${T.pills.map((p) => `<span>${p}</span>`).join('')}</div></div>`),
-    ],
+    layers: [laptop3d(58), $(`<div class="caption" style="bottom:130px">${T.cap5}</div>`)],
+  }),
+  // 5b: it stops by itself when...
+  '5b': () => ({
+    wallpaper: 'blur', shade: 0.5,
+    layers: [laptop3d(0), $(`<div class="caption" style="bottom:110px">${T.cap5b}<div class="pills">${T.pills.map((p) => `<span>${p}</span>`).join('')}</div></div>`)],
   }),
   // 6: peace of mind. The Activity screen, "stored only on your Mac"
   6: () => ({
@@ -305,6 +304,7 @@ function render(id) {
   cam.innerHTML = '';
   const wp = $(`<div class="wallpaper"></div>`);
   if (spec.wallpaper === 'blur') wp.style.filter = 'blur(26px) saturate(1.1)';
+  if (spec.wallpaper === 'black') wp.style.background = '#000';
   cam.appendChild(wp);
   if (spec.icons) cam.appendChild(desktopIcons());
   (spec.layers || []).forEach((l) => cam.appendChild(l));

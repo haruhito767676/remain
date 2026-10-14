@@ -88,7 +88,6 @@
 "remAIn stopped" = "remAInが停止";
 /* Lid closed */
 "Keep Running with Lid Closed" = "蓋を閉じても動作を続ける";
-"Keeps running if you close the lid" = "蓋を閉じても動作が続きます";
 "Lid Closed" = "蓋を閉じたとき";
 "System permission" = "システムの許可";
 "Ready" = "利用可能";

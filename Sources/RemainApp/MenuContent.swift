@@ -22,9 +22,6 @@ struct MenuContent: View {
         if let line = model.manualHoldLine {
             Button(line) { model.coordinator.setManual(.off) }
         }
-        if let lid = model.lidLine {
-            Button(lid) {}
-        }
 
         Divider()
 

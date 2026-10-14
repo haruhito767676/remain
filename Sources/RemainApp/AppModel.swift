@@ -126,11 +126,6 @@ final class AppModel {
         return Date()
     }
 
-    /// Shown while the Mac would keep running with its lid closed.
-    var lidLine: String? {
-        snapshot.preventLidSleep ? String(localized: "Keeps running if you close the lid") : nil
-    }
-
     /// The menu item for the manual hold; while a timer runs it says how long is left.
     var keepAwakeTitle: String {
         if case .until(let end) = snapshot.manual {

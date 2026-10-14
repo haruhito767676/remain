@@ -164,9 +164,9 @@ To build it yourself, see [Development](#development).
 
 | Agent | How it is followed |
 |---|---|
-| Antigravity | Hooks in `~/.gemini/config/hooks.json`. Its stop button fires no hook and leaves no trace, so a run that goes quiet for 5 minutes is considered over, unless it said a background command is still running. |
-| Claude Code | Hooks in `~/.claude/settings.json` (CLI, desktop app and VS Code extension). Pressing Esc and closing it are detected. |
-| Codex | Hooks in `~/.codex/hooks.json` (CLI and desktop app). Codex asks you to review and trust them first, and starts hooks in the conversation's working folder: if that folder does not exist (the desktop app's placeholder "New project"), every hook fails with `No such file or directory`, so open a real folder. |
+| Antigravity (Google) | Hooks in `~/.gemini/config/hooks.json`. Its stop button fires no hook and leaves no trace, so a run that goes quiet for 5 minutes is considered over, unless it said a background command is still running. |
+| Claude Code (Anthropic) | Hooks in `~/.claude/settings.json` (CLI, desktop app and VS Code extension). Pressing Esc and closing it are detected. |
+| Codex (OpenAI) | Hooks in `~/.codex/hooks.json` (CLI and desktop app). Codex asks you to review and trust them first, and starts hooks in the conversation's working folder: if that folder does not exist (the desktop app's placeholder "New project"), every hook fails with `No such file or directory`, so open a real folder. |
 | Any command | `remain run -- <command>` holds while the command runs. |
 
 remAIn only adds and removes its own entries, and writes a one-time backup next to each file (for example `settings.json.remain-backup`). `remain doctor` shows which agents are connected.

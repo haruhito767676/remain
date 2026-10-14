@@ -73,7 +73,7 @@ AgentSession { id, phase(working|waiting), startedAt, lastSeen, cwd,
 
 ## 3. エージェントとの連携
 
-対応エージェントは Antigravity、Claude Code、Codex の 3 つ（それ以外は `remain run` で追える）。連携とは、各エージェントの設定ファイルに remAIn のフックを書き込むことである。書き込み・削除は、remAIn が書いた項目だけを対象とする。
+対応エージェントは Antigravity (Google)、Claude Code (Anthropic)、Codex (OpenAI) の 3 つ（それ以外は `remain run` で追える）。連携とは、各エージェントの設定ファイルに remAIn のフックを書き込むことである。書き込み・削除は、remAIn が書いた項目だけを対象とする。
 
 | エージェント | 設定ファイル | フックイベント |
 |---|---|---|

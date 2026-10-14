@@ -164,9 +164,9 @@ remAInが見えないものには、メニューから、30分、1時間、2時�
 
 | エージェント | 見守り方 |
 |---|---|
-| Antigravity | `~/.gemini/config/hooks.json` のフック。停止ボタンはフックも痕跡も残さないため、5分間なにも聞こえなければ終了とみなします(バックグラウンドのコマンドが動いていると伝えてきた場合を除く)。|
-| Claude Code | `~/.claude/settings.json` のフック(CLI、デスクトップアプリ、VS Code拡張)。Escキーでの中断や、閉じたことを検知します。|
-| Codex | `~/.codex/hooks.json` のフック(CLIとデスクトップアプリ)。Codexは最初に、フックの確認と信頼を求めます。また、フックは会話の作業フォルダで起動されるため、そのフォルダが存在しないと(デスクトップアプリの仮の「New project」など)、すべてのフックが `No such file or directory` で失敗します。実在するフォルダを開いてください。|
+| Antigravity (Google) | `~/.gemini/config/hooks.json` のフック。停止ボタンはフックも痕跡も残さないため、5分間なにも聞こえなければ終了とみなします(バックグラウンドのコマンドが動いていると伝えてきた場合を除く)。|
+| Claude Code (Anthropic) | `~/.claude/settings.json` のフック(CLI、デスクトップアプリ、VS Code拡張)。Escキーでの中断や、閉じたことを検知します。|
+| Codex (OpenAI) | `~/.codex/hooks.json` のフック(CLIとデスクトップアプリ)。Codexは最初に、フックの確認と信頼を求めます。また、フックは会話の作業フォルダで起動されるため、そのフォルダが存在しないと(デスクトップアプリの仮の「New project」など)、すべてのフックが `No such file or directory` で失敗します。実在するフォルダを開いてください。|
 | 任意のコマンド | `remain run -- <コマンド>` で、そのコマンドが動いている間、起こしておきます。|
 
 remAInが追加・削除するのは、自分の項目だけで、書き換える前に、初回だけバックアップを隣に残します(例: `settings.json.remain-backup`)。`remain doctor` で、どのエージェントがつながっているかを確認できます。

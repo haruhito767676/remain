@@ -159,17 +159,67 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .term .body { overflow: hidden; }
 .win.fading { opacity: .55; transform: scale(.965); }
 .win { transition: none; }
-.laptop3d { z-index: 85; position: absolute; left: 50%; top: 38%; width: 1000px; height: 700px; margin: -350px 0 0 -500px; perspective: 2600px; perspective-origin: 50% 20%; }
-.laptop3d .rig { position: absolute; left: 50px; top: 280px; width: 900px; height: 560px; transform-style: preserve-3d; transform: rotateX(68deg); }
-.laptop3d .base { position: absolute; inset: 0; border-radius: 22px; background: linear-gradient(#d9dce3, #aeb2bf); box-shadow: 0 0 0 2px rgba(255,255,255,.25) inset; }
-.laptop3d .deck { position: absolute; left: 40px; right: 40px; top: 36px; height: 270px; border-radius: 10px; background:
-  repeating-linear-gradient(90deg, #1b1c22 0 46px, #2a2b33 46px 50px), #1b1c22; opacity: .95; }
-.laptop3d .pad { position: absolute; left: 50%; width: 300px; margin-left: -150px; top: 340px; height: 170px; border-radius: 12px; background: rgba(0,0,0,.07); border: 1.5px solid rgba(0,0,0,.14); }
-.laptop3d .glow { position: absolute; left: 50%; bottom: -3px; width: 120px; height: 8px; margin-left: -60px; border-radius: 4px; background: #ffd166; box-shadow: 0 0 30px 12px rgba(255,209,102,.7); }
+.laptop3d { z-index: 85; position: absolute; left: 50%; top: 38%; width: 1100px; height: 700px; margin: -350px 0 0 -550px; perspective: 2600px; perspective-origin: 50% 20%; }
+.laptop3d .rig { position: absolute; left: 100px; top: 280px; width: 900px; height: 560px; transform-style: preserve-3d; transform: rotateX(68deg); }
+.laptop3d .floor { position: absolute; left: 70px; top: 700px; width: 960px; height: 70px; border-radius: 50%; background: rgba(0,0,0,.6); filter: blur(34px); }
+
+/* --- Base: anodised aluminium --- */
+.laptop3d .base { position: absolute; inset: 0; border-radius: 22px 22px 34px 34px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.03) 1px 2px),
+    linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 22%, rgba(255,255,255,0) 40%, rgba(255,255,255,.3) 70%, rgba(255,255,255,0) 100%),
+    linear-gradient(180deg, #f3f4f8 0%, #d9dce5 34%, #c2c7d3 70%, #a9aebb 100%);
+  box-shadow: inset 0 0 0 1.5px #fff, inset 0 0 0 4px rgba(150,156,174,.45), inset 0 -12px 20px rgba(84,90,110,.5), inset 0 8px 14px rgba(255,255,255,.7), 0 2px 0 #8a8f9d, 0 6px 0 #6d7280; }
+.laptop3d .base::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: conic-gradient(from 210deg at 50% 120%, rgba(255,255,255,.0), rgba(255,255,255,.5) 14%, rgba(255,255,255,0) 30%, rgba(255,255,255,.35) 52%, rgba(255,255,255,0) 70%); mix-blend-mode: soft-light; }
+.laptop3d .hinge { position: absolute; left: 20px; right: 20px; top: -10px; height: 22px; border-radius: 10px;
+  background: linear-gradient(#0e0f13, #3a3d48 45%, #14151a); box-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.laptop3d .well { position: absolute; left: 36px; right: 36px; top: 46px; height: 312px; border-radius: 12px; background: #101116;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.9), 0 1.5px 0 rgba(255,255,255,.8); padding: 11px 12px; display: flex; flex-direction: column; gap: 5px; }
+.laptop3d .row { display: flex; gap: 5px; flex: 1; }
+.laptop3d .key { flex: var(--w, 1) 1 0; border-radius: 6px; position: relative; font: 600 9px/1 -apple-system, sans-serif; color: #8e93a3; padding: 5px 0 0 6px;
+  background: linear-gradient(180deg, #2f3038 0%, #1d1e24 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 3px rgba(0,0,0,.55), 0 1.5px 2px rgba(0,0,0,.9); }
+.laptop3d .row.fn { flex: .62; }
+.laptop3d .key.touch { background: radial-gradient(circle at 50% 40%, #3b3d47, #1b1c22); border-radius: 50%; flex: .95 1 0; }
+.laptop3d .grille { position: absolute; top: 60px; width: 34px; height: 280px; background: radial-gradient(circle, #6a6e7a 1.1px, transparent 1.6px) 0 0 / 7px 7px; opacity: .75; }
+.laptop3d .grille.l { left: 36px; margin-left: -34px; } .laptop3d .grille.r { right: 36px; margin-right: -34px; }
+.laptop3d .pad { position: absolute; left: 50%; width: 360px; margin-left: -180px; top: 384px; height: 150px; border-radius: 12px;
+  background: linear-gradient(180deg, #cfd3dc, #c3c8d3); box-shadow: inset 0 0 0 1.5px rgba(70,76,94,.35), inset 0 2px 4px rgba(255,255,255,.7), 0 1px 0 rgba(255,255,255,.8); }
+.laptop3d .notch { position: absolute; left: 50%; top: 0; width: 150px; height: 11px; margin-left: -75px; border-radius: 0 0 11px 11px; background: rgba(60,66,84,.35); }
+.laptop3d .glow { position: absolute; left: 50%; bottom: -3px; width: 130px; height: 8px; margin-left: -65px; border-radius: 4px; background: #ffd166; box-shadow: 0 0 34px 14px rgba(255,209,102,.75); }
+
+/* --- Lid --- */
 .laptop3d .lid { position: absolute; left: 0; top: 0; width: 900px; height: 540px; transform-origin: 50% 0%; transform-style: preserve-3d; transform: rotateX(var(--beta, 40deg)); }
-.laptop3d .lid .outer, .laptop3d .lid .screenface { position: absolute; inset: 0; border-radius: 22px; backface-visibility: hidden; }
-.laptop3d .lid .outer { background: linear-gradient(#e6e8ee, #b4b8c4); display: flex; align-items: center; justify-content: center; color: #8d92a0; font-size: 110px; }
-.laptop3d .lid .screenface { transform: rotateY(180deg); background: #0b0c12; box-shadow: 0 0 0 10px #15161c inset; border: 2px solid #8d92a0; overflow: hidden; }
-.laptop3d .lid .screenface .inner { position: absolute; inset: 16px; border-radius: 10px; background: url(assets/wallpaper-dark.jpg) 50% 62% / 1000px auto; }
-.laptop3d .lid .screenface i { position: absolute; left: 50px; top: 60px; width: 400px; height: 240px; border-radius: 10px; background: rgba(24,26,38,.96); }
-.laptop3d .lid .screenface i::after { content: ""; position: absolute; left: 22px; top: 26px; width: 250px; height: 8px; border-radius: 4px; background: #d97757; box-shadow: 0 26px 0 #3a3d52, 0 52px 0 #3a3d52, 0 78px 0 #3a3d52, 0 104px 0 #3a3d52; }
+.laptop3d .lid .outer, .laptop3d .lid .screenface { position: absolute; inset: 0; border-radius: 24px 24px 12px 12px; backface-visibility: hidden; }
+.laptop3d .lid .outer { background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.03) 1px 2px),
+    linear-gradient(160deg, #f4f5f8 0%, #d8dce4 45%, #c0c5d1 100%);
+  box-shadow: inset 0 0 0 1.5px #fff, inset 0 0 0 4px rgba(150,156,174,.4), inset 0 -10px 18px rgba(70,76,94,.4), 0 0 0 1px rgba(60,66,84,.5); display: flex; align-items: center; justify-content: center; }
+.laptop3d .lid .outer::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: conic-gradient(from 150deg at 30% 120%, rgba(255,255,255,0), rgba(255,255,255,.6) 16%, rgba(255,255,255,0) 34%, rgba(255,255,255,.4) 60%, rgba(255,255,255,0) 80%); mix-blend-mode: soft-light; }
+.laptop3d .lid .logo { font-size: 150px; line-height: 1; background: linear-gradient(160deg, #ffffff 0%, #aeb3c1 48%, #f2f3f7 100%); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 2px rgba(60,66,84,.35)); }
+.laptop3d .lid .screenface { transform: rotateY(180deg); background: #050609; box-shadow: inset 0 0 0 2px #b4b9c6, inset 0 0 0 3px #1a1b21, inset 0 0 0 11px #0a0b0f, 0 0 0 1px rgba(60,66,84,.6); overflow: hidden; }
+.laptop3d .lid .screenface .inner { position: absolute; inset: 13px; border-radius: 12px; overflow: hidden; background: url(assets/wallpaper-dark.jpg) 50% 62% / 1000px auto; }
+.laptop3d .lid .screenface .bar { position: absolute; left: 0; right: 0; top: 0; height: 22px; background: rgba(8,10,40,.45); }
+.laptop3d .lid .screenface .cam { position: absolute; left: 50%; top: 13px; width: 120px; height: 20px; margin-left: -60px; border-radius: 0 0 11px 11px; background: #050609; z-index: 3; }
+.laptop3d .lid .screenface .win2 { position: absolute; left: 54px; top: 72px; width: 410px; height: 250px; border-radius: 9px; background: rgba(24,26,38,.96); box-shadow: 0 14px 30px rgba(0,0,0,.4); }
+.laptop3d .lid .screenface .win2::after { content: ""; position: absolute; left: 22px; top: 28px; width: 250px; height: 7px; border-radius: 4px; background: #d97757; box-shadow: 0 26px 0 #3a3d52, 0 52px 0 #3a3d52, 0 78px 0 #3a3d52, 0 104px 0 #3a3d52; }
+.laptop3d .lid .screenface .dock2 { position: absolute; left: 50%; bottom: 10px; width: 300px; height: 30px; margin-left: -150px; border-radius: 10px; background: rgba(255,255,255,.18); }
+.laptop3d .lid .screenface .glass { position: absolute; inset: 0; background: linear-gradient(112deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.04) 32%, rgba(255,255,255,0) 40%, rgba(255,255,255,.08) 78%, rgba(255,255,255,0) 100%); z-index: 4; }
+
+.battery.low i::after { background: #ff453a; }
+.alert { position: absolute; left: 50%; top: 300px; width: 560px; margin-left: -280px; padding: 30px 34px 26px; border-radius: 26px; z-index: 70; text-align: center;
+  background: rgba(46, 46, 58, .82); backdrop-filter: blur(40px) saturate(1.4); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+.alert .gauge { width: 76px; height: 38px; margin: 0 auto 16px; border: 4px solid #ff453a; border-radius: 10px; position: relative; }
+.alert .gauge::before { content: ""; position: absolute; left: 4px; top: 4px; bottom: 4px; width: 10px; border-radius: 3px; background: #ff453a; }
+.alert .gauge::after { content: ""; position: absolute; right: -11px; top: 9px; width: 6px; height: 12px; border-radius: 0 3px 3px 0; background: #ff453a; }
+.alert b { display: block; font-size: 25px; margin-bottom: 8px; } .alert span { display: block; font-size: 18px; opacity: .8; line-height: 1.4; }
+.alert .ok { display: inline-block; margin-top: 22px; padding: 8px 44px; border-radius: 999px; background: #2f6df6; font-size: 18px; font-weight: 600; }
+.timelapse { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); z-index: 90; text-align: center; padding: 34px 60px 30px; border-radius: 34px;
+  background: rgba(20, 22, 50, .55); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,.2); }
+.timelapse .time { font-size: 150px; font-weight: 700; letter-spacing: -4px; line-height: 1; font-variant-numeric: tabular-nums; }
+.timelapse .ff { font-size: 34px; letter-spacing: 6px; opacity: .6; margin: 6px 0 10px; }
+.timelapse .bat { display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 54px; font-weight: 650; }
+.timelapse .bat i { display: block; width: 150px; height: 56px; border-radius: 14px; background: rgba(255,255,255,.2); position: relative; overflow: hidden; }
+.timelapse .bat i::after { content: ""; position: absolute; inset: 5px; width: calc(var(--level) - 10px); max-width: calc(100% - 10px); border-radius: 9px; background: var(--col, #fff); }

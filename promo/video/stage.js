@@ -9,7 +9,10 @@ const TEXT = {
     tagline: ['Just rem', 'ai', 'n awake.'],
     // On-screen captions
     cap1a: 'Sleep cuts the run.',
-    cap1b: 'Or stays awake all night.',
+    cap1b: 'Work done. The Mac stays awake.',
+    cap1c: 'All night…',
+    cap1d: '…until the battery gives out.',
+    lowBattery: { title: 'Low Battery', body: '10% battery remaining. Plug in your Mac to keep working.', ok: 'OK' },
     cap2: 'Awake only while an agent works.',
     cap3: 'Whichever you use. Several at once.',
     cap4: 'Stopped halfway? It notices.',
@@ -79,7 +82,7 @@ function menubar({ app, icon, active, menu, battery = 82, clock = T.clock }) {
     <div class="right">${status}
       <span class="slot"><img src="assets/symbols/search.png"></span>
       <span class="slot"><img src="assets/symbols/wifi.png"></span>
-      <span class="battery" style="--level:${battery}%"><i></i><b></b></span>
+      <span class="battery ${battery <= 10 ? 'low' : ''}" style="--level:${battery}%"><i></i><b></b></span>
       <span class="slot"><img src="assets/symbols/controls.png"></span>
       <span class="clock">${clock}</span></div></div>`);
 }
@@ -181,6 +184,26 @@ const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: termin
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 
+// A MacBook seen from the front and above. The lid hinges over the keyboard: --beta is how far it is
+// from closed (0 = shut, 100+ = open).
+function laptop3d(beta) {
+  const rows = [
+    [1.3, ...Array(12).fill(1), 1.1, 'touch'],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.6],
+    [1.6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.4],
+    [1.9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.1],
+    [2.4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.6],
+    [1.1, 1.1, 1.1, 1.3, 5.2, 1.3, 1.1, 1.1, 1.1],
+  ];
+  const keys = rows.map((r, i) => `<div class="row ${i === 0 ? 'fn' : ''}">${r.map((w) => w === 'touch' ? '<span class="key touch"></span>' : `<span class="key" style="--w:${w}"></span>`).join('')}</div>`).join('');
+  return $(`<div class="laptop3d"><div class="floor"></div><div class="rig">
+    <div class="base"><div class="notch"></div><div class="grille l"></div><div class="grille r"></div><div class="well">${keys}</div><div class="pad"></div><div class="glow"></div></div>
+    <div class="hinge"></div>
+    <div class="lid" style="--beta:${beta}deg"><div class="outer"><span class="logo">&#xF8FF;</span></div>
+      <div class="screenface"><div class="inner"><div class="bar"></div><div class="win2"></div><div class="dock2"></div></div><div class="cam"></div><div class="glass"></div></div></div>
+  </div></div>`);
+}
+
 // ---------- Scenes (one key frame each) ----------
 
 const SCENES = {
@@ -194,13 +217,31 @@ const SCENES = {
     menubar: { app: 'terminal', icon: 'moon' }, dock: true, icons: true, shade: 0.5,
     layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state: 'working' }), $(`<div class="caption">${T.cap1a}</div>`)],
   }),
-  // 1b: pain, the other way: caffeinate keeps the Mac awake all night, long after the agent is done
+  // 1b: pain, the other way. The agent finishes, but caffeinate keeps the Mac awake
   '1b': () => ({
-    menubar: { app: 'terminal', icon: 'moon', battery: 31, clock: 'Wed Oct 15  3:07' }, dock: true, icons: true, shade: 0.12,
+    menubar: { app: 'terminal', icon: 'moon', battery: 78, clock: 'Tue Oct 14  11:52' }, dock: true, icons: true,
+    layers: [
+      terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', z: 10 }),
+      win({ kind: 'term', x: 760, y: 330, w: 760, h: 300, inactive: true, title: T.term.caffeinateTitle, body: caffeinateBody(), z: 12 }),
+      $(`<div class="caption">${T.cap1b}</div>`),
+    ],
+  }),
+  // 1c: fast-forward. The clock runs through the night and the battery drains
+  '1c': () => ({
+    menubar: { app: 'terminal', icon: 'moon', battery: 31, clock: 'Wed Oct 15  3:07' }, dock: true, icons: true, shade: 0.35,
     layers: [
       terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', inactive: true, z: 10 }),
-      win({ kind: 'term', x: 760, y: 330, w: 760, h: 300, title: T.term.caffeinateTitle, body: caffeinateBody(), z: 12 }),
-      $(`<div class="caption">${T.cap1b}</div>`),
+      $(`<div class="timelapse"><div class="time">3:07</div><div class="ff">▶▶</div><div class="bat"><i style="--level:31%"></i>31%</div></div>`),
+      $(`<div class="caption">${T.cap1c}</div>`),
+    ],
+  }),
+  // 1d: low battery warning in the early morning
+  '1d': () => ({
+    menubar: { app: 'terminal', icon: 'moon', battery: 10, clock: 'Wed Oct 15  5:41', lowBattery: true }, dock: true, icons: true, shade: 0.45,
+    layers: [
+      terminalWin({ x: 200, y: 110, w: 1000, h: 700, state: 'done', inactive: true, z: 10 }),
+      $(`<div class="alert"><div class="gauge"></div><b>${T.lowBattery.title}</b><span>${T.lowBattery.body}</span><div class="ok">${T.lowBattery.ok}</div></div>`),
+      $(`<div class="caption">${T.cap1d}</div>`),
     ],
   }),
   // 2: the solution. Zoom on the menu bar; the icon sparkles and the menu says an agent is working
@@ -238,8 +279,7 @@ const SCENES = {
   5: () => ({
     wallpaper: 'blur', shade: 0.5,
     layers: [
-      $(`<div class="laptop3d"><div class="rig"><div class="base"><div class="deck"></div><div class="pad"></div><div class="glow"></div></div>
-        <div class="lid" style="--beta:58deg"><div class="outer">&#xF8FF;</div><div class="screenface"><div class="inner"><i></i></div></div></div></div></div>`),
+      laptop3d(58),
       $(`<div class="caption" style="bottom:110px">${T.cap5}<div class="pills">${T.pills.map((p) => `<span>${p}</span>`).join('')}</div></div>`),
     ],
   }),

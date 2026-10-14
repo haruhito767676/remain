@@ -120,7 +120,6 @@
 "Done" = "完了";
 "remAIn has to be running to notice your agents." = "remAInが起動していないと、エージェントの作業を検知できません。";
 "About remAIn" = "remAInについて";
-"Keeps your Mac awake while AI agents work." = "AIエージェントが作業している間、Macを起こしておきます。";
 /* Uninstall */
 "Reset Settings…" = "設定をリセット…";
 "Reset all settings?" = "設定をリセットしますか?";

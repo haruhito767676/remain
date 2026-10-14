@@ -201,9 +201,13 @@ function laptop3d(beta) {
     const t = i / (n - 1), c = Math.round(from + (to - from) * t);
     return `<div class="${cls}" style="transform:translateZ(${cls === 'bslab' ? -(i + 1) : (i + 1)}px);background:rgb(${c},${c + 2},${c + 8})"></div>`;
   }).join('');
-  return $(`<div class="laptop3d" style="--leak:${beta < 10 ? 1 : 0};${beta > 80 ? 'transform:scale(.72);transform-origin:50% 62%;' : ''}"><div class="floor"></div><div class="rig">${slab('bslab', 16, 60, 24)}
+  // Everything follows from the lid angle: the screen light only leaks once the lid is nearly shut,
+  // and the whole machine is drawn a little smaller when it is wide open so it fits the frame.
+  const clamp = (v) => Math.max(0, Math.min(1, v));
+  const leak = clamp((14 - beta) / 14), scale = 1 - 0.28 * clamp((beta - 60) / 50);
+  return $(`<div class="laptop3d" style="--leak:${leak.toFixed(3)};transform:scale(${scale.toFixed(3)});transform-origin:50% 62%;"><div class="floor"></div><div class="rig">${slab('bslab', 16, 60, 24)}
     <div class="base"><div class="notch"></div><div class="grille l"></div><div class="grille r"></div><div class="well">${keys}</div><div class="pad"></div></div>
-    <div class="hinge" style="opacity:${beta >= 20 ? 1 : 0}"></div>
+    <div class="hinge" style="opacity:${clamp((beta - 12) / 16).toFixed(2)}"></div>
     <div class="lid" style="--beta:${beta}deg">${slab('lslab', 8, 48, 66)}<div class="outer"><span class="logo">&#xF8FF;</span></div>
       <div class="screenface"><div class="inner"><div class="bar"></div><div class="win2"></div><div class="dock2"></div></div><div class="cam"></div><div class="glass"></div></div></div>
     <div class="glow"></div>

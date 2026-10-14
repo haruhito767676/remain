@@ -115,20 +115,23 @@ function win({ kind, x, y, w, h, inactive, fading, title, body, z = 10 }) {
     <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><div class="title">${title}</div></div><div class="body">${body}</div></div>`);
 }
 
-function terminalBody(state) {
+// `shown` = how many log entries are visible (a fraction types the next line out); omit for all of them.
+function terminalBody(state, shown = 99) {
   const t = T.term;
-  const lines = [];
-  lines.push(`<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`);
-  lines.push(`<span class="askline">&gt; ${t.ask}</span>\n`);
-  lines.push(`<span class="orange">●</span> ${t.steps[0]}`);
-  lines.push(`<span class="orange">●</span> ${t.steps[1]}`);
-  lines.push(`<span class="orange">●</span> ${t.steps[2]}`);
-  lines.push(`  <span class="ok">✓</span> ${t.result.split(' · ')[0]}   <span class="bad">✗</span> ${t.result.split(' · ')[1]}`);
-  lines.push(`<span class="orange">●</span> ${t.fixing}`);
-  if (state === 'interrupted') lines.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
-  else if (state === 'done') lines.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
-  else lines.push(`\n<span class="orange">✻</span> <span class="dim">${state === 'short' ? t.workingShort : t.working}</span>`);
-  return `<div class="log">${lines.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
+  const entries = [
+    `<div class="box"><span class="tag">${t.header}</span><span class="dim">${t.path}</span></div>`,
+    `<span class="askline">&gt; ${t.ask}</span>\n`,
+    `<span class="orange">●</span> ${t.steps[0]}`,
+    `<span class="orange">●</span> ${t.steps[1]}`,
+    `<span class="orange">●</span> ${t.steps[2]}`,
+    `  <span class="ok">✓</span> ${t.result.split(' · ')[0]}   <span class="bad">✗</span> ${t.result.split(' · ')[1]}`,
+    `<span class="orange">●</span> ${t.fixing}`,
+  ];
+  if (state === 'interrupted') entries.push(`  <span class="dim">⎿  ${t.interrupted}</span>`);
+  else if (state === 'done') entries.push(`<span class="ok">✓</span> <span class="dim">${t.done}</span>`);
+  else entries.push(`\n<span class="orange">✻</span> <span class="dim">${state === 'short' ? t.workingShort : t.working}</span>`);
+  const visible = entries.slice(0, Math.ceil(shown)).map((e, i) => (i === Math.ceil(shown) - 1 && shown % 1 !== 0 ? `<span style="opacity:${(shown % 1).toFixed(2)}">${e}</span>` : e));
+  return `<div class="log">${visible.join('\n')}</div><div class="inputbox"><div class="rule"></div><span class="prompt">&gt; </span><span class="cursor">▌</span><div class="rule"></div><span class="dim">${t.footer}</span></div>`;
 }
 
 function caffeinateBody() {
@@ -181,13 +184,13 @@ function chatBody(running = true) {
       <div class="composer">${c.composer}</div></div>`;
 }
 
-const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state), ...o });
+const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown), ...o });
 const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 
 // A MacBook seen from the front and above. The lid hinges over the keyboard: --beta is how far it is
 // from closed (0 = shut, 100+ = open).
-function laptop3d(beta) {
+function laptop3d(beta, { leakMul = 1, screen = 1 } = {}) {
   const rows = [
     [1.3, ...Array(12).fill(1), 1.1, 'touch'],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.6],
@@ -204,12 +207,12 @@ function laptop3d(beta) {
   // Everything follows from the lid angle: the screen light only leaks once the lid is nearly shut,
   // and the whole machine is drawn a little smaller when it is wide open so it fits the frame.
   const clamp = (v) => Math.max(0, Math.min(1, v));
-  const leak = clamp((14 - beta) / 14), scale = 1 - 0.28 * clamp((beta - 60) / 50);
+  const leak = clamp((14 - beta) / 14) * leakMul, scale = 1 - 0.28 * clamp((beta - 60) / 50);
   return $(`<div class="laptop3d" style="--leak:${leak.toFixed(3)};transform:scale(${scale.toFixed(3)});transform-origin:50% 62%;"><div class="floor"></div><div class="rig">${slab('bslab', 16, 60, 24)}
     <div class="base"><div class="notch"></div><div class="grille l"></div><div class="grille r"></div><div class="well">${keys}</div><div class="pad"></div></div>
     <div class="hinge" style="opacity:${clamp((beta - 12) / 16).toFixed(2)}"></div>
     <div class="lid" style="--beta:${beta}deg">${slab('lslab', 8, 48, 66)}<div class="outer"><span class="logo">&#xF8FF;</span></div>
-      <div class="screenface"><div class="inner"><div class="bar"></div><div class="win2"></div><div class="dock2"></div></div><div class="cam"></div><div class="glass"></div></div></div>
+      <div class="screenface" style="--on:${screen}"><div class="inner" style="opacity:${screen}"><div class="bar"></div><div class="win2"></div><div class="dock2"></div></div><div class="cam"></div><div class="glass"></div></div></div>
     <div class="glow"></div>
   </div></div>`);
 }
@@ -339,4 +342,5 @@ function render(id) {
   document.body.dataset.ready = '1';
 }
 
-render(params.get('scene') || '1');
+Object.assign(window, { $, T, menubar, menuHtml, dock, desktopIcons, win, terminalWin, ideWin, chatWin, laptop3d, caffeinateBody });
+if (params.get('mode') !== 'video') render(params.get('scene') || '1');

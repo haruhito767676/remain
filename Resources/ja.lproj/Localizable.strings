@@ -64,7 +64,7 @@
 "General" = "一般";
 "Activity" = "アクティビティ";
 "Today" = "今日";
-"Today: %@" = "今日: %@";
+"Kept awake for %@ today" = "今日は%@、スリープを防ぎました";
 "Last 7 days" = "過去7日間";
 "Last 30 days" = "過去30日間";
 "Last 14 days" = "過去14日間";

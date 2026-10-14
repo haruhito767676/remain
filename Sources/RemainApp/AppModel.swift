@@ -126,12 +126,12 @@ final class AppModel {
         return Date()
     }
 
-    /// "Today: 2h 14m", or nil while there is nothing worth showing.
+    /// "Kept awake for 2h 14m today", or nil while there is nothing worth showing.
     var todaySummary: String? {
         let intervals = ActivitySummary.all(activity.intervals, open: activity.open, now: now)
         let seconds = ActivitySummary.daily(intervals, now: now, days: 1).first?.total ?? 0
         guard seconds >= 60 else { return nil }
-        return String(localized: "Today: \(ActivityView.format(seconds))")
+        return String(localized: "Kept awake for \(ActivityView.format(seconds)) today")
     }
 
     /// Shown while the Mac would keep running with its lid closed.

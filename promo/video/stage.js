@@ -195,7 +195,7 @@ function caffeinateBody() {
   return `<div class="log"><span class="prompt">$ ${T.term.caffeinate}</span>\n<span class="dim">▌</span></div>`;
 }
 
-function ideBody(done = false) {
+function ideBody(done = false, doneSteps = 2) {
   const c = T.ide;
   const code = [
     ['<span class="k">import</span> { Router } <span class="k">from</span> <span class="s">"express"</span>;'],
@@ -223,7 +223,7 @@ function ideBody(done = false) {
     ['<span class="c">// Called from the router</span>'],
     ['<span class="k">export default</span> <span class="f">rateLimit</span>;'],
   ].map((l, i) => `<div><span class="n">${i + 1}</span>${l[0]}</div>`).join('');
-  const steps = c.steps.map((s, i) => `<div class="step ${done || i < 2 ? 'done' : ''}"><i></i><span>${s}</span></div>`).join('') + (done ? `<p style="margin-top:14px">${c.done}</p>` : '');
+  const steps = c.steps.map((s, i) => `<div class="step ${done || i < doneSteps ? 'done' : ''}"><i></i><span>${s}</span></div>`).join('') + (done ? `<p style="margin-top:14px">${c.done}</p>` : '');
   return `<div class="activity"><i></i><i></i><i></i><i></i></div>
     <div class="editor"><div class="tabs"><span>${c.tab}</span></div><div class="code">${code}</div></div>
     <div class="agent"><h4>${c.agent}</h4>${steps}<div class="input">${c.input}</div></div>
@@ -242,7 +242,7 @@ function chatBody(running = true) {
 }
 
 const terminalWin = (o) => win({ kind: 'term', title: T.term.title, body: terminalBody(o.state, o.shown, o.tick), ...o });
-const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done), ...o });
+const ideWin = (o) => win({ kind: 'ide', title: T.ide.tab + ' — web-app', body: ideBody(o.done, o.steps), ...o });
 const chatWin = (o) => win({ kind: 'chat', title: '', body: chatBody(o.running !== false), ...o });
 
 // A MacBook seen from the front and above. The lid hinges over the keyboard: --beta is how far it is

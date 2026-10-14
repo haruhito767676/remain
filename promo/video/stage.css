@@ -238,3 +238,6 @@ body { font-family: -apple-system, "SF Pro Text", system-ui, sans-serif; -webkit
 .notif .gauge-s::after { content: ""; position: absolute; left: 11px; top: 18px; width: 5px; height: 6px; border-radius: 1.5px; background: #ff453a; }
 
 .term .log { position: absolute; left: 22px; right: 22px; top: 18px; bottom: 120px; overflow: hidden; }
+
+.keycap { position: absolute; left: 50%; bottom: 190px; transform: translateX(-50%); z-index: 90; padding: 10px 34px; font-size: 34px; font-weight: 600; border-radius: 14px;
+  color: #fff; background: linear-gradient(#4a4b52, #34353b); border: 1px solid rgba(255,255,255,.2); box-shadow: 0 4px 0 #1d1e22, 0 14px 30px rgba(0,0,0,.5); }

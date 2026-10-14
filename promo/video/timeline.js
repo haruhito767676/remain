@@ -98,6 +98,52 @@ function scene2(t) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Scene 3: three agents at once, two finish and go away, the last one is stopped with Esc
+// ---------------------------------------------------------------------------------------------
+function scene3(t) {
+  const pop = (el, p) => { el.style.opacity = p.toFixed(3); el.style.transform = `scale(${lerp(0.94, 1, p).toFixed(3)})`; return el; };
+  const ideIn = easeOut(prog(t, 0.5, 1.2)), chatIn = easeOut(prog(t, 1.8, 2.5)), termIn = easeOut(prog(t, 3.1, 3.8));
+  const ideOut = ease(prog(t, 11.0, 11.7)), chatOut = ease(prog(t, 12.6, 13.3));
+  const ideDone = t >= 10.4, chatDone = t >= 11.8;
+  const interrupted = t >= 17.3;
+  const alive = (inn, out) => inn > 0 && out < 1;
+  const layers = [];
+  if (alive(ideIn, ideOut)) layers.push(pop(ideWin({ x: 70, y: 84, w: 1130, h: 680, inactive: true, done: ideDone, steps: Math.min(3, 1 + Math.floor(Math.max(0, t - 0.5) / 2.6)), z: 10 }), ideIn * (1 - ideOut)));
+  if (alive(chatIn, chatOut)) layers.push(pop(chatWin({ x: 520, y: 130, w: 1050, h: 620, inactive: true, running: !chatDone, z: 11 }), chatIn * (1 - chatOut)));
+  // The terminal lives on: it glides to the middle and grows once the other two are gone.
+  const g = ease(prog(t, 13.2, 14.5));
+  const geo = { x: lerp(1000, 300, g), y: lerp(260, 130, g), w: lerp(860, 1100, g), h: lerp(560, 700, g) };
+  const shown = interrupted ? 999 : t < 3.1 ? 0 : Math.min(13, 1 + (t - 3.1) * 0.62);
+  if (termIn > 0) layers.push(pop(terminalWin({ ...geo, state: interrupted ? 'interrupted' : 'short', shown, tick: Math.max(0, t - 3.1), z: 12 }), termIn));
+
+  const app = t < 1.8 ? 'ide' : t < 3.1 ? 'chat' : 'terminal';
+  const icon = interrupted && t >= 18.8 ? 'moon' : 'sparkles';
+  // Two looks at the menu: three agents at work, then the one that is left, and finally "Sleeps as usual".
+  const m1 = t >= 6.8 && t < 9.6, m2 = t >= 15.2 && t < 16.4, m3 = t >= 19.6 && t < 22.0;
+  const menuOpen = m1 || m2 || m3;
+  const status = m1 ? 'many' : m2 ? 'one' : 'idle';
+  const pushA = ease(prog(t, 6.0, 7.0)) * (1 - ease(prog(t, 9.6, 10.6)));
+  const pushB = ease(prog(t, 14.6, 15.2)) * (1 - ease(prog(t, 16.4, 16.9)));
+  const pushC = ease(prog(t, 18.6, 19.6)) * (1 - ease(prog(t, 22.0, 23.0)));
+  const push = Math.max(pushA, pushB, pushC);
+  const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
+  const c3 = easeOut(prog(t, 3.8, 4.5)) * (1 - ease(prog(t, 5.4, 5.9)));
+  const c4 = easeOut(prog(t, 17.8, 18.5)) * (1 - ease(prog(t, 22.8, 23.4)));
+  const esc = easeOut(prog(t, 16.6, 16.9)) * (1 - ease(prog(t, 17.8, 18.2)));
+  return {
+    icons: true, dock: true, cam,
+    menubar: { app, icon, active: menuOpen, menu: menuOpen ? { status } : null },
+    layers,
+    overlays: [
+      text(T.cap3, 'caption', `opacity:${c3.toFixed(3)}`),
+      text(T.cap4, 'caption', `opacity:${c4.toFixed(3)}`),
+      $(`<div class="keycap" style="opacity:${esc.toFixed(3)};transform:translateX(-50%) translateY(${((1 - esc) * 20 + (t >= 17.1 ? 5 : 0)).toFixed(1)}px)">esc</div>`),
+    ],
+    black: ease(prog(t, 23.2, 24.2)) * 0.97,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Scene 5: the lid closes and the Mac keeps going; then why it stops by itself
 // ---------------------------------------------------------------------------------------------
 function scene5(t) {
@@ -119,8 +165,8 @@ function scene5(t) {
   };
 }
 
-const SCENE_FNS = { '0': scene0, '2': scene2, '5': scene5 };
-const DURATIONS = { '0': 6.5, '2': 18.0, '5': 12.6 };
+const SCENE_FNS = { '0': scene0, '2': scene2, '3': scene3, '5': scene5 };
+const DURATIONS = { '0': 6.5, '2': 18.0, '3': 24.2, '5': 12.6 };
 
 async function seek(id, t) {
   await ensureWallpaper();

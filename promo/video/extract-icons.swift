@@ -25,7 +25,7 @@ func writePNG(_ image: NSImage, size: Int, to url: URL) {
 // App icons: name -> candidate paths (the first that exists wins).
 let apps: [(String, [String])] = [
     ("finder", ["/System/Library/CoreServices/Finder.app"]),
-    ("safari", ["/Applications/Safari.app", "/System/Cryptexes/App/System/Applications/Safari.app"]),
+    ("safari", ["/System/Cryptexes/App/System/Applications/Safari.app", "/Applications/Safari.app"]),
     ("mail", ["/System/Applications/Mail.app"]),
     ("notes", ["/System/Applications/Notes.app"]),
     ("calendar", ["/System/Applications/Calendar.app"]),

@@ -125,7 +125,7 @@ AgentSession { id, phase(working|waiting), startedAt, lastSeen, cwd,
 | `remain run` | 実行中のコマンド自身の PID を監視する |
 
 - **生存確認**: セッションがある間だけ、3 秒ごとに `checkLiveness()` が走る。PID の生存（`kill(pid, 0)`）と、transcript の追記部分のスキャンを行う。`scanOffset` は、最後に調べた完全な行の直後を指す。
-- **PID の再利用対策**: Claude Code と Codex、Antigravity は、PID が生きているだけでなく、その実行ファイル名がそのエージェントのものと一致することも確認する（`remain run` は対象外）。調べられない場合は生きているとみなす。
+- **PID の再利用対策**: Antigravity、Claude Code、Codex は、PID が生きているだけでなく、その実行ファイル名がそのエージェントのものと一致することも確認する（`remain run` は対象外）。調べられない場合は生きているとみなす。
 - 新しい会話では最初のプロンプト時点で transcript がまだない。この場合は先頭（オフセット 0）から調べる。
 - 利用者の中断（Esc など）は「利用者がそこにいる」とみなし、通知も完了アクションも出さない。
 - 予告のない停止（プロセスの消失、安全網による取り外し）は、作業中だったセッションに限り `sessionStopped` を通知する（`minimumNotifiableDuration` 以上、完了通知のスイッチに従う）。完了アクションは出さない。

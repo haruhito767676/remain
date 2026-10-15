@@ -149,9 +149,11 @@ G = K.s3;
 const s3 = start['3'];
 [[0.5, 74], [1.8, 81], [3.1, 78]].forEach(([r, m]) => pluck(at('3', r), m, 0.08));  // each window opens
 chord(at('3', 5.6), 5.0, [57, 61, 64, 69], 0.12, { attack: 1.4, release: 2 });
-for (let k = 0; at('3', k * CH) < at('3', 19.4); k++) {
-  const c = prog2[(k + 1) % 4], t = at('3', k * CH);
-  if (t > at('3', 0.2)) { chord(t, CH + 0.6, c, 0.17, { attack: 1.6, release: 1.6 }); pad(t, CH + 0.6, c[0] - 12, 0.12, { attack: 1.6, release: 1.6 }); }
+// one chord grid for scenes 2 and 3, so the chords never overlap each other
+for (let k = Math.ceil((at('3', 0.4) - core2) / CH); core2 + k * CH < at('3', 19.4); k++) {
+  const c = prog2[k % 4], t = core2 + k * CH;
+  const len = Math.min(CH + 0.6, at('3', 20.0) - t + 0.2);                        // the last chord lets go when the agent drops
+  chord(t, len, c, 0.17, { attack: 1.6, release: 1.2 }); pad(t, len, c[0] - 12, 0.12, { attack: 1.6, release: 1.2 });
   const up = c.map((m) => m + 12);
   const gk = G; G = gk * K.arp / (K.s3 || 1);
   for (let j = 0; j < 12; j++) pluck(t + 0.3 + j * 0.5, up[(j * 2) % up.length] + (j % 4 === 3 ? 12 : 0), 0.05, { pan: Math.sin(j * 1.7) * 0.5 });
@@ -233,24 +235,24 @@ if (style === 'pulse') {
   for (let t = nightA; t < red; t += beat * 2) { kick(t, 0.12 + 0.1 * (t - nightA) / (red - nightA)); noiseBurst(t + beat, 0.05, 0.04, 0.5); }
   for (let t = red; t < OFF; t += beat) { kick(t, 0.24); noiseBurst(t + beat / 2, 0.05, 0.06, 0.5); }
   // remAIn arrives: the beat begins when the agent is launched
-  const groove = (t0, t1, full) => {
+  // One groove for the whole stretch (it grows into the full pattern when the three agents are working), on the same grid as the chords.
+  const groove = (t0, t1, fullFrom, pedal) => {
     for (let k = 0; t0 + k * 8 * beat < t1; k++) {
-      const r = roots[k % 4], t = t0 + k * 8 * beat, tri = [r + 12, r + 16 - (k % 4 === 2 ? 1 : 0), r + 19];
-      bassNote(t, r - 12, 0.1, 0.9); bassNote(t + 3 * beat, r - 12, 0.08, 0.5); bassNote(t + 6 * beat, r - 5, 0.07, 0.4);
+      const r = pedal ? 50 : roots[k % 4], t = t0 + k * 8 * beat, tri = [r + 12, r + 16 - (!pedal && k % 4 === 2 ? 1 : 0), r + 19];
+      bassNote(t, r - 12, 0.1, 0.9); bassNote(t + 3 * beat, r - 12, 0.07, 0.5); bassNote(t + 6 * beat, r - 5, 0.06, 0.4);
       for (let b = 0; b < 8; b++) {
-        const tb = t + b * beat;
+        const tb = t + b * beat, full = tb >= fullFrom;
         if (tb >= t1) break;
-        kick(tb, 0.17);
-        noiseBurst(tb + beat / 2, 0.06, 0.05 * (full ? 1.3 : 1), 0.5, 0.2);
-        if (full && b % 2 === 1) noiseBurst(tb, 0.12, 0.06, 0.12, -0.2);                    // a soft clap on 2 and 4
-        for (let j = 0; j < 4; j++) pluck(tb + j * beat / 4, tri[(b * 4 + j) % 3] + 12 * (j === 3 ? 1 : 0), full ? 0.045 : 0.035, { decay: 0.25, pan: Math.sin(b + j) * 0.4 });
+        kick(tb, 0.16);
+        noiseBurst(tb + beat / 2, 0.06, full ? 0.06 : 0.045, 0.5, 0.2);
+        if (full && b % 2 === 1) noiseBurst(tb, 0.12, 0.05, 0.12, -0.2);                    // a soft clap on 2 and 4
+        for (let j = 0; j < 4; j++) pluck(tb + j * beat / 4, tri[(b * 4 + j) % 3] + 12 * (j === 3 ? 1 : 0), full ? 0.038 : 0.03, { decay: 0.25, pan: Math.sin(b + j) * 0.4 });
       }
     }
   };
   arp(at('2', 4.9), [74, 78, 81, 86, 90], 0.14, 0.05);
-  groove(core2, at('3', 20.0), false);
-  groove(at('3', 4.0), at('3', 20.0), true);                                                  // the full groove once three agents are working
-  groove(at('3', 25.6), at('5', 0.8), true);                                                  // back to it when everything is calm again
+  groove(core2, at('3', 20.0), at('3', 4.0), false);                                          // the full pattern once three agents are working
+  groove(at('3', 25.6), at('5', 0.8), at('3', 25.6), true);                                    // back to it when everything is calm again (on a D pedal)
   for (let t = at('5', 0.8); t < at('5', 10.4); t += 2 * beat) kick(t, 0.09 * (1 - (t - at('5', 0.8)) / 9.6));   // the beat slows to a heartbeat under the lid
 }
 

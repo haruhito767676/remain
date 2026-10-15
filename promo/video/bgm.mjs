@@ -1,6 +1,6 @@
 // Synthesises the intro video's background music: no samples, no libraries, just sines, a little FM and a reverb.
 //
-//   node promo/video/bgm.mjs [style]    -> promo/video/out/bgm[-style].wav and remain-intro-en-bgm[-style].mp4 (video + music)
+//   node promo/video/bgm.mjs [style] [lang]   -> promo/video/out/bgm[-style].wav and remain-intro-<lang>-bgm[-style].mp4 (video + music)
 //   styles: ambient (default), lullaby, pulse, sound
 //
 // The music follows the story: a calm opening, an uneasy stretch while the Mac misbehaves, silence when the power
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const SR = 44100;
 const style = process.argv[2] || 'ambient';
+const lang = process.argv[3] || 'en';
 let G = 1;                                                    // gain applied to everything added below (used to mix layers)
 
 // Scene lengths come from the timeline so the music follows any re-timing.
@@ -323,9 +324,9 @@ const header = Buffer.alloc(44);
 header.write('RIFF', 0); header.writeUInt32LE(36 + data.length, 4); header.write('WAVEfmt ', 8); header.writeUInt32LE(16, 16);
 header.writeUInt16LE(1, 20); header.writeUInt16LE(2, 22); header.writeUInt32LE(SR, 24); header.writeUInt32LE(SR * 4, 28);
 header.writeUInt16LE(4, 32); header.writeUInt16LE(16, 34); header.write('data', 36); header.writeUInt32LE(data.length, 40);
-const suffix = style === 'ambient' ? '' : `-${style}`;
+const suffix = `${style === 'ambient' ? '' : `-${style}`}`;
 const wav = resolve(here, `out/bgm${suffix}.wav`);
 writeFileSync(wav, Buffer.concat([header, data]));
 console.log(`bgm${suffix}.wav: ${total.toFixed(1)} s`);
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', resolve(here, 'out/remain-intro-en.mp4'), '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', resolve(here, `out/remain-intro-en-bgm${suffix}.mp4`)]);
-console.log(`remain-intro-en-bgm${suffix}.mp4 written`);
+execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', resolve(here, `out/remain-intro-${lang}.mp4`), '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', resolve(here, `out/remain-intro-${lang}-bgm${suffix}.mp4`)]);
+console.log(`remain-intro-${lang}-bgm${suffix}.mp4 written`);

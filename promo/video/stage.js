@@ -28,7 +28,9 @@ const TEXT = {
     finale: 'Now, remain asleep.',
     download: 'Download remAIn · macOS 14+ · MIT',
     // The desktop
+    dates: ['Tue Oct 14', 'Wed Oct 15'],
     clock: 'Tue Oct 14  11:38',
+    finderRemain: 15,
     menus: {
       finder: ['Finder', 'File', 'Edit', 'View', 'Go', 'Window', 'Help'],
       terminal: ['Terminal', 'Shell', 'Edit', 'View', 'Window', 'Help'],
@@ -154,6 +156,58 @@ const TEXT = {
     },
   },
 };
+
+
+// Japanese: the screens are Japanese too (menus, Finder, windows), except the pun and the tool log lines, which stay English
+// (the tagline and finale play on "remain", and the real tools print their tool lines in English).
+TEXT.ja = (() => {
+  const en = TEXT.en, t = JSON.parse(JSON.stringify(en));
+  Object.assign(t, {
+    cap1a: 'スリープすると、作業が止まる。',
+    cap1b: '作業は終わったのに、Macは起きたまま。',
+    cap1c: '一晩中…',
+    cap1d: '…バッテリーが尽きるまで。',
+    cap2a: 'そこで、remAIn。',
+    cap2b: 'メニューバーに、静かに佇む。',
+    cap2c: '作業中だけ、起きている。',
+    cap2d: '終われば、いつもどおり。',
+    cap3: 'どのエージェントも、同時に。',
+    cap4: '途中で止まっても、ちゃんと気づく。',
+    cap5: '蓋を閉じても、止まらない。',
+    cap5b: 'こんなときは、自動で止まる。',
+    pills: ['熱くなりすぎたとき', 'バッテリーが少ないとき', '設定した時間が過ぎたとき'],
+    download: 'remAInをダウンロード · macOS 14以降 · MIT',
+    dates: ['10月14日(火)', '10月15日(水)'],
+    clock: '10月14日(火)  11:38',
+    finder: { title: 'アプリケーション', side: ['最近の項目', 'アプリケーション', 'デスクトップ', '書類', 'ダウンロード'],
+      apps: [['antigravity', 'Antigravity IDE'], ['appstore', 'App Store'], ['chatgpt', 'ChatGPT'], ['facetime', 'FaceTime'], ['chrome', 'Google Chrome'], ['remain', 'remAIn'], ['safari', 'Safari'], ['vscode', 'Visual Studio Code'],
+        ['calendar', 'カレンダー'], ['calculator', '計算機'], ['photos', '写真'], ['settings', 'システム設定'], ['terminal', 'ターミナル'], ['preview', 'プレビュー'], ['maps', 'マップ'], ['music', 'ミュージック'], ['mail', 'メール'], ['messages', 'メッセージ'], ['notes', 'メモ'], ['contacts', '連絡先']] },
+    finderRemain: 5,
+    menus: {
+      finder: ['Finder', 'ファイル', '編集', '表示', '移動', 'ウインドウ', 'ヘルプ'],
+      terminal: ['ターミナル', 'シェル', '編集', '表示', 'ウインドウ', 'ヘルプ'],
+      ide: ['Antigravity IDE', 'ファイル', '編集', '選択', '表示', '移動', '実行', 'ターミナル', 'ウインドウ', 'ヘルプ'],
+      chat: ['ChatGPT', 'ファイル', '編集', '表示', 'ウインドウ', 'ヘルプ'],
+    },
+    menuStatus: { idle: '通常どおりスリープします', one: 'エージェントが作業中', many: '3件のエージェントが作業中' },
+    menuItems: ['スリープを防ぐ', '蓋を閉じても動作を続ける', '設定…', 'remAInについて', 'remAInを終了'],
+    notif: { title: 'エージェントの作業が完了しました', body: 'web-app · 所要時間 14分32秒' },
+    notifStop: { title: 'エージェントが予期せず止まりました', body: 'web-app · スリープ防止を終了しました。' },
+  });
+  t.term.ask = 'APIにレート制限を入れて、テストを通して';
+  t.term.logLate = [...en.term.logLate.slice(0, -6), '', '完了。クライアントごとのレート制限を追加しました:', '  · 1分あたり60リクエストまで(設定は src/config/limits.ts)', '  · 上限を超えると、API は Retry-After ヘッダー付きで 429 を返します', '  · 新しいテスト8件を追加し、全テストが通ります', ''];
+  t.term.jobs.sleep.ask = 'データベースをMySQLからPostgres 16に移行して';
+  t.term.jobs.night.ask = '公開APIのリファレンスを書いて';
+  t.term.jobs.night.logLate = [...en.term.jobs.night.logLate.slice(0, -6), '', '完了。公開APIのドキュメントを書きました:', '  · ユーザー、注文、Webhook にまたがる14のエンドポイント', '  · すべてのページにリクエストとレスポンスの例を付けました', '  · ドキュメントのビルドは、壊れたリンクなしで通ります', ''];
+  t.ide = { tab: 'rateLimit.ts', agent: 'エージェント', done: '完了。4ファイルを変更しました。', steps: ['middleware.ts を読む', 'クライアントごとにトークンバケットを追加', 'ルーターにつなぐ', 'テストを実行'],
+    sub: [['src/api/middleware.ts · 84行'], ['編集 src/api/rateLimit.ts  +42 −3', '作成 src/api/bucket.ts  +28'], ['編集 src/api/router.ts  +6 −1'], ['$ npm test', '48件成功 · 0件失敗']], input: 'なんでも聞いてください…', status: 'Main · 問題 0 · TypeScript' };
+  t.chat = { side: ['新しいチャット', 'プロジェクト', '最近', 'ログインの不安定なテストを直す', 'レート制限を追加', 'APIドキュメントを書く'],
+    history: ['ログインの不安定なテストを直す', 'レート制限を追加', 'APIドキュメントを書く', 'Postgres 16へ移行', 'CIのビルドを速くする', '認証モジュールを整理', 'ダークモードを追加', '依存関係を更新', 'このスタックトレースを説明', 'リリースノートの下書き', 'アップロードのタイムアウトを調査', '使っていないCSSを削除'],
+    done: '完了。すべてのテストが通りました。', title: 'Codex', user: 'APIにレート制限を入れて、テストを通して',
+    lead: 'クライアントごとにトークンバケットを追加し、ルーターにつなぎました。変更点:', bullets: ['src/api/rateLimit.ts', 'src/api/router.ts', 'tests/rateLimit.test.ts'],
+    block: 'npm install\nnpm test', running: 'テストを実行中…', composer: 'Codexで作業' };
+  return t;
+})();
 
 const $ = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
 const params = new URLSearchParams(location.search);

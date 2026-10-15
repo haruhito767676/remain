@@ -108,7 +108,7 @@ function scene1Core(t) {
   if (partA) clockMin = t < 8.4 ? 10 * 60 + 12 : 10 * 60 + 49;
   else clockMin = 14 * 60 + 5 + Math.round(14 * prog(t, 18.0, finishAt)) + Math.round(768 * night) + Math.round(185 * dawn);
   const day = Math.floor(clockMin / 1440), hh = Math.floor((clockMin % 1440) / 60), mm = clockMin % 60;
-  const clock = `${day ? 'Wed Oct 15' : 'Tue Oct 14'}  ${hh}:${String(mm).padStart(2, '0')}`;
+  const clock = `${T.dates[day ? 1 : 0]}  ${hh}:${String(mm).padStart(2, '0')}`;
   const off = t >= 40.4;
   const battery = Math.max(0, Math.round(lerp(lerp(78, 31, night), 0, dawn)));
 
@@ -171,7 +171,7 @@ function scene2Core(t) {
   return {
     icons: true, dock: true, running: ['terminal'], cam,
     // The agent has been at it for 14 minutes: while the camera is on the menu bar, the clock runs ahead.
-    menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, clock: `Tue Oct 14  11:${String(38 + Math.round(14 * ease(prog(t, 8.6, 11.0)))).padStart(2, '0')}`, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
+    menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, clock: `${T.dates[0]}  11:${String(38 + Math.round(14 * ease(prog(t, 8.6, 11.0)))).padStart(2, '0')}`, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
     layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, tick: t, inactive: false })],
     notifs: nVis > 0.01 ? [notif] : [],
     black: ease(prog(t, 16.8, 18.0)) * 0.97,
@@ -196,7 +196,7 @@ function scene2(t) {
   if (fv > 0.001) layers.push(popWin(finderWin({ x: 300, y: 90, w: 1320, h: 700, selected: picked ? 'remAIn' : '', hop: hopY, z: 10 }), fv));
   // The pointer glides to the remAIn icon, clicks (3.2) and double-clicks (3.7).
   const pp = ease(prog(t, 1.8, 3.1));
-  const px = lerp(1400, 640, pp), py = lerp(300, 662, pp);
+  const ri = T.finderRemain, px = lerp(1400, 636 + 200 * (ri % 5), pp), py = lerp(300, 212 + 150 * Math.floor(ri / 5), pp);
   if (fv > 0.02) layers.push($(`<svg class="pointer" viewBox="0 0 26 26" style="left:${px.toFixed(1)}px;top:${py.toFixed(1)}px;opacity:${fv.toFixed(2)}"><path d="M4 2 L4 21 L9 16.5 L12.5 24 L16 22.5 L12.6 15 L19.5 15 Z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg>`));
   const born = t >= 4.9;
   const ring = easeOut(prog(t, 5.5, 5.9)) * (1 - ease(prog(t, 8.2, 8.7)));

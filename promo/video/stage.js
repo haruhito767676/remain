@@ -211,12 +211,13 @@ TEXT.ja = (() => {
 
 const $ = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; };
 const params = new URLSearchParams(location.search);
+const NC = params.get('nocap') === '1';          // text-free mode for the README loops: no captions, no menus or notifications, a clock without the date
 const lang = params.get('lang') || 'en';
 const T = TEXT[lang] || TEXT.en;
 
 // ---------- Building blocks ----------
 
-function menubar({ app, icon, active, menu, battery = 82, lowBattery = false, clock = T.clock, pulse = 0 }) {
+function menubar({ app, icon, active, menu, battery = 82, lowBattery = false, clock = NC ? '11:38' : T.clock, pulse = 0 }) {
   const names = T.menus[app];
   const left = names.map((n, i) => `<span class="${i === 0 ? 'appname' : ''}">${n}</span>`).join('');
   const status = icon ? `<span class="slot status ${active ? 'active' : ''}" id="status"><img src="assets/symbols/${icon}.png">${pulse > 0 ? `<b class="pulse" style="opacity:${pulse.toFixed(3)}"></b>` : ''}${menu ? menuHtml(menu) : ''}</span>` : '';

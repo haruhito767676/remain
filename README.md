@@ -20,15 +20,22 @@ When they stop, it sleeps as usual: no more runs cut off by sleep, and no Mac le
 <br>
 
 <p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/media/shot-menu-submenu-dark-en.webp">
-  <img src="docs/media/shot-menu-submenu-light-en.webp" width="494" alt="The remAIn menu: a status line, the Keep Awake submenu with 30 minutes, 1 hour, 2 hours, 4 hours and indefinitely, and a switch to keep running with the lid closed">
-</picture>
+<img src="docs/media/loop-hero.webp" width="720" alt="The menu bar icon sparkles while an agent works, the clock moves on, and the icon turns back into a moon when the work is done">
 </p>
 
-<!-- Demo video goes here once it exists. -->
+<!-- INTRO-VIDEO: paste the uploaded video's github.com/user-attachments URL on its own line here -->
 
 ---
+
+## Why remAIn
+
+An AI agent can work for minutes or hours on its own. Your Mac doesn't know that.
+
+- **Sleep cuts the run.** Let the Mac sleep, and a long task stops halfway.
+- **`caffeinate` doesn't know when to stop.** Wrapping a command keeps the Mac awake, but only as long as you start and end it by hand. Forget it, and the Mac stays awake all night and runs the battery down.
+- **Not every agent is a command.** IDEs, desktop apps and background runs can't be wrapped in one.
+
+remAIn follows the agent itself: awake while it works, and back to sleeping as usual the moment it is done, stopped halfway or gone.
 
 ## What remAIn does
 
@@ -55,13 +62,29 @@ When they stop, it sleeps as usual: no more runs cut off by sleep, and no Mac le
 
 Each agent reports when it starts, works, waits for you and finishes, and remAIn holds the Mac awake for exactly that long. Several agents at once are fine. If you stop one halfway, remAIn notices, so an interrupted agent never keeps your Mac awake.
 
+<p align="center">
+<img src="docs/media/loop-agents.webp" width="640" alt="Three agents (an IDE, the ChatGPT app and a terminal) work at once; two finish and their windows go away while the last keeps working">
+</p>
+
 ### Keep awake by hand
 
 For anything remAIn can't see, turn it on from the menu for 30 minutes, 1, 2 or 4 hours, or without a limit. The time left is shown in the menu, and clicking it ends the hold. From a terminal, `remain run -- <command>` keeps the Mac awake for as long as a command runs.
 
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/media/shot-menu-submenu-dark-en.webp">
+  <img src="docs/media/shot-menu-submenu-light-en.webp" width="420" alt="The remAIn menu: a status line, the Keep Awake submenu with 30 minutes, 1 hour, 2 hours, 4 hours and indefinitely, and a switch to keep running with the lid closed">
+</picture>
+</p>
+
+
 ### Lid closed, still running
 
 Close the lid and the agent keeps going. When the work is over, the Mac goes to sleep. It needs your password once to set up, and it is built to fail safe: a watchdog restores normal sleep even if remAIn crashes, and it stops on its own for heat, low battery or a time limit (3 hours by default). Off by default.
+
+<p align="center">
+<img src="docs/media/loop-lid.webp" width="640" alt="A MacBook's lid closes while the work continues, and a small light stays at the seam; it goes out when the work stops">
+</p>
 
 ### Never drains a battery in a bag
 
@@ -69,7 +92,11 @@ remAIn lets the Mac sleep when the battery runs low, when it is on battery power
 
 ### Know when they're done
 
-Get a notification when a task finishes or an agent needs your input. When everything is done, remAIn can also turn the display off or put the Mac to sleep.
+Get a notification when a task finishes, when an agent needs your input, or when one stops unexpectedly (it crashed, or its window was closed, so remAIn lets go of your Mac). Stopping an agent yourself, with Esc, stays quiet. When everything is done, remAIn can also turn the display off or put the Mac to sleep.
+
+<p align="center">
+<img src="docs/media/loop-stop.webp" width="640" alt="A terminal stops with a connection error; the menu bar icon goes back to a moon">
+</p>
 
 ### See where the time went
 
@@ -170,6 +197,18 @@ To build it yourself, see [Development](#development).
 | Any command | `remain run -- <command>` holds while the command runs. |
 
 remAIn only adds and removes its own entries, and writes a one-time backup next to each file (for example `settings.json.remain-backup`). `remain doctor` shows which agents are connected.
+
+## FAQ
+
+**Does it connect to the internet?** No. See [Privacy](#privacy).
+
+**Why does macOS warn me about the app?** remAIn is a free app by an individual and is not signed by Apple. See [Install](#install): you only need to allow it once.
+
+**What if an agent crashes, or I close its window?** remAIn notices that the process is gone (or has been quiet for too long) and lets the Mac sleep again. If the run lasted long enough, it tells you the agent stopped unexpectedly. If you stop an agent yourself with Esc, nothing is shown.
+
+**How is this different from `caffeinate`?** `caffeinate` holds for as long as the command it wraps, and you have to remember to start it. remAIn follows the agent itself, including IDEs and desktop apps, and lets go on its own.
+
+**Can it drain the battery in a bag?** It lets the Mac sleep when the battery is low, when it is on battery power, in Low Power Mode or when it is hot. Lid-closed mode is off by default and has a time limit.
 
 ## What remAIn touches
 

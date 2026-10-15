@@ -44,7 +44,7 @@ function frame(spec) {
   camEl.style.transform = `translate(${tx}px, ${ty}px) scale(${c.scale})`;
 }
 
-const text = (html, cls = 'caption', style = '') => $(`<div class="${cls}" style="${style}">${html}</div>`);
+const text = (html, cls = 'caption', style = '') => NC ? $('<div style="display:none"></div>') : $(`<div class="${cls}" style="${style}">${html}</div>`);
 
 // ---------------------------------------------------------------------------------------------
 // Scene 0: "Just remain awake." -> the "ai" lights up, becomes "AI", and the rest falls away
@@ -154,7 +154,7 @@ function scene2Core(t) {
   const startAt = 1.5, finishAt = 11.2;
   const working = t >= startAt && t < finishAt;
   const finished = t >= finishAt;
-  const menuOpen = t >= 8.0 && t < 12.6;
+  const menuOpen = t >= 8.0 && t < 12.6 && !NC;
   // The log, the way a terminal prints it: the prompt is typed, then each line pops in whole.
   // 17 lines at full speed, then the log slows down a little before the camera leaves it.
   const lineAt = [...Array.from({ length: 17 }, (_, i) => 2.3 + i * 0.18)];
@@ -166,12 +166,12 @@ function scene2Core(t) {
   const push = ease(prog(t, 5.9, 7.7)) * (1 - ease(prog(t, 15.0, 16.6)));
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
   const nIn = easeOut(prog(t, 13.0, 13.7)), nOut = ease(prog(t, 14.9, 15.4));
-  const nVis = nIn * (1 - nOut);
+  const nVis = NC ? 0 : nIn * (1 - nOut);
   const notif = $(`<div class="notif" style="opacity:${nVis.toFixed(3)};transform:translateX(${((1 - nIn) * 60 + nOut * 40).toFixed(1)}px)"><img src="assets/icons/remain.png"><div><b>${T.notif.title}</b><span>${T.notif.body}</span></div><em>now</em></div>`);
   return {
     icons: true, dock: true, running: ['terminal'], cam,
     // The agent has been at it for 14 minutes: while the camera is on the menu bar, the clock runs ahead.
-    menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, clock: `${T.dates[0]}  11:${String(38 + Math.round(14 * ease(prog(t, 8.6, 11.0)))).padStart(2, '0')}`, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
+    menubar: { app: 'terminal', icon: working ? 'sparkles' : 'moon', active: menuOpen, clock: `${NC ? '' : T.dates[0] + '  '}11:${String(38 + Math.round(14 * ease(prog(t, 8.6, 11.0)))).padStart(2, '0')}`, menu: menuOpen ? { status: working ? 'one' : 'idle' } : null },
     layers: [terminalWin({ x: 300, y: 130, w: 1100, h: 700, state, shown, tick: t, inactive: false })],
     notifs: nVis > 0.01 ? [notif] : [],
     black: ease(prog(t, 16.8, 18.0)) * 0.97,
@@ -239,13 +239,13 @@ function scene3(t) {
   const icon = t >= 23.5 || t < 0.7 ? 'moon' : 'sparkles';
   // Two looks at the menu: three agents at work, and, once the stopped one is over, "Sleeps as usual".
   const m1 = t >= 7.2 && t < 9.6, m3 = t >= 25.0 && t < 27.0;
-  const menuOpen = m1 || m3;
+  const menuOpen = (m1 || m3) && !NC;
   const status = m1 ? 'many' : 'idle';
-  const pushA = ease(prog(t, 5.6, 7.2)) * (1 - ease(prog(t, 9.6, 11.2)));
+  const pushA = NC ? 0 : ease(prog(t, 5.6, 7.2)) * (1 - ease(prog(t, 9.6, 11.2)));
   const pushC = ease(prog(t, 21.6, 23.2)) * (1 - ease(prog(t, 27.0, 28.6)));
   const push = Math.max(pushA, pushC);
   const cam = { x: lerp(960, 1560, push), y: lerp(540, 150, push), scale: lerp(1, 2.3, push) };
-  const nIn = easeOut(prog(t, 23.5, 24.2)), nOut = ease(prog(t, 26.0, 26.5)), nVis = nIn * (1 - nOut);
+  const nIn = easeOut(prog(t, 23.5, 24.2)), nOut = ease(prog(t, 26.0, 26.5)), nVis = NC ? 0 : nIn * (1 - nOut);
   const notif = $(`<div class="notif" style="opacity:${nVis.toFixed(3)};transform:translateX(${((1 - nIn) * 60 + nOut * 40).toFixed(1)}px)"><img src="assets/icons/remain.png"><div><b>${T.notifStop.title}</b><span>${T.notifStop.body}</span></div><em>now</em></div>`);
   const c3 = easeOut(prog(t, 3.6, 4.3)) * (1 - ease(prog(t, 5.0, 5.5)));
   const c4 = easeOut(prog(t, 20.6, 21.3)) * (1 - ease(prog(t, 26.8, 27.4)));

@@ -15,6 +15,9 @@ const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : fallback; };
 const fps = Number(opt('--fps', 30));
 const lang = opt('--lang', 'en');
+const nocap = args.includes('--nocap') ? (args.splice(args.indexOf('--nocap'), 1), true) : false;
+const range = opt('--range', '');                    // e.g. 16-27: record only that stretch of the scene
+const tag = opt('--tag', '');
 const keep = args.includes('--keep') ? (args.splice(args.indexOf('--keep'), 1), true) : false;
 const scenes = args;
 if (!scenes.length) { console.error('usage: node record.mjs [--fps 30] [--lang en] <scene...>'); process.exit(1); }
@@ -58,7 +61,7 @@ const evaluate = async (expression) => {
 
 await send('Page.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
-await send('Page.navigate', { url: `file://${resolve(here, 'stage.html')}?mode=video&lang=${lang}` });
+await send('Page.navigate', { url: `file://${resolve(here, 'stage.html')}?mode=video&lang=${lang}${nocap ? '&nocap=1' : ''}` });
 for (let i = 0; i < 80 && !(await evaluate('typeof seek === "function"')); i++) await new Promise((r) => setTimeout(r, 150));
 
 mkdirSync(resolve(here, 'out'), { recursive: true });
@@ -68,15 +71,16 @@ for (const scene of scenes) {
   const frames = resolve(here, `out/frames-${scene}`);
   rmSync(frames, { recursive: true, force: true });
   mkdirSync(frames, { recursive: true });
-  const total = Math.round(duration * fps);
+  const [from, to] = range ? range.split('-').map(Number) : [0, duration];
+  const first = Math.round(from * fps), total = Math.round(to * fps) - first;
   const started = Date.now();
   for (let i = 0; i < total; i++) {
-    await evaluate(`seek('${scene}', ${(i / fps).toFixed(4)})`);
+    await evaluate(`seek('${scene}', ${((first + i) / fps).toFixed(4)})`);
     const shot = await send('Page.captureScreenshot', { format: 'jpeg', quality: 94 });
     writeFileSync(`${frames}/${String(i).padStart(5, '0')}.jpg`, Buffer.from(shot.data, 'base64'));
     if (i % 60 === 0) process.stdout.write(`\r  scene ${scene}: ${i}/${total}`);
   }
-  const out = resolve(here, `out/clip-${scene}-${lang}.mp4`);
+  const out = resolve(here, `out/clip-${scene}-${lang}${tag}.mp4`);
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', `${frames}/%05d.jpg`, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '17', '-movflags', '+faststart', out]);
   if (!keep) rmSync(frames, { recursive: true, force: true });
   console.log(`\r  scene ${scene}: ${total} frames in ${((Date.now() - started) / 1000).toFixed(0)} s -> ${out}`);

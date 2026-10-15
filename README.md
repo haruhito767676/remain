@@ -13,7 +13,7 @@ When they stop, it sleeps as usual: no more runs cut off by sleep, and no Mac le
 [![Release](https://img.shields.io/github/v/release/haruhito767676/remain?color=0a84ff)](https://github.com/haruhito767676/remain/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#license)
 
-[**Download**](https://github.com/haruhito767676/remain/releases/latest) · [日本語](README.ja.md) · [Technical spec (Japanese)](SPEC.md)
+[**Download**](https://github.com/haruhito767676/remain/releases/latest) · [Website](https://haruhito767676.github.io/remain/) · [日本語](README.ja.md) · [Technical spec (Japanese)](SPEC.md)
 
 </div>
 

@@ -13,7 +13,7 @@ AIエージェントの作業を自動で見つけて、Macのスリープを防
 [![Release](https://img.shields.io/github/v/release/haruhito767676/remain?color=0a84ff)](https://github.com/haruhito767676/remain/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](#ライセンス)
 
-[ダウンロード](https://github.com/haruhito767676/remain/releases/latest) · [English](README.md) · [技術仕様書](SPEC.md)
+[ダウンロード](https://github.com/haruhito767676/remain/releases/latest) · [サイト](https://haruhito767676.github.io/remain/ja/) · [English](README.md) · [技術仕様書](SPEC.md)
 
 </div>
 

@@ -23,7 +23,7 @@ AIエージェントの作業を自動で見つけて、Macのスリープを防
 <img src="docs/media/loop-hero.webp" width="720" alt="エージェントの作業中は、メニューバーのアイコンがきらめき、時計が進みます。作業が終わると、アイコンが月に戻ります">
 </p>
 
-<!-- INTRO-VIDEO: アップロードした動画の github.com/user-attachments の URL を、この行に1行で貼る -->
+https://github.com/user-attachments/assets/a8e60886-0099-4ca5-a1d7-0cf276a63caf
 
 ---
 

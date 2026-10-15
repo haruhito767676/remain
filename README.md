@@ -23,7 +23,7 @@ When they stop, it sleeps as usual: no more runs cut off by sleep, and no Mac le
 <img src="docs/media/loop-hero.webp" width="720" alt="The menu bar icon sparkles while an agent works, the clock moves on, and the icon turns back into a moon when the work is done">
 </p>
 
-<!-- INTRO-VIDEO: paste the uploaded video's github.com/user-attachments URL on its own line here -->
+https://github.com/user-attachments/assets/f4a5c86b-195d-47c4-9ac9-018d58636049
 
 ---
 

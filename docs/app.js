@@ -73,3 +73,26 @@
   addEventListener('resize', () => { measure(); if (!small.matches && !still.matches) render(pinned()); });
   small.addEventListener('change', setup);
 })();
+
+// FAQ: the answers open and close smoothly (the page works the same without this).
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('.faq details').forEach((d) => {
+    const summary = d.querySelector('summary');
+    let anim = null;
+    summary.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (anim) anim.cancel();
+      const cs = getComputedStyle(d);
+      const collapsed = summary.offsetHeight + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+      const from = d.offsetHeight;
+      d.style.overflow = 'hidden';
+      const opening = !d.open;
+      if (opening) d.open = true;
+      const to = opening ? d.offsetHeight : collapsed;
+      anim = d.animate({ height: [from + 'px', to + 'px'] }, { duration: 260, easing: 'cubic-bezier(.3,.7,.2,1)' });
+      const done = () => { anim = null; d.style.overflow = ''; if (!opening) d.open = false; };
+      anim.onfinish = done; anim.oncancel = () => { d.style.overflow = ''; };
+    });
+  });
+})();

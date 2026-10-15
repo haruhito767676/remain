@@ -158,8 +158,14 @@ h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.03
 .agent small { display: block; color: var(--muted); margin: 2px 0 10px; font-size: 14px; }
 .agent p { margin: 0; color: var(--muted); font-size: 15px; }
 @media (max-width: 640px) { .agents { grid-template-columns: 1fr; } }
-.agent.wide { margin-top: 16px; background: transparent; border-style: dashed; text-align: center; padding: 26px 22px; }
-.agent.wide p { max-width: 36em; margin: 6px auto 0; }
+.agents-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; align-items: center; }
+.agents-extra .shot { text-align: center; }
+.agents-extra .shot img { width: min(380px, 100%); height: auto; border-radius: 12px; }
+.agent.wide { background: transparent; border-style: dashed; padding: 28px 26px; }
+.agent.wide b { font-size: 20px; }
+.agent.wide p { margin: 6px 0 0; font-size: 16px; }
+.cmd { margin: 18px 0 0; padding: 14px 18px; border-radius: 12px; background: #0b0b10; color: #e6e8ee; font: 15px/1.4 ui-monospace, "SF Mono", Menlo, monospace; overflow-x: auto; white-space: pre; }
+@media (max-width: 860px) { .agents-extra { grid-template-columns: 1fr; } }
 
 /* privacy */
 .privacy { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }

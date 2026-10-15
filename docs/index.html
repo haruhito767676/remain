@@ -3,77 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>remAIn: keep your Mac awake while AI agents work</title>
-<meta name="description" content="A macOS menu bar app that holds a sleep assertion only while Claude Code is actually working.">
-<style>
-  :root {
-    color-scheme: light dark;
-    --bg: #fbfbfd; --fg: #1d1d1f; --muted: #6e6e73; --card: #fff; --line: #d2d2d7; --accent: #0071e3;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #000; --fg: #f5f5f7; --muted: #a1a1a6; --card: #1c1c1e; --line: #38383a; --accent: #2997ff; }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--fg);
-    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-  }
-  main { max-width: 720px; margin: 0 auto; padding: 72px 20px 96px; }
-  h1 { font-size: clamp(40px, 8vw, 56px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 16px; }
-  h2 { font-size: 24px; letter-spacing: -0.01em; margin: 56px 0 12px; }
-  p { margin: 0 0 16px; }
-  .lead { font-size: 21px; color: var(--muted); }
-  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 28px 0 0; }
-  a.button {
-    display: inline-block; padding: 10px 20px; border-radius: 980px; text-decoration: none;
-    background: var(--accent); color: #fff; font-weight: 500;
-  }
-  a.button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--line); }
-  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 15px; vertical-align: top; }
-  tr:last-child td { border-bottom: 0; }
-  th { color: var(--muted); font-weight: 500; }
-  code, pre { font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; }
-  code { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
-  pre { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
-  ul { padding-left: 20px; } li { margin-bottom: 8px; }
-  footer { margin-top: 64px; color: var(--muted); font-size: 14px; }
-  a { color: var(--accent); }
-</style>
+<title>remAIn: keeps your Mac awake only while AI agents work</title>
+<meta name="description" content="A small macOS menu bar app that keeps your Mac awake only while AI agents (Claude Code, Codex, Antigravity) work, and lets it sleep as usual when they stop.">
+<meta property="og:title" content="remAIn: keeps your Mac awake only while AI agents work">
+<meta property="og:description" content="Awake while your AI agents work. Asleep as usual when they stop. A native macOS menu bar app. Free, open source, nothing leaves your Mac.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://haruhito767676.github.io/remain/media/social-preview.png">
+<link rel="icon" href="media/favicon-32.png">
+<link rel="apple-touch-icon" href="media/icon-256.png">
+<link rel="alternate" hreflang="ja" href="https://haruhito767676.github.io/remain/ja/">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="#top"><img src="media/icon-256.png" width="26" height="26" alt="">remAIn</a>
+  <span class="grow"></span>
+  <a class="hide-s" href="#why">Why</a><a class="hide-s" href="#features">Features</a><a class="hide-s" href="#video">Video</a><a class="hide-s" href="#install">Install</a><a class="hide-s" href="https://github.com/haruhito767676/remain">GitHub</a>
+  <a class="lang" href="ja/" hreflang="ja">日本語</a>
+</div></header>
+
 <main>
-  <h1>remAIn</h1>
-  <p class="lead">Keeps your Mac awake only while an AI coding agent is actually working.</p>
-  <p>Long Claude Code runs die when the Mac idles to sleep. A plain stay-awake toggle fixes that but keeps the machine up long after the agent is done. remAIn listens to Claude Code's hooks and holds a sleep assertion for exactly as long as the agent is busy.</p>
-  <div class="actions">
-    <a class="button" href="https://github.com/haruhito767676/remain/releases/latest">Download</a>
-    <a class="button secondary" href="https://github.com/haruhito767676/remain">View on GitHub</a>
+<section class="hero" id="top" data-hero>
+  <div class="stick">
+    <div class="hero-inner">
+      <img class="hero-icon" src="media/icon-256.png" alt="">
+      <h1 class="pun" aria-label="remAIn"><span class="side" data-side>Just&nbsp;</span>rem<span class="aiwrap"><span class="lo">AI</span><span class="ai">AI</span></span>n<span class="side" data-side>&nbsp;awake.</span></h1>
+      <div class="hero-rest">
+        <p class="lead">Keeps your Mac awake only while AI agents work. When they stop, it sleeps as usual.</p>
+        <div class="cta"><a class="btn" href="https://github.com/haruhito767676/remain/releases/latest">Download for macOS</a><a class="btn alt" href="#video">Watch the intro</a></div>
+        <p class="note">Free · MIT · macOS 14 or later · Apple silicon and Intel</p>
+      </div>
+    </div>
+    <div class="hint">Scroll</div>
   </div>
+</section>
 
-  <h2>How it behaves</h2>
-  <table>
-    <tr><th>Claude Code event</th><th>remAIn</th></tr>
-    <tr><td><code>UserPromptSubmit</code></td><td>Session starts, Mac stays awake</td></tr>
-    <tr><td><code>PreToolUse</code> / <code>PostToolUse</code></td><td>Heartbeat; resumes after a permission prompt</td></tr>
-    <tr><td><code>Notification</code></td><td>Agent waits for you, sleep is allowed (configurable)</td></tr>
-    <tr><td><code>Stop</code> / <code>SessionEnd</code></td><td>Session ends, hold is released</td></tr>
-  </table>
+<section id="why"><div class="wrap">
+  <h2>AI works on its own. Your Mac doesn’t know.</h2>
+  <p class="sub">Three ways a Mac gets it wrong.</p>
+  <div class="grid">
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 9.4A5.5 5.5 0 1 1 6.6 3a4.4 4.4 0 0 0 6.4 6.4z"/></svg></div><h3>Sleep cuts the run</h3><p>The Mac falls asleep in the middle of a task, and a long run stops halfway.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="4.6" width="11" height="6.8" rx="1.8"/><path d="M14.4 7v2"/><path d="M4 8h2.2"/></svg></div><h3><code>caffeinate</code> doesn’t know when to stop</h3><p>Wrapping a command keeps the Mac awake, but you start and end it by hand. Forget it, and the Mac stays up all night until the battery gives out.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.6" width="12" height="9" rx="1.6"/><path d="M5.5 14h5M8 11.6V14"/></svg></div><h3>Not every agent is a command</h3><p>IDEs, desktop apps and background runs can’t be wrapped in one.</p></div>
+  </div>
+</div></section>
 
-  <h2>Details</h2>
-  <ul>
-    <li><strong>The display may sleep.</strong> Agents don't need a lit screen, so only system sleep is prevented by default.</li>
-    <li><strong>No stuck awake state.</strong> A session that goes silent is dropped after a timeout, so a missed <code>Stop</code> can't pin your Mac.</li>
-    <li><strong>Native.</strong> A real menu, SF Symbols and a System Settings style preferences window.</li>
-    <li><strong>Notifications and actions.</strong> Get told when a task finishes, and optionally turn the display off or sleep afterwards.</li>
-  </ul>
+<section id="features" class="alt"><div class="wrap">
+  <h2>Awake only while they work.</h2>
+  <p class="sub">remAIn follows the agent itself, not a timer, and lets go the moment it is done.</p>
 
-  <h2>Install</h2>
-  <pre>./scripts/build-app.sh
-open build/remAIn.app</pre>
-  <p>Then open Settings and install the Claude Code hooks. It works with the CLI, the desktop app and the VS Code extension.</p>
+  <div class="feature">
+    <div class="media"><img src="media/loop-hero.webp" width="960" height="540" alt="The menu bar icon sparkles while an agent works, the clock moves on, and the icon turns back into a moon when the work is done"></div>
+    <div><h3>It follows the agent</h3><p>Each agent reports when it starts, works, waits for you and finishes, and remAIn holds the Mac awake for exactly that long.</p><p>The menu bar icon tells you what is going on: a sparkle while an agent works, a moon when the Mac may sleep.</p></div>
+  </div>
+  <div class="feature flip">
+    <div class="media"><img src="media/loop-agents.webp" width="960" height="540" alt="Three agents, an IDE, the ChatGPT app and a terminal, work at once; two finish and their windows go away while the last keeps working" loading="lazy"></div>
+    <div><h3>Any agent. All at once.</h3><p>Antigravity, Claude Code, Codex, or any command you wrap with <code>remain run</code>. Several at once are fine, and the Mac stays awake until the last one is done.</p></div>
+  </div>
+  <div class="feature">
+    <div class="media"><img src="media/loop-lid.webp" width="960" height="540" alt="A MacBook’s lid closes while the work continues; a small light stays at the seam and goes out when the work stops" loading="lazy"></div>
+    <div><h3>Close the lid. It keeps going.</h3><p>Off by default. When you turn it on, the work carries on with the lid closed, and the Mac sleeps when it is over.</p><p>It stops on its own for heat, low battery or a time limit, and a watchdog restores normal sleep even if remAIn itself crashes.</p></div>
+  </div>
+  <div class="feature flip">
+    <div class="media"><img src="media/loop-stop.webp" width="960" height="540" alt="A terminal stops with a connection error and the menu bar icon goes back to a moon" loading="lazy"></div>
+    <div><h3>Stopped halfway? It notices.</h3><p>If an agent is interrupted, crashes, or its window is closed, remAIn lets the Mac sleep again. When a long run stops unexpectedly, it tells you.</p></div>
+  </div>
+</div></section>
 
-  <footer>MIT licensed. Requires macOS 14 or later.</footer>
+<section id="more"><div class="wrap">
+  <h2>Quiet, careful, and yours.</h2>
+  <p class="sub">The details that keep it out of your way.</p>
+  <div class="grid">
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="4.6" width="11" height="6.8" rx="1.8"/><path d="M14.4 7v2M4 8h3"/></svg></div><h3>Never drains a bag</h3><p>Low battery, battery power, Low Power Mode or heat: remAIn lets the Mac sleep, says why, and resumes by itself.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.2a3.8 3.8 0 0 0-3.8 3.8c0 3-1.4 4-1.4 4h10.4s-1.4-1-1.4-4A3.8 3.8 0 0 0 8 2.2zM6.6 12.6a1.5 1.5 0 0 0 2.8 0"/></svg></div><h3>Know when they’re done</h3><p>A notification when a task finishes or an agent needs you. Optionally turn the display off or sleep afterwards.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13V8M6.7 13V3.5M10.4 13V6.5M14 13V9.5"/></svg></div><h3>See where the time went</h3><p>Per day and per project, kept only on your Mac and deleted after 90 days.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l3-3M5.2 8.3l-1.3 1.3a2.3 2.3 0 0 0 3.3 3.3l1.3-1.3M10.8 7.7l1.3-1.3a2.3 2.3 0 0 0-3.3-3.3L7.5 4.4"/></svg></div><h3>Connects in a click</h3><p>A welcome window connects the agents it finds. Your existing settings are kept, and it fixes itself if you move the app.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.8"/><path d="M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7"/></svg></div><h3>Private by design</h3><p>No network, no account, no analytics. Just a socket on your own Mac.</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5h7a3 3 0 0 1 0 6H6M3 6.5l2.6-2.6M3 6.5l2.6 2.6"/></svg></div><h3>Undoable</h3><p>One button removes everything remAIn added to your Mac. Native English and Japanese.</p></div>
+  </div>
+</div></section>
+
+<section id="video" class="alt"><div class="wrap">
+  <h2>See it in action.</h2>
+  <p class="sub">Two minutes, start to finish.</p>
+  <div class="video"><video controls playsinline preload="none" poster="media/poster-en.jpg" src="media/intro-en.mp4"></video></div>
+</div></section>
+
+<section id="agents"><div class="wrap">
+  <h2>Works with the agents you use.</h2>
+  <p class="sub">Each one is followed in the way it allows, through its own hooks.</p>
+  <div class="agents">
+    <div class="agent"><b>Antigravity</b><small>Google</small><p>Hooks in its config. Its stop button leaves no trace, so a run that goes quiet for 5 minutes is considered over.</p></div>
+    <div class="agent"><b>Claude Code</b><small>Anthropic</small><p>Hooks for the CLI, the desktop app and the VS Code extension. Pressing Esc and closing it are detected.</p></div>
+    <div class="agent"><b>Codex</b><small>OpenAI</small><p>Hooks for the CLI and the desktop app. Codex asks you to review and trust them first.</p></div>
+    <div class="agent"><b>Any command</b><small><code>remain run</code></small><p><code>remain run -- &lt;command&gt;</code> holds for as long as a command runs: builds, downloads, anything.</p></div>
+  </div>
+</div></section>
+
+<section id="privacy" class="alt"><div class="wrap privacy">
+  <div>
+    <h2>Nothing leaves your Mac.</h2>
+    <p class="sub">No server, no account, no analytics, and it never connects to the internet. History keeps project folder names only, and is deleted after 90 days.</p>
+    <div class="perm">
+      <div><code>Hooks files</code><span>The connection to each agent. Only remAIn’s own entries, removed when you switch it off.</span></div>
+      <div><code>Notifications</code><span>Optional.</span></div>
+      <div><code>Login item</code><span>Optional.</span></div>
+      <div><code>sudoers rule</code><span>Only for lid-closed mode, with your password. It allows exactly two <code>pmset</code> commands.</span></div>
+      <div><code>The network</code><span>Never used.</span></div>
+    </div>
+  </div>
+  <div class="shot"><picture><source media="(prefers-color-scheme: dark)" srcset="media/shot-settings-activity-dark-en.webp"><img src="media/shot-settings-activity-light-en.webp" alt="The Activity tab: how long the Mac was kept awake, per day and per project" loading="lazy"></picture></div>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <h2>Install in a minute.</h2>
+  <p class="sub">macOS 14 or later, Apple silicon and Intel.</p>
+  <div class="steps">
+    <div class="step"><h3>Download</h3><p>Get the zip from Releases, unzip it, and move remAIn to Applications.</p></div>
+    <div class="step"><h3>Allow it once</h3><p>remAIn isn’t signed by Apple, so macOS warns you the first time. Open <em>System Settings → Privacy &amp; Security</em> and choose <strong>Open Anyway</strong>.</p></div>
+    <div class="step"><h3>Connect your agents</h3><p>A welcome window offers to connect the agents it finds. Then work as usual.</p></div>
+  </div>
+  <div class="cta" style="margin-top:32px"><a class="btn" href="https://github.com/haruhito767676/remain/releases/latest">Download for macOS</a></div>
+  <p class="fineprint">remAIn is a free app made by one person, which is why it is not signed. The source is on GitHub.</p>
+</div></section>
+
+<section id="faq" class="alt"><div class="wrap">
+  <h2>Questions</h2>
+  <div class="faq" style="margin-top:36px">
+    <details><summary>Does it connect to the internet?</summary><p>No. The app, the <code>remain</code> command and the hooks only talk to each other over a Unix socket that your user alone can open.</p></details>
+    <details><summary>What if an agent crashes, or I close its window?</summary><p>remAIn notices that the process is gone, or has been quiet for too long, and lets the Mac sleep again. If the run lasted long enough, it tells you the agent stopped unexpectedly. If you stop an agent yourself with Esc, nothing is shown.</p></details>
+    <details><summary>How is this different from <code>caffeinate</code>?</summary><p><code>caffeinate</code> holds for as long as the command it wraps, and you have to remember to start it. remAIn follows the agent itself, including IDEs and desktop apps, and lets go on its own.</p></details>
+    <details><summary>Can it drain the battery in a bag?</summary><p>It lets the Mac sleep when the battery is low, when it is on battery power, in Low Power Mode, or when it is hot. Lid-closed mode is off by default and has a time limit.</p></details>
+    <details><summary>Why does macOS warn me about the app?</summary><p>remAIn is not signed by Apple. You only need to allow it once, in <em>System Settings → Privacy &amp; Security</em>.</p></details>
+  </div>
+</div></section>
 </main>
+
+<footer><div class="wrap">
+  <p>remAIn is an independent project and is not affiliated with Anthropic, Google or OpenAI. Claude Code, Antigravity, Codex and ChatGPT are trademarks of their respective owners.</p>
+  <p>Open source · MIT License · <a href="https://github.com/haruhito767676/remain">GitHub</a> · <a href="https://github.com/haruhito767676/remain/blob/main/SPEC.md">Technical spec (Japanese)</a></p>
+</div></footer>
+<script src="app.js"></script>
 </body>
 </html>

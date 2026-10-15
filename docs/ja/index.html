@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>remAIn: AIエージェントが働く間だけ、Macを起こしておく</title>
+<meta name="description" content="AIエージェント(Claude Code、Codex、Antigravity)が作業している間だけMacを起こしておき、止まったら、いつもどおりスリープさせる、macOSのメニューバーアプリ。">
+<meta property="og:title" content="remAIn: AIエージェントが働く間だけ、Macを起こしておく">
+<meta property="og:description" content="エージェントが働く間は起きていて、止まったら、いつもどおり眠る。macOSネイティブのメニューバーアプリ。無料、オープンソース、何もMacの外に出ません。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://haruhito767676.github.io/remain/media/social-preview.png">
+<link rel="icon" href="../media/favicon-32.png">
+<link rel="apple-touch-icon" href="../../media/icon-256.png">
+<link rel="alternate" hreflang="en" href="https://haruhito767676.github.io/remain/">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="#top"><img src="../media/icon-256.png" width="26" height="26" alt="">remAIn</a>
+  <span class="grow"></span>
+  <a class="hide-s" href="#why">なぜ</a><a class="hide-s" href="#features">特長</a><a class="hide-s" href="#video">動画</a><a class="hide-s" href="#install">インストール</a><a class="hide-s" href="https://github.com/haruhito767676/remain">GitHub</a>
+  <a class="lang" href="../" hreflang="en">English</a>
+</div></header>
+
+<main>
+<section class="hero" id="top" data-hero>
+  <div class="stick">
+    <div class="hero-inner">
+      <img class="hero-icon" src="../media/icon-256.png" alt="">
+      <h1 class="pun" aria-label="remAIn"><span class="side" data-side>Just&nbsp;</span>rem<span class="aiwrap"><span class="lo">AI</span><span class="ai">AI</span></span>n<span class="side" data-side>&nbsp;awake.</span></h1>
+      <div class="hero-rest">
+        <p class="lead">AIエージェントが働く間だけ、Macを起こしておく。止まったら、いつもどおり眠ります。</p>
+        <div class="cta"><a class="btn" href="https://github.com/haruhito767676/remain/releases/latest">macOS版をダウンロード</a><a class="btn alt" href="#video">紹介動画を見る</a></div>
+        <p class="note">無料 · MIT · macOS 14以降 · Apple silicon / Intel</p>
+      </div>
+    </div>
+    <div class="hint">Scroll</div>
+  </div>
+</section>
+
+<section id="why"><div class="wrap">
+  <h2>AIは、自分で働く。Macは、それを知らない。</h2>
+  <p class="sub">Macが、うまくやれない3つの場面。</p>
+  <div class="grid">
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 9.4A5.5 5.5 0 1 1 6.6 3a4.4 4.4 0 0 0 6.4 6.4z"/></svg></div><h3>スリープで、作業が止まる</h3><p>作業の途中でMacが眠ると、長い作業は、そこで止まります。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="4.6" width="11" height="6.8" rx="1.8"/><path d="M14.4 7v2"/><path d="M4 8h2.2"/></svg></div><h3><code>caffeinate</code>は、止めどきを知らない</h3><p>コマンドで包めばMacは起きたままですが、始めるのも終わらせるのも手動です。忘れると、バッテリーが尽きるまで、一晩中起きたままです。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2.6" width="12" height="9" rx="1.6"/><path d="M5.5 14h5M8 11.6V14"/></svg></div><h3>すべてのエージェントが、コマンドではない</h3><p>IDEやデスクトップアプリ、バックグラウンドの作業は、コマンドで包めません。</p></div>
+  </div>
+</div></section>
+
+<section id="features" class="alt"><div class="wrap">
+  <h2>働く間だけ、起きている。</h2>
+  <p class="sub">remAInが見ているのは、タイマーではなく、エージェントそのもの。終わった瞬間に、手を離します。</p>
+
+  <div class="feature">
+    <div class="media"><img src="../media/loop-hero.webp" width="960" height="540" alt="エージェントの作業中は、メニューバーのアイコンがきらめき、時計が進みます。作業が終わると、アイコンが月に戻ります"></div>
+    <div><h3>エージェントを見ている</h3><p>エージェントは、始めたとき、動いているとき、入力を待っているとき、終わったときに、それを知らせます。remAInは、その間だけ、Macを起こしておきます。</p><p>メニューバーのアイコンが、今の状態を教えてくれます。作業中はきらめき、眠ってよいときは月です。</p></div>
+  </div>
+  <div class="feature flip">
+    <div class="media"><img src="../media/loop-agents.webp" width="960" height="540" alt="IDE、ChatGPTアプリ、ターミナルの3つのエージェントが同時に動き、2つが終わって窓が消え、最後の1つが動き続けます" loading="lazy"></div>
+    <div><h3>どのエージェントも、同時に。</h3><p>Antigravity、Claude Code、Codex、または<code>remain run</code>で包んだ、どんなコマンドでも。いくつ同時に動いても大丈夫で、最後の1つが終わるまで、Macは起きています。</p></div>
+  </div>
+  <div class="feature">
+    <div class="media"><img src="../media/loop-lid.webp" width="960" height="540" alt="MacBookの蓋が閉じても作業は続き、合わせ目に小さな灯りが残ります。作業が止まると、灯りが消えます" loading="lazy"></div>
+    <div><h3>蓋を閉じても、止まらない。</h3><p>初期状態ではオフです。オンにすると、蓋を閉じても作業が続き、終わるとMacは眠ります。</p><p>高温、バッテリー低下、上限時間で、自動的に止まります。remAIn自体が落ちても、見張り役が、通常のスリープに戻します。</p></div>
+  </div>
+  <div class="feature flip">
+    <div class="media"><img src="../media/loop-stop.webp" width="960" height="540" alt="ターミナルが接続エラーで止まり、メニューバーのアイコンが月に戻ります" loading="lazy"></div>
+    <div><h3>途中で止まっても、ちゃんと気づく。</h3><p>エージェントが中断されたとき、落ちたとき、窓が閉じられたときは、remAInが、Macを眠れる状態に戻します。長い作業が予期せず止まったときは、通知でお知らせします。</p></div>
+  </div>
+</div></section>
+
+<section id="more"><div class="wrap">
+  <h2>静かで、慎重で、あなたのもの。</h2>
+  <p class="sub">邪魔にならないための、細かい作り込み。</p>
+  <div class="grid">
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="4.6" width="11" height="6.8" rx="1.8"/><path d="M14.4 7v2M4 8h3"/></svg></div><h3>鞄の中で、電池を使い切らない</h3><p>バッテリー低下、バッテリー駆動、低電力モード、高温のときは、Macを眠らせ、その理由を知らせます。条件が解消すれば、自動で再開します。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.2a3.8 3.8 0 0 0-3.8 3.8c0 3-1.4 4-1.4 4h10.4s-1.4-1-1.4-4A3.8 3.8 0 0 0 8 2.2zM6.6 12.6a1.5 1.5 0 0 0 2.8 0"/></svg></div><h3>終わったら、お知らせ</h3><p>作業の完了や、エージェントが入力を求めたときに、通知が届きます。終わったあとに、ディスプレイを消す、眠る、も選べます。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13V8M6.7 13V3.5M10.4 13V6.5M14 13V9.5"/></svg></div><h3>時間の行き先を見る</h3><p>日ごと、プロジェクトごとの時間を表示します。Macの中にだけ保存し、90日で削除します。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 9.5l3-3M5.2 8.3l-1.3 1.3a2.3 2.3 0 0 0 3.3 3.3l1.3-1.3M10.8 7.7l1.3-1.3a2.3 2.3 0 0 0-3.3-3.3L7.5 4.4"/></svg></div><h3>ワンクリックで接続</h3><p>ようこそ画面で、見つかったエージェントを接続できます。既存の設定は残り、アプリを移動しても、自動で直ります。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.8"/><path d="M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7"/></svg></div><h3>設計から、プライベート</h3><p>ネットワークも、アカウントも、アクセス解析もありません。あるのは、自分のMacの中のソケットだけです。</p></div>
+    <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5h7a3 3 0 0 1 0 6H6M3 6.5l2.6-2.6M3 6.5l2.6 2.6"/></svg></div><h3>元に戻せる</h3><p>ボタン1つで、remAInがMacに加えたものを、すべて取り除きます。表示は、英語と日本語に対応しています。</p></div>
+  </div>
+</div></section>
+
+<section id="video" class="alt"><div class="wrap">
+  <h2>動いているところを見る。</h2>
+  <p class="sub">最初から最後まで、2分ちょっと。</p>
+  <div class="video"><video controls playsinline preload="none" poster="../media/poster-ja.jpg" src="../media/intro-ja.mp4"></video></div>
+</div></section>
+
+<section id="agents"><div class="wrap">
+  <h2>使っているエージェントと、連携。</h2>
+  <p class="sub">それぞれが許す方法で、そのエージェントのフックを通して見ています。</p>
+  <div class="agents">
+    <div class="agent"><b>Antigravity</b><small>Google</small><p>設定ファイルのフックを使います。停止ボタンは痕跡を残さないため、5分間無反応な作業は、終わったとみなします。</p></div>
+    <div class="agent"><b>Claude Code</b><small>Anthropic</small><p>CLI、デスクトップアプリ、VS Code拡張のフックを使います。Escで止めたときも、閉じたときも、検出します。</p></div>
+    <div class="agent"><b>Codex</b><small>OpenAI</small><p>CLIとデスクトップアプリのフックを使います。Codexが、最初に、内容の確認と信頼を求めます。</p></div>
+    <div class="agent"><b>どんなコマンドでも</b><small><code>remain run</code></small><p><code>remain run -- &lt;コマンド&gt;</code>で、そのコマンドが動いている間だけ防げます。ビルドでもダウンロードでも、何でも。</p></div>
+  </div>
+</div></section>
+
+<section id="privacy" class="alt"><div class="wrap privacy">
+  <div>
+    <h2>何も、Macの外に出ない。</h2>
+    <p class="sub">サーバーも、アカウントも、アクセス解析もなく、インターネットには接続しません。履歴に残るのはプロジェクトのフォルダ名だけで、90日で削除されます。</p>
+    <div class="perm">
+      <div><code>フックのファイル</code><span>各エージェントとの接続です。remAIn自身の項目だけを加え、オフにすると取り除きます。</span></div>
+      <div><code>通知</code><span>任意です。</span></div>
+      <div><code>ログイン項目</code><span>任意です。</span></div>
+      <div><code>sudoersの規則</code><span>蓋を閉じたままの動作を設定するときだけ、パスワードを使います。許可するのは、2つの<code>pmset</code>コマンドだけです。</span></div>
+      <div><code>ネットワーク</code><span>使いません。</span></div>
+    </div>
+  </div>
+  <div class="shot"><picture><source media="(prefers-color-scheme: dark)" srcset="../media/shot-settings-activity-dark-ja.webp"><img src="../media/shot-settings-activity-light-ja.webp" alt="アクティビティのタブ。Macを起こしていた時間を、日ごと、プロジェクトごとに表示します" loading="lazy"></picture></div>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <h2>1分で、インストール。</h2>
+  <p class="sub">macOS 14以降、Apple siliconとIntelに対応。</p>
+  <div class="steps">
+    <div class="step"><h3>ダウンロード</h3><p>Releasesからzipを入手して展開し、remAInを「アプリケーション」へ移します。</p></div>
+    <div class="step"><h3>一度だけ許可</h3><p>remAInはAppleの署名がないため、初回にmacOSが警告します。<em>システム設定 → プライバシーとセキュリティ</em>を開き、<strong>このまま開く</strong>を選びます。</p></div>
+    <div class="step"><h3>エージェントを接続</h3><p>ようこそ画面で、見つかったエージェントを接続します。あとは、いつもどおり作業するだけです。</p></div>
+  </div>
+  <div class="cta" style="margin-top:32px"><a class="btn" href="https://github.com/haruhito767676/remain/releases/latest">macOS版をダウンロード</a></div>
+  <p class="fineprint">remAInは、1人で作っている無料のアプリです。そのため、署名はありません。ソースコードはGitHubにあります。</p>
+</div></section>
+
+<section id="faq" class="alt"><div class="wrap">
+  <h2>よくある質問</h2>
+  <div class="faq" style="margin-top:36px">
+    <details><summary>インターネットに接続しますか?</summary><p>いいえ。アプリ、<code>remain</code>コマンド、フックは、自分のユーザーだけが開けるUnixソケットで会話するだけです。</p></details>
+    <details><summary>エージェントが落ちたり、窓を閉じたりしたら?</summary><p>プロセスが消えたこと(または、長く無反応なこと)に気づいて、Macを眠れる状態に戻します。作業がある程度長かったときは、エージェントが予期せず止まったことを通知します。自分でEscを押して止めたときは、何も出しません。</p></details>
+    <details><summary><code>caffeinate</code>との違いは?</summary><p><code>caffeinate</code>は、包んだコマンドが動いている間、起こし続けるもので、始めるのは自分です。remAInは、エージェントそのものを見ていて、IDEやデスクトップアプリにも対応し、自分で手を離します。</p></details>
+    <details><summary>鞄の中で、バッテリーを使い切りませんか?</summary><p>バッテリー残量が少ないとき、バッテリー駆動のとき、低電力モードのとき、高温のときは、スリープを許可します。蓋を閉じたままの動作は、初期状態でオフで、上限時間もあります。</p></details>
+    <details><summary>なぜmacOSが警告を出しますか?</summary><p>remAInはAppleの署名がありません。<em>システム設定 → プライバシーとセキュリティ</em>で、一度だけ許可してください。</p></details>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <p>remAInは独立したプロジェクトで、Anthropic、Google、OpenAIとは関係ありません。Claude Code、Antigravity、Codex、ChatGPTは、それぞれの所有者の商標です。</p>
+  <p>オープンソース · MIT License · <a href="https://github.com/haruhito767676/remain">GitHub</a> · <a href="https://github.com/haruhito767676/remain/blob/main/SPEC.md">技術仕様</a></p>
+</div></footer>
+<script src="../app.js"></script>
+</body>
+</html>

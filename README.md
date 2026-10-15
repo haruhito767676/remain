@@ -33,7 +33,7 @@ An AI agent can work for minutes or hours on its own. Your Mac doesn't know that
 
 - **Sleep cuts the run.** Let the Mac sleep, and a long task stops halfway.
 - **`caffeinate` doesn't know when to stop.** Wrapping a command keeps the Mac awake, but only as long as you start and end it by hand. Forget it, and the Mac stays awake all night and runs the battery down.
-- **Not every agent is a command.** IDEs, desktop apps and background runs can't be wrapped in one.
+- **Not every agent is a command.** IDEs and desktop apps don't run as a command, so tricks like `caffeinate` can't reach them.
 
 remAIn follows the agent itself: awake while it works, and back to sleeping as usual the moment it is done, stopped halfway or gone.
 
@@ -172,7 +172,7 @@ To build it yourself, see [Development](#development).
 | Item | Details |
 |---|---|
 | macOS | 14 (Sonoma) or later. Apple silicon and Intel. |
-| Agents | At least one of the [supported agents](#supported-agents), or any command you wrap with `remain run`. |
+| Agents | At least one of the [supported agents](#supported-agents), or any command you start with `remain run`. |
 
 ## How to use
 
@@ -206,7 +206,7 @@ remAIn only adds and removes its own entries, and writes a one-time backup next 
 
 **What if an agent crashes, or I close its window?** remAIn notices that the process is gone (or has been quiet for too long) and lets the Mac sleep again. If the run lasted long enough, it tells you the agent stopped unexpectedly. If you stop an agent yourself with Esc, nothing is shown.
 
-**How is this different from `caffeinate`?** `caffeinate` holds for as long as the command it wraps, and you have to remember to start it. remAIn follows the agent itself, including IDEs and desktop apps, and lets go on its own.
+**How is this different from `caffeinate`?** `caffeinate` holds for as long as the command you put it in front of, and you have to remember to start it. remAIn follows the agent itself, including IDEs and desktop apps, and lets go on its own.
 
 **Can it drain the battery in a bag?** It lets the Mac sleep when the battery is low, when it is on battery power, in Low Power Mode or when it is hot. Lid-closed mode is off by default and has a time limit.
 

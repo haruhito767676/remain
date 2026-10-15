@@ -19,10 +19,6 @@ When they stop, it sleeps as usual: no more runs cut off by sleep, and no Mac le
 
 <br>
 
-<p align="center">
-<img src="docs/media/loop-hero.webp" width="720" alt="The menu bar icon sparkles while an agent works, the clock moves on, and the icon turns back into a moon when the work is done">
-</p>
-
 https://github.com/user-attachments/assets/f4a5c86b-195d-47c4-9ac9-018d58636049
 
 ---
@@ -32,7 +28,7 @@ https://github.com/user-attachments/assets/f4a5c86b-195d-47c4-9ac9-018d58636049
 An AI agent can work for minutes or hours on its own. Your Mac doesn't know that.
 
 - **Sleep cuts the run.** Let the Mac sleep, and a long task stops halfway.
-- **`caffeinate` doesn't know when to stop.** Wrapping a command keeps the Mac awake, but only as long as you start and end it by hand. Forget it, and the Mac stays awake all night and runs the battery down.
+- **`caffeinate` doesn't know when to stop.** Putting it in front of a command keeps the Mac awake, but only as long as you start and end it by hand. Forget it, and the Mac stays awake all night and runs the battery down.
 - **Not every agent is a command.** IDEs and desktop apps don't run as a command, so tricks like `caffeinate` can't reach them.
 
 remAIn follows the agent itself: awake while it works, and back to sleeping as usual the moment it is done, stopped halfway or gone.
@@ -40,6 +36,10 @@ remAIn follows the agent itself: awake while it works, and back to sleeping as u
 ## What remAIn does
 
 ### Awake while agents work, asleep when they don't
+
+<p align="center">
+<img src="docs/media/loop-hero.webp" width="720" alt="The menu bar icon sparkles while an agent works, the clock moves on, and the icon turns back into a moon when the work is done">
+</p>
 
 <table>
 <tr>

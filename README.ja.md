@@ -19,10 +19,6 @@ AIエージェントの作業を自動で見つけて、Macのスリープを防
 
 <br>
 
-<p align="center">
-<img src="docs/media/loop-hero.webp" width="720" alt="エージェントの作業中は、メニューバーのアイコンがきらめき、時計が進みます。作業が終わると、アイコンが月に戻ります">
-</p>
-
 https://github.com/user-attachments/assets/a8e60886-0099-4ca5-a1d7-0cf276a63caf
 
 ---
@@ -40,6 +36,10 @@ remAInは、エージェントそのものを見ています。作業してい�
 ## できること
 
 ### 働いている間だけ起こし、それ以外はスリープさせる
+
+<p align="center">
+<img src="docs/media/loop-hero.webp" width="720" alt="エージェントの作業中は、メニューバーのアイコンがきらめき、時計が進みます。作業が終わると、アイコンが月に戻ります">
+</p>
 
 <table>
 <tr>

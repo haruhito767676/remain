@@ -161,7 +161,7 @@ The Activity tab shows how long your Mac was kept awake, per day and per project
 
 ## Install
 
-1. Download `remAIn-v1.0.0.zip` from [Releases](https://github.com/haruhito767676/remain/releases/latest), unzip it and move remAIn to Applications.
+1. Download `remAIn-v1.1.0.zip` from [Releases](https://github.com/haruhito767676/remain/releases/latest), unzip it and move remAIn to Applications.
 2. remAIn is a free app made by an individual and is **not signed** by Apple, so macOS shows a warning the first time. Open *System Settings → Privacy & Security*, scroll down, choose **Open Anyway** and confirm with Touch ID or your password. You only need to do this once.
 3. A welcome window opens. Choose the agents to connect, and decide whether remAIn opens at login (it has to be running to notice your agents).
 

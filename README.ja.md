@@ -161,7 +161,7 @@ remAInが見えないものには、メニューから、30分、1時間、2時�
 
 ## インストール
 
-1. [Releases](https://github.com/haruhito767676/remain/releases/latest) から `remAIn-v1.0.0.zip` をダウンロードして展開し、remAInをアプリケーションフォルダへ移動します。
+1. [Releases](https://github.com/haruhito767676/remain/releases/latest) から `remAIn-v1.1.0.zip` をダウンロードして展開し、remAInをアプリケーションフォルダへ移動します。
 2. remAInは個人開発の無料アプリで、Appleの署名を受けていません。そのため、初回はmacOSが警告を出します。「システム設定」→「プライバシーとセキュリティ」を開いて、下へスクロールし、「このまま開く」を選んで、Touch IDかパスワードで確認してください。一度行えば、次回からは普通に起動できます。
 3. ウェルカム画面が開きます。連携するエージェントを選び、ログイン時にremAInを開くかどうかを決めてください(エージェントの作業に気づくには、remAInが起動している必要があります)。
 

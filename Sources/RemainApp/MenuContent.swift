@@ -84,6 +84,7 @@ struct MenuContent: View {
             attributes: [.link: URL(string: remainRepositoryURL)!, .font: NSFont.systemFont(ofSize: 11), .paragraphStyle: centered]
         )
         NSApp.activate()
-        NSApp.orderFrontStandardAboutPanel(options: [.credits: link])
+        // An empty `.version` hides the build number the panel would add in parentheses after the version.
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: link, .version: ""])
     }
 }

@@ -1,6 +1,7 @@
 // Synthesises the intro video's background music: no samples, no libraries, just sines, a little FM and a reverb.
 //
-//   node promo/video/bgm.mjs            -> promo/video/out/bgm.wav and remain-intro-en-bgm.mp4 (video + music)
+//   node promo/video/bgm.mjs [style]    -> promo/video/out/bgm[-style].wav and remain-intro-en-bgm[-style].mp4 (video + music)
+//   styles: ambient (default), lullaby, pulse, sound
 //
 // The music follows the story: a calm opening, an uneasy stretch while the Mac misbehaves, silence when the power
 // is gone, a warm D major once remAIn arrives, a wobble when the agent drops, and a long quiet ending.
@@ -11,6 +12,8 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SR = 44100;
+const style = process.argv[2] || 'ambient';
+let G = 1;                                                    // gain applied to everything added below (used to mix layers)
 
 // Scene lengths come from the timeline so the music follows any re-timing.
 const durations = new Function(`return (${readFileSync(resolve(here, 'timeline.js'), 'utf8').match(/const DURATIONS = (\{[^}]*\})/)[1]})`)();
@@ -29,7 +32,7 @@ const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 42
 function add(t0, dur, fn, pan = 0) {
   const a = Math.max(0, Math.floor(t0 * SR)), b = Math.min(N, Math.floor((t0 + dur) * SR));
   const gl = Math.cos((pan + 1) * Math.PI / 4), gr = Math.sin((pan + 1) * Math.PI / 4);
-  for (let i = a; i < b; i++) { const v = fn((i - a) / SR, i / SR); L[i] += v * gl; R[i] += v * gr; }
+  for (let i = a; i < b; i++) { const v = fn((i - a) / SR, i / SR) * G; L[i] += v * gl; R[i] += v * gr; }
 }
 
 // A soft pad: a few detuned partials with a slow attack. `bright(t)` (0..1) closes the tone like a low-pass.
@@ -69,12 +72,21 @@ const thump = (t0, amp, midi = 26) => add(t0, 1.2, (t) => amp * Math.exp(-t * 5)
 const arp = (t0, notes, gap, amp, fn = bell, opt = {}) => notes.forEach((m, i) => fn(t0 + i * gap, m, amp, opt));
 const at = (id, rel) => start[id] + rel;
 
+const K = {
+  ambient: { s0: 1, s1: 1, s2: 1, s3: 1, s5: 1, s7: 1, arp: 1 },
+  lullaby: { s0: 0.55, s1: 0.7, s2: 0.35, s3: 0.35, s5: 0.45, s7: 0.6, arp: 0 },
+  pulse: { s0: 0.6, s1: 0.75, s2: 0.4, s3: 0.4, s5: 0.5, s7: 0.6, arp: 0 },
+  sound: { s0: 0.3, s1: 0.3, s2: 0.25, s3: 0.25, s5: 0.25, s7: 0.3, arp: 0 },
+}[style];
+const CH = style === 'pulse' ? 5 : 6;                          // chord length in seconds
+const OFF = at('1', 42.8);                                       // the moment the power is gone
 // ---- Chords (MIDI) ----
 const Dm9 = [50, 53, 57, 64], Dm7 = [50, 53, 57, 60], Dsus = [50, 55, 57, 60], Dcluster = [50, 51, 57, 58];
 const Dmaj9 = [50, 54, 57, 61, 64], Dmaj7 = [50, 54, 57, 61], Gmaj7 = [55, 59, 62, 66], Bm7 = [47, 54, 57, 62], A69 = [45, 52, 57, 61, 66], Gm6 = [43, 50, 58, 64];
 const DD = [38, 45];                                         // the low D and A that hold everything together
 
 // ================= Scene 0: the hook =================
+G = K.s0;
 const s0 = start['0'];
 pad(s0, 7.6, 38, 0.22, { attack: 2.5 }); pad(s0 + 0.4, 7.2, 45, 0.12, { attack: 2.5 });
 chord(s0 + 0.6, 7.4, Dm9, 0.2, { attack: 2.2 });
@@ -83,6 +95,7 @@ arp(s0 + 2.8, [74, 77, 81, 86], 0.13, 0.1);                                     
 bell(s0 + 4.8, 86, 0.08, { pan: -0.2 });                                           // the icon
 
 // ================= Scene 1: the trouble =================
+G = K.s1;
 const s1 = start['1'];
 const dim0 = at('1', 7.8), dim1 = at('1', 9.2), wake = at('1', 10.8), cutA = at('1', 14.4), partB = at('1', 16.2);
 const finish = at('1', 27.6), push = at('1', 31.4), nightA = at('1', 33.0), nightB = at('1', 37.0), red = at('1', 37.4), off = at('1', 42.8);
@@ -107,6 +120,7 @@ for (let t = nightA; t < red; t += 1.0) thump(t, 0.12, 31);
 for (let t = red; t < off; t += 0.5) thump(t, 0.16, 33);
 
 // ================= Scene 2: remAIn arrives =================
+G = K.s2;
 const s2 = start['2'];
 const warm0 = s2 + 0.4;
 pad(warm0, durations['2'] + 1.5, 38, 0.2, { attack: 2.5 }); pad(warm0 + 0.5, durations['2'] + 1.0, 45, 0.11, { attack: 2.5 });
@@ -118,25 +132,30 @@ chord(at('2', 5.6), 4.6, [57, 61, 64, 69], 0.12, { attack: 1.4, release: 2 });  
 pluck(at('2', 10.3), 62, 0.06);                                                   // the terminal launches
 const prog2 = [Dmaj7, Gmaj7, Bm7, A69];
 const core2 = at('2', 11.6);
-for (let k = 0; core2 + k * 6 < at('3', 0.4); k++) {
-  const c = prog2[k % 4], t = core2 + k * 6;
-  chord(t, 6.6, c, 0.17, { attack: 1.8, release: 1.8 });
-  if (k > 0) pad(t, 6.6, c[0] - 12, 0.12, { attack: 1.8, release: 1.8 });
+for (let k = 0; core2 + k * CH < at('3', 0.4); k++) {
+  const c = prog2[k % 4], t = core2 + k * CH;
+  chord(t, CH + 0.6, c, 0.17, { attack: 1.8, release: 1.8 });
+  if (k > 0) pad(t, CH + 0.6, c[0] - 12, 0.12, { attack: 1.8, release: 1.8 });
   const up = c.map((m) => m + 12);
+  const gk = G; G = gk * K.arp / (K.s2 || 1);
   for (let j = 0; j < 8; j++) pluck(t + 0.6 + j * 0.72, up[(j * 3) % up.length] + (j % 4 === 3 ? 12 : 0), 0.045, { pan: Math.sin(j) * 0.5 });
+  G = gk;
 }
 bell(at('2', 22.8), 81, 0.09); bell(at('2', 22.8) + 0.15, 86, 0.08);              // the run finishes
 bell(at('2', 24.6), 88, 0.08, { pan: 0.3 });                                       // the notification
 
 // ================= Scene 3: three agents =================
+G = K.s3;
 const s3 = start['3'];
 [[0.5, 74], [1.8, 81], [3.1, 78]].forEach(([r, m]) => pluck(at('3', r), m, 0.08));  // each window opens
 chord(at('3', 5.6), 5.0, [57, 61, 64, 69], 0.12, { attack: 1.4, release: 2 });
-for (let k = 0; at('3', k * 6) < at('3', 19.4); k++) {
-  const c = prog2[(k + 1) % 4], t = at('3', k * 6);
-  if (t > at('3', 0.2)) { chord(t, 6.6, c, 0.17, { attack: 1.6, release: 1.6 }); pad(t, 6.6, c[0] - 12, 0.12, { attack: 1.6, release: 1.6 }); }
+for (let k = 0; at('3', k * CH) < at('3', 19.4); k++) {
+  const c = prog2[(k + 1) % 4], t = at('3', k * CH);
+  if (t > at('3', 0.2)) { chord(t, CH + 0.6, c, 0.17, { attack: 1.6, release: 1.6 }); pad(t, CH + 0.6, c[0] - 12, 0.12, { attack: 1.6, release: 1.6 }); }
   const up = c.map((m) => m + 12);
+  const gk = G; G = gk * K.arp / (K.s3 || 1);
   for (let j = 0; j < 12; j++) pluck(t + 0.3 + j * 0.5, up[(j * 2) % up.length] + (j % 4 === 3 ? 12 : 0), 0.05, { pan: Math.sin(j * 1.7) * 0.5 });
+  G = gk;
 }
 bell(at('3', 11.4), 81, 0.08); bell(at('3', 14.0), 86, 0.08);                      // the IDE and then the chat finish
 // the last agent drops: the chord turns borrowed and the plucks stop
@@ -146,6 +165,7 @@ bell(at('3', 23.5), 70, 0.06);                                                  
 chord(at('3', 25.4), durations['3'] - 25.4 + 1.0, Dmaj9, 0.18, { attack: 2.2, release: 2 });  // "Sleeps as usual": home again
 
 // ================= Scene 5: the lid =================
+G = K.s5;
 const s5 = start['5'];
 const close0 = at('5', 0.8), close1 = at('5', 3.4), glow0 = at('5', 10.4), glow1 = at('5', 11.4);
 const lidTone = (T) => 1 - 0.65 * clamp01((T - close0) / (close1 - close0)) - 0.3 * clamp01((T - glow0) / (glow1 - glow0));
@@ -155,12 +175,104 @@ bell(at('5', 3.9), 74, 0.07); bell(at('5', 7.0), 78, 0.07);
 [[7.6, 69], [8.2, 73], [8.8, 76]].forEach(([r, m]) => pluck(at('5', r), m, 0.08, { pan: (r - 8.2) / 2 }));  // three conditions
 
 // ================= Scene 7: the end =================
+G = K.s7;
 const s7 = start['7'];
 pad(s7 - 0.3, durations['7'] + 1, 38, 0.2, { attack: 1.8 }); pad(s7, durations['7'] + 1, 45, 0.12, { attack: 1.8 });
 chord(s7, durations['7'] + 1, [50, 54, 57, 62, 64], 0.2, { attack: 2.0, release: 3 });
 bell(at('7', 0.3), 74, 0.07); bell(at('7', 1.0), 81, 0.06);
 bell(at('7', 3.2), 69, 0.07); bell(at('7', 3.9), 74, 0.1); bell(at('7', 3.95), 86, 0.05);   // "AI" settles into "ai": a small cadence
 arp(at('7', 4.8), [74, 78, 81], 0.3, 0.06);
+
+
+// ================= Style layers (everything above is the shared ambient bed) =================
+G = 1;
+const box = (t, m, a = 0.07, o = {}) => bell(t, m, a, { decay: 1.5, ...o });          // a music-box note
+const tick = (t, a = 0.05, f = 1800) => add(t, 0.06, (x) => a * Math.exp(-x * 70) * Math.sin(2 * Math.PI * f * x));
+function noiseBurst(t0, dur, amp, hp = 0.25, pan = 0) {
+  let lp = 0;
+  add(t0, dur, (t) => { const n = rnd() * 2 - 1; lp += hp * (n - lp); return (n - lp) * amp * Math.exp(-t / (dur / 4)); }, pan);
+}
+const kick = (t, amp = 0.2) => add(t, 0.5, (x) => amp * Math.exp(-x * 9) * Math.sin(2 * Math.PI * (45 + 75 * Math.exp(-x * 30)) * x));
+const bassNote = (t, m, amp, len = 0.5) => add(t, len + 0.2, (x) => amp * clamp01(x / 0.01) * Math.exp(-x / len) * (Math.sin(2 * Math.PI * hz(m) * x) + 0.3 * Math.sin(4 * Math.PI * hz(m) * x)));
+const T_MAJ = [74, 69, 66, 64], T_MIN = [74, 69, 65, 64];                                // the theme, in major and in minor
+const roots = [50, 43, 47, 45];                                                         // D G B A, an octave up from the bass
+
+if (style === 'lullaby') {
+  const beat = 60 / 66;
+  arp(s0 + 1.2, T_MAJ, 0.62, 0.07, box); arp(s0 + 4.2, T_MAJ.map((m) => m + 12), 0.5, 0.05, box);
+  [s1 + 2.0, s1 + 7.0].forEach((t) => { if (t < dim0) arp(t, T_MIN, 0.7, 0.06, box); });
+  arp(dim0, [69, 65, 62, 57], 0.55, 0.06, box);                                       // the notes slow down as the Mac falls asleep
+  box(dim0 + 2.4, 50, 0.07, { decay: 3 });
+  box(wake + 0.1, 51, 0.05, { decay: 2.5 }); box(wake + 0.1, 62, 0.05, { decay: 2.5 });   // an out-of-tune note: the run is dead
+  for (let t = partB + 0.5; t < nightA; t += 1.0) tick(t, 0.035);                          // a clock ticks while the Mac stays awake
+  arp(finish, [74, 69, 66], 0.4, 0.06, box);                                              // "Worked for 14m 32s": the theme starts, and is not finished
+  for (let t = nightA, d = 1.0; t < OFF; t += d) { const k = (t - nightA) / (OFF - nightA); tick(t, 0.04 + 0.05 * k, 1800 + 1400 * k); d = Math.max(0.2, 1.0 - 0.85 * k); }
+  // remAIn arrives: the theme in D major, then a gentle loop over the chords
+  arp(at('2', 4.9), [62, 66, 69, 74, 78], 0.2, 0.08, box);
+  const grid = (t0, t1, voices) => {
+    for (let k = 0; t0 + k * 4 * beat < t1; k++) {
+      const r = roots[k % 4], t = t0 + k * 4 * beat, tri = [r + 12, r + 16 - (k % 4 === 2 ? 1 : 0), r + 19];
+      bassNote(t, r - 12, 0.06, 1.2);
+      for (let j = 0; j < 8; j++) box(t + j * beat / 2, tri[j % 3] + 12 * (voices > 1 && j % 4 === 3 ? 1 : 0), 0.045, { pan: Math.sin(j) * 0.4 });
+      if (k % 2 === 1) arp(t + 0.5, T_MAJ.map((m) => m + 12), beat, 0.05, box);
+    }
+  };
+  grid(core2, at('3', 19.6), 1);
+  grid(at('3', 25.6), at('5', 4), 2);
+  box(at('3', 20.0), 51, 0.06, { decay: 3 }); box(at('3', 23.5), 82, 0.06);                // the agent drops; the notification
+  [[at('5', 3.9), 74], [at('5', 7.0), 69], [at('5', 7.6), 69], [at('5', 8.2), 73], [at('5', 8.8), 76]].forEach(([t, m]) => box(t, m, 0.06));
+  arp(at('5', 0.8), [81, 78, 74, 69, 66, 62], 0.45, 0.05, box);                            // the lid closes
+  arp(s7 + 3.2, [74, 69, 66, 62, 57], 0.55, 0.07, box);                                    // the theme comes home
+  box(s7 + 6.4, 50, 0.08, { decay: 4 });
+}
+
+if (style === 'pulse') {
+  const beat = 60 / 96;
+  // the Mac is troubled: no beat, only a clock-like tick that speeds up with the climb
+  for (let t = partB + 0.5; t < nightA; t += beat * 2) noiseBurst(t, 0.05, 0.04, 0.5);
+  for (let t = nightA; t < red; t += beat * 2) { kick(t, 0.12 + 0.1 * (t - nightA) / (red - nightA)); noiseBurst(t + beat, 0.05, 0.04, 0.5); }
+  for (let t = red; t < OFF; t += beat) { kick(t, 0.24); noiseBurst(t + beat / 2, 0.05, 0.06, 0.5); }
+  // remAIn arrives: the beat begins when the agent is launched
+  const groove = (t0, t1, full) => {
+    for (let k = 0; t0 + k * 8 * beat < t1; k++) {
+      const r = roots[k % 4], t = t0 + k * 8 * beat, tri = [r + 12, r + 16 - (k % 4 === 2 ? 1 : 0), r + 19];
+      bassNote(t, r - 12, 0.1, 0.9); bassNote(t + 3 * beat, r - 12, 0.08, 0.5); bassNote(t + 6 * beat, r - 5, 0.07, 0.4);
+      for (let b = 0; b < 8; b++) {
+        const tb = t + b * beat;
+        if (tb >= t1) break;
+        kick(tb, 0.17);
+        noiseBurst(tb + beat / 2, 0.06, 0.05 * (full ? 1.3 : 1), 0.5, 0.2);
+        if (full && b % 2 === 1) noiseBurst(tb, 0.12, 0.06, 0.12, -0.2);                    // a soft clap on 2 and 4
+        for (let j = 0; j < 4; j++) pluck(tb + j * beat / 4, tri[(b * 4 + j) % 3] + 12 * (j === 3 ? 1 : 0), full ? 0.045 : 0.035, { decay: 0.25, pan: Math.sin(b + j) * 0.4 });
+      }
+    }
+  };
+  arp(at('2', 4.9), [74, 78, 81, 86, 90], 0.14, 0.05);
+  groove(core2, at('3', 20.0), false);
+  groove(at('3', 4.0), at('3', 20.0), true);                                                  // the full groove once three agents are working
+  groove(at('3', 25.6), at('5', 0.8), true);                                                  // back to it when everything is calm again
+  for (let t = at('5', 0.8); t < at('5', 10.4); t += 2 * beat) kick(t, 0.09 * (1 - (t - at('5', 0.8)) / 9.6));   // the beat slows to a heartbeat under the lid
+}
+
+if (style === 'sound') {
+  const ping = (t, m, a = 0.08) => { bell(t, m, a, { decay: 1.1 }); bell(t + 0.11, m + 7, a * 0.8, { decay: 1.1 }); };
+  const whoosh = (t, d = 0.5) => noiseBurst(t, d, 0.05, 0.05 + 0.1 * rnd());
+  whoosh(at('1', 1.8), 0.6); bell(at('1', 2.4), 69, 0.05);                                  // the terminal opens
+  add(dim0, 1.8, (t) => 0.1 * Math.exp(-t * 1.2) * Math.sin(2 * Math.PI * (160 * Math.exp(-t * 0.5)) * t));   // the Mac falls asleep
+  box(wake, 50, 0.06, { decay: 2 });
+  for (let t = at('1', 14.0); t < nightA; t += 0.9) tick(t, 0.025);                           // a small clock while caffeinate runs
+  for (let t = nightA, d = 0.5; t < OFF; t += d) { const k = (t - nightA) / (OFF - nightA); tick(t, 0.03 + 0.07 * k, 1500 + 2600 * k); d = Math.max(0.07, 0.5 - 0.43 * k); }   // the clock races
+  bassNote(OFF - 0.05, 26, 0.2, 0.25);                                                        // thud, then nothing
+  whoosh(at('2', 1.0)); box(at('2', 3.2), 74, 0.06); box(at('2', 3.7), 74, 0.07);
+  arp(at('2', 4.9), [74, 78, 81, 86, 90], 0.14, 0.09);
+  whoosh(at('2', 10.3)); ping(at('2', 22.8), 81); ping(at('2', 24.6), 86, 0.07);
+  [0.5, 1.8, 3.1].forEach((r, i) => { whoosh(at('3', r - 0.1), 0.4); box(at('3', r + 0.1), 74 + [0, 7, 4][i], 0.06); });
+  ping(at('3', 11.4), 81); ping(at('3', 14.0), 86);
+  box(at('3', 20.0), 51, 0.07, { decay: 3 }); ping(at('3', 23.5), 70, 0.06);
+  add(at('5', 0.8), 2.6, (t) => 0.1 * Math.sin(2 * Math.PI * (330 * Math.exp(-t * 0.5)) * t) * Math.exp(-t * 0.5));  // the lid
+  [7.6, 8.2, 8.8].forEach((r, i) => box(at('5', r), 69 + [0, 4, 7][i], 0.06));
+  ping(at('7', 3.5), 74, 0.07);
+}
 
 // ================= Reverb (Freeverb-like) and mix =================
 function reverb(x, spread) {
@@ -183,7 +295,7 @@ const wl = reverb(L, 0), wr = reverb(R, 23);
 // Master gain: silence when the power is gone (the cut is sudden on purpose), fades at both ends.
 const gain = (T) => {
   let g = 1;
-  g *= T < off ? 1 : T < off + 0.03 ? 1 - (T - off) / 0.03 : T < at('2', 0.4) ? 0 : clamp01((T - at('2', 0.4)) / 1.0);
+  g *= T < OFF ? 1 : T < OFF + 0.03 ? 1 - (T - OFF) / 0.03 : T < at('2', 0.4) ? 0 : clamp01((T - at('2', 0.4)) / 1.0);
   g *= clamp01(T / 1.2);
   g *= clamp01((total - T) / 3.0);
   return g;
@@ -209,8 +321,9 @@ const header = Buffer.alloc(44);
 header.write('RIFF', 0); header.writeUInt32LE(36 + data.length, 4); header.write('WAVEfmt ', 8); header.writeUInt32LE(16, 16);
 header.writeUInt16LE(1, 20); header.writeUInt16LE(2, 22); header.writeUInt32LE(SR, 24); header.writeUInt32LE(SR * 4, 28);
 header.writeUInt16LE(4, 32); header.writeUInt16LE(16, 34); header.write('data', 36); header.writeUInt32LE(data.length, 40);
-const wav = resolve(here, 'out/bgm.wav');
+const suffix = style === 'ambient' ? '' : `-${style}`;
+const wav = resolve(here, `out/bgm${suffix}.wav`);
 writeFileSync(wav, Buffer.concat([header, data]));
-console.log(`bgm.wav: ${total.toFixed(1)} s`);
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', resolve(here, 'out/remain-intro-en.mp4'), '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', resolve(here, 'out/remain-intro-en-bgm.mp4')]);
-console.log('remain-intro-en-bgm.mp4 written');
+console.log(`bgm${suffix}.wav: ${total.toFixed(1)} s`);
+execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', resolve(here, 'out/remain-intro-en.mp4'), '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', resolve(here, `out/remain-intro-en-bgm${suffix}.mp4`)]);
+console.log(`remain-intro-en-bgm${suffix}.mp4 written`);

@@ -96,3 +96,16 @@
     });
   });
 })();
+
+// The download buttons point straight at the latest zip. If GitHub can't be reached they keep the releases page.
+(() => {
+  const buttons = document.querySelectorAll('[data-download]');
+  if (!buttons.length) return;
+  fetch('https://api.github.com/repos/haruhito767676/remain/releases/latest', { headers: { Accept: 'application/vnd.github+json' } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((release) => {
+      const zip = (release.assets || []).find((a) => /\.zip$/i.test(a.name));
+      if (zip) buttons.forEach((b) => { b.href = zip.browser_download_url; });
+    })
+    .catch(() => {});
+})();

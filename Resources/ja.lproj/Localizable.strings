@@ -136,3 +136,15 @@
 "Open System Settings…" = "システム設定を開く…";
 "Off" = "オフ";
 "Indefinitely" = "無期限";
+
+/* Command line tool */
+"Command line tool" = "コマンドラインツール";
+"Command Line" = "コマンドライン";
+"Installed" = "インストール済み";
+"Not installed" = "未インストール";
+"Another file is in the way" = "同じ名前の別のファイルがあります";
+"Install…" = "インストール…";
+"Repair…" = "修復…";
+"Adds the remain command to Terminal." = "ターミナルで remain コマンドが使えるようになります。";
+"Could not change the command-line tool: %@" = "コマンドラインツールを変更できませんでした: %@";
+"The command-line tool was kept: the password prompt was cancelled." = "コマンドラインツールは、パスワードの入力がキャンセルされたため、そのままです。";

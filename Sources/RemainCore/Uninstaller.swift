@@ -8,18 +8,22 @@ public struct Uninstaller: Sendable {
         public var hooksRemoved: [AgentKind] = []
         public var lidSupportRemoved = false
         public var lidSupportSkipped = false // the administrator prompt was cancelled
+        public var commandLineRemoved = false
+        public var commandLineSkipped = false // the administrator prompt was cancelled
         public var dataRemoved: [String] = []
         public var errors: [String] = []
     }
 
     private let manager: IntegrationManager
     private let lid: LidSupport?
+    private let commandLine: CommandLineTool?
     private let supportDirectory: URL
 
     /// - Parameter lid: pass `nil` to leave the lid-closed setup alone (tests, or a Mac that never set it up).
-    public init(manager: IntegrationManager, lid: LidSupport? = LidSupport(), supportDirectory: URL = RemainPaths.supportDirectory) {
+    public init(manager: IntegrationManager, lid: LidSupport? = LidSupport(), commandLine: CommandLineTool? = nil, supportDirectory: URL = RemainPaths.supportDirectory) {
         self.manager = manager
         self.lid = lid
+        self.commandLine = commandLine
         self.supportDirectory = supportDirectory
     }
 
@@ -65,7 +69,19 @@ public struct Uninstaller: Sendable {
             }
         }
 
-        // 3. Data: history, debug log, heartbeat and watchdog script.
+        // 3. The `remain` command in Terminal: only our own link.
+        if let commandLine, [.installed, .needsRepair].contains(commandLine.state()) {
+            do {
+                try commandLine.uninstall()
+                report.commandLineRemoved = true
+            } catch CommandLineToolError.cancelled {
+                report.commandLineSkipped = true
+            } catch {
+                report.errors.append("Command-line tool: \(error)")
+            }
+        }
+
+        // 4. Data: history, debug log, heartbeat and watchdog script.
         for name in Self.dataFiles {
             let url = supportDirectory.appendingPathComponent(name)
             guard FileManager.default.fileExists(atPath: url.path) else { continue }

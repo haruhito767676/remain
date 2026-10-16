@@ -113,7 +113,7 @@ func runDoctor() -> Never {
 /// Same as the Settings button, minus the login item and saved settings, which only the app can reach.
 func runReset() -> Never {
     print("Removing remAIn's hooks, lid-closed setup and data (an administrator prompt may appear)…")
-    let report = Uninstaller(manager: IntegrationManager(executablePath: executablePath())).removeEverything()
+    let report = Uninstaller(manager: IntegrationManager(executablePath: executablePath()), commandLine: CommandLineTool(helper: URL(fileURLWithPath: executablePath()))).removeEverything()
     for agent in report.hooksRemoved { print("  removed hooks: \(agent.displayName)") }
     if report.lidSupportRemoved { print("  removed: lid-closed permission and watchdog") }
     if report.lidSupportSkipped { print("  skipped: the administrator prompt was cancelled (the watchdog was still removed)") }

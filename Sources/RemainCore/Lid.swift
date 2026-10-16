@@ -365,12 +365,12 @@ public struct LidSupport: Sendable {
     }
 
     private func runAsAdmin(_ command: String) throws {
-        let result = Shell.run("/usr/bin/osascript", ["-e", Self.adminAppleScript(command)])
-        guard result.status == 0 else {
-            if result.output.contains("-128") || result.output.localizedCaseInsensitiveContains("canceled") {
-                throw LidSupportError.cancelled
-            }
-            throw LidSupportError.failed(result.output.trimmingCharacters(in: .whitespacesAndNewlines))
+        do {
+            try AdministratorShell.run(command)
+        } catch AdministratorShell.Failure.cancelled {
+            throw LidSupportError.cancelled
+        } catch AdministratorShell.Failure.failed(let message) {
+            throw LidSupportError.failed(message)
         }
     }
 }

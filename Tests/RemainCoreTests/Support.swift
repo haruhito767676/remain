@@ -288,3 +288,37 @@ extension FakeHome {
     func read(_ relative: String) throws -> String { try String(contentsOf: home.appendingPathComponent(relative), encoding: .utf8) }
     func json(_ relative: String) throws -> [String: Any] { try readJSON(home.appendingPathComponent(relative)) }
 }
+
+// MARK: - Command-line tool rig (the filesystem work lives here: test files must not import Foundation next to Testing)
+
+struct CLIRig {
+    let root: URL
+    let bin: URL
+    let helperA: URL
+    let helperB: URL
+    var link: URL { bin.appendingPathComponent("remain") }
+
+    func tool(_ helper: URL) -> CommandLineTool { CommandLineTool(helper: helper, link: link) }
+    func cleanup() { try? FileManager.default.removeItem(at: root) }
+    func putFileAtLink(_ text: String) throws { try text.write(to: link, atomically: true, encoding: .utf8) }
+    func linkContents() throws -> String { try String(contentsOf: link, encoding: .utf8) }
+    func removeLink() throws { try FileManager.default.removeItem(at: link) }
+    func putForeignLink() throws { try FileManager.default.createSymbolicLink(atPath: link.path, withDestinationPath: "/bin/ls") }
+    func delete(_ helper: URL) throws { try FileManager.default.removeItem(at: helper) }
+    func exists(_ helper: URL) -> Bool { FileManager.default.fileExists(atPath: helper.path) }
+}
+
+func makeCLIRig() throws -> CLIRig {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("cli-\(UUID().uuidString)")
+    func helper(_ name: String) throws -> URL {
+        let dir = root.appendingPathComponent("\(name)/remAIn.app/Contents/Helpers")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent("remain")
+        try "#!/bin/sh\n".write(to: url, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        return url
+    }
+    let bin = root.appendingPathComponent("bin")
+    try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+    return CLIRig(root: root, bin: bin, helperA: try helper("A"), helperB: try helper("B"))
+}

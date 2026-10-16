@@ -228,9 +228,11 @@ remAIn has no server, no account, no analytics and no third-party dependencies, 
 
 ## Reset and uninstall
 
-*Settings → Reset Settings…* (or `remain reset` in a terminal) takes back everything remAIn put on the Mac and returns it to its first-launch state: its own entries in each agent's hooks file (yours are left alone), the lid-closed permission and watchdog (macOS asks for your password), the login item, saved settings and history. To uninstall, reset, quit remAIn and move the app to the Trash.
+*Settings → Reset Settings…* (or `remain reset` in a terminal) takes back everything remAIn put on the Mac and returns it to its first-launch state: its own entries in each agent's hooks file (yours are left alone), the lid-closed permission and watchdog and the `remain` command link (macOS asks for your password), the login item, saved settings and history. To uninstall, reset, quit remAIn and move the app to the Trash.
 
 ## CLI
+
+To use the `remain` command in Terminal, open *Settings → Command Line* and press **Install…** (it asks for your password once, and adds a link in `/usr/local/bin`).
 
 ```sh
 remain status

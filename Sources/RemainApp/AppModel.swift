@@ -22,6 +22,9 @@ final class AppModel {
     /// Desktop Macs have no battery and no lid: the settings that only make sense on a laptop hide.
     private(set) var hasBattery = true
     private(set) var lidBusy = false
+    private(set) var commandLineState: CommandLineToolState = .notInstalled
+    private(set) var commandLineBusy = false
+    private(set) var commandLineError: String?
     private(set) var lidError: String?
     /// Bumped while a manual timer runs so that "time left" in the menu stays current.
     private var clockTick = Date()
@@ -212,9 +215,10 @@ final class AppModel {
         resetSummary = nil
         update { $0.keepRunningWithLidClosed = false } // stop holding before the setup is taken away
         let lidSupport = lidSupport
+        let commandLine = commandLineTool()
         Task {
             let report = await Task.detached {
-                Uninstaller(manager: manager, lid: lidSupport).removeEverything()
+                Uninstaller(manager: manager, lid: lidSupport, commandLine: commandLine).removeEverything()
             }.value
             finishReset(report)
         }
@@ -232,10 +236,34 @@ final class AppModel {
 
         var lines = [String(localized: "Reset done.")]
         if report.lidSupportSkipped { lines.append(String(localized: "The lid-closed permission was kept: the password prompt was cancelled.")) }
+        if report.commandLineSkipped { lines.append(String(localized: "The command-line tool was kept: the password prompt was cancelled.")) }
         lines.append(contentsOf: report.errors)
         resetSummary = lines.joined(separator: "\n")
         resetBusy = false
         refreshState()
+    }
+
+    // MARK: - Command-line tool
+
+    func installCommandLine() { runCommandLine { try $0.install() } }
+    func removeCommandLine() { runCommandLine { try $0.uninstall() } }
+
+    private func runCommandLine(_ action: @escaping @Sendable (CommandLineTool) throws -> Void) {
+        guard !commandLineBusy, let tool = commandLineTool() else { return }
+        commandLineBusy = true
+        commandLineError = nil
+        Task {
+            let result = await Task.detached { Result { try action(tool) } }.value
+            commandLineBusy = false
+            if case .failure(let error) = result, error as? CommandLineToolError != .cancelled {
+                commandLineError = String(localized: "Could not change the command-line tool: \(String(describing: error))")
+            }
+            refreshState()
+        }
+    }
+
+    private func commandLineTool() -> CommandLineTool? {
+        helperURL().map { CommandLineTool(helper: $0) }
     }
 
     // MARK: - Lid-closed mode
@@ -374,6 +402,7 @@ final class AppModel {
     }
 
     func refreshState() {
+        commandLineState = commandLineTool()?.state() ?? .notInstalled
         if let manager = integrationManager() {
             integrations = Dictionary(uniqueKeysWithValues: AgentKind.integrable.map { ($0, manager.state(of: $0)) })
         }
@@ -401,15 +430,16 @@ final class AppModel {
     }
 
     /// The CLI lives in `remAIn.app/Contents/Helpers/remain`, or next to the binary during development.
-    private func integrationManager() -> IntegrationManager? {
+    private func helperURL() -> URL? {
         let candidates = [
             Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/remain"),
             Bundle.main.executableURL?.deletingLastPathComponent().appendingPathComponent("remain"),
         ].compactMap { $0 }
-        guard let cli = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
-            return nil
-        }
-        return IntegrationManager(executablePath: cli.path)
+        return candidates.first { FileManager.default.isExecutableFile(atPath: $0.path) }
+    }
+
+    private func integrationManager() -> IntegrationManager? {
+        helperURL().map { IntegrationManager(executablePath: $0.path) }
     }
 
     private static func loadSettings() -> WakeSettings {

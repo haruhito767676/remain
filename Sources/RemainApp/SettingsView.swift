@@ -33,6 +33,15 @@ struct GeneralSettingsView: View {
     let model: AppModel
     @State private var confirmingReset = false
 
+    private var commandLineLabel: LocalizedStringKey {
+        switch model.commandLineState {
+        case .installed: "Installed"
+        case .notInstalled: "Not installed"
+        case .needsRepair: "Needs repair"
+        case .blocked: "Another file is in the way"
+        }
+    }
+
     var body: some View {
         Form {
             Section {
@@ -174,6 +183,27 @@ struct GeneralSettingsView: View {
                 }
             } header: {
                 Text("Integrations")
+            }
+
+            Section {
+                LabeledContent("Command line tool") {
+                    HStack {
+                        Text(commandLineLabel).foregroundStyle(model.commandLineState == .needsRepair ? Color.orange : Color.secondary)
+                        switch model.commandLineState {
+                        case .installed: Button("Remove") { model.removeCommandLine() }.disabled(model.commandLineBusy)
+                        case .needsRepair: Button("Repair…") { model.installCommandLine() }.disabled(model.commandLineBusy)
+                        case .notInstalled: Button("Install…") { model.installCommandLine() }.disabled(model.commandLineBusy)
+                        case .blocked: EmptyView()
+                        }
+                    }
+                }
+                if let error = model.commandLineError {
+                    Text(error).foregroundStyle(.red)
+                }
+            } header: {
+                Text("Command Line")
+            } footer: {
+                Text("Adds the remain command to Terminal.")
             }
 
             Section {

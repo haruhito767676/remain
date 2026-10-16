@@ -39,6 +39,7 @@ a:hover { text-decoration: underline; }
 img, video { max-width: 100%; }
 h1, h2, h3, .lead, .sub { text-wrap: balance; }
 :lang(ja) { word-break: auto-phrase; line-break: strict; }
+.ph { display: inline-block; }  /* each clause of the Japanese text (up to a 、 or 。) stays together, so lines break at the pauses */
 .wrap { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
 code { font: 0.9em ui-monospace, "SF Mono", Menlo, monospace; background: var(--fill); padding: 1px 6px; border-radius: 6px; }
 
@@ -201,3 +202,7 @@ h2 { font-size: clamp(28px, 4vw, 44px); line-height: 1.12; letter-spacing: -0.03
 
 footer { padding: 40px 0 56px; border-top: 0.5px solid var(--line); color: var(--muted); font-size: 14px; text-align: center; }
 footer p { margin: 0 auto 8px; max-width: 46em; }
+
+/* paragraphs: no single word left alone on the last line */
+.card p, .feature p, .faq p, .agent p, .step p, .perm span, .fineprint, .privacy .sub, .hero .lead { text-wrap: pretty; }
+.nb { white-space: nowrap; }

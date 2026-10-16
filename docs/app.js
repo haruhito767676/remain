@@ -109,3 +109,11 @@
     })
     .catch(() => {});
 })();
+
+// A short how-to clip plays while it is on screen, and rests when it is not.
+(() => {
+  const clips = document.querySelectorAll('video[data-autoplay]');
+  if (!clips.length || !('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.play().catch(() => {}); else e.target.pause(); }), { threshold: 0.4 });
+  clips.forEach((v) => io.observe(v));
+})();

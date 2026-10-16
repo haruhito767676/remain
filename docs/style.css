@@ -206,3 +206,8 @@ footer p { margin: 0 auto 8px; max-width: 46em; }
 /* paragraphs: no single word left alone on the last line */
 .card p, .feature p, .faq p, .agent p, .step p, .perm span, .fineprint, .privacy .sub, .hero .lead { text-wrap: pretty; }
 .nb { white-space: nowrap; }
+
+/* the first-time walkthrough in the install section */
+.walk { max-width: 880px; margin: 36px auto 0; text-align: center; }
+.walk video { width: 100%; height: auto; border-radius: 16px; box-shadow: var(--shadow); background: #000; display: block; }
+.walk figcaption { margin-top: 12px; color: var(--muted); font-size: 14.5px; }

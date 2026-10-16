@@ -165,6 +165,11 @@ The Activity tab shows how long your Mac was kept awake, per day and per project
 2. remAIn is a free app made by an individual and is **not signed** by Apple, so macOS shows a warning the first time. Open *System Settings → Privacy & Security*, scroll down, choose **Open Anyway** and confirm with Touch ID or your password. You only need to do this once.
 3. A welcome window opens. Choose the agents to connect, and decide whether remAIn opens at login (it has to be running to notice your agents).
 
+<p align="center">
+<img src="docs/media/unsigned-en.webp" width="720" alt="How to open remAIn the first time: download it, open it, click Done on the warning, then System Settings → Privacy &amp; Security → Open Anyway, confirm with Touch ID or your password, and it opens">
+<br><sub>The first time, in 25 seconds.</sub>
+</p>
+
 To build it yourself, see [Development](#development).
 
 ### Requirements

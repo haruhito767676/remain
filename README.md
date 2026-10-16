@@ -303,3 +303,5 @@ The screenshots can be regenerated without touching your real history: `scripts/
 ## License
 
 [MIT](LICENSE)
+
+remAIn is an independent project and is not affiliated with Anthropic, Google or OpenAI. Antigravity, Claude Code, Codex and ChatGPT are trademarks of their respective owners.

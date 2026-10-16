@@ -303,3 +303,5 @@ swift test -Xswiftc -F$F -Xlinker -F$F -Xlinker -rpath -Xlinker $F
 ## ライセンス
 
 [MIT](LICENSE)
+
+remAInは独立したプロジェクトで、Anthropic、Google、OpenAIとは関係ありません。Antigravity、Claude Code、Codex、ChatGPTは、それぞれの所有者の商標です。

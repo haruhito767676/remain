@@ -1,19 +1,19 @@
-// The short cut for X (about 45 s): which stretch of which scene plays, and how fast. The video (short.js) and the music
+// The short cut for X (about 45 s, almost everything at normal speed): which stretch of which scene plays, and how fast. The video (short.js) and the music
 // (bgm.mjs, style "short") both read this, so the picture and the sound stay in step.
 const SHORT = {
   dip: 0.18,                         // a short dip to black between two stretches
   segments: [
-    { id: '0', a: 0.0, b: 5.7, s: 1 },       // the hook: Just remain awake. -> remAIn
-    { id: '1', a: 4.6, b: 11.9, s: 1.3 },    // a long run, the Mac falls asleep, the run is found dead
-    { id: '1', a: 27.0, b: 29.6, s: 1 },     // the work is done, the Mac stays awake
-    { id: '1', a: 31.2, b: 43.4, s: 2.2 },   // all night, until the battery gives out
-    { id: '2', a: 0.9, b: 7.8, s: 1.3 },     // remAIn is opened and sits in the menu bar
-    { id: '2', a: 17.0, b: 27.0, s: 1.7 },   // awake only while it works; finished, back to normal
-    { id: '3', a: 0.6, b: 6.2, s: 1.5 },     // any agent, all at once
-    { id: '3', a: 19.4, b: 26.6, s: 1.6 },   // stopped halfway: it notices
-    { id: '5', a: 0.9, b: 6.6, s: 1.5 },     // the lid closes, it keeps going
-    { id: '7', a: 2.6, b: 7.0, s: 1 },       // AI settles; download
+    { id: '0', a: 0.0, b: 5.7, s: 1 },       // 0 the hook: Just remain awake. -> remAIn
+    { id: '1', a: 6.2, b: 13.6, s: 1 },      // 1 a long run, the Mac falls asleep, the run is found dead
+    { id: '1', a: 28.3, b: 31.3, s: 1 },     // 2 the work is done, the Mac stays awake
+    { id: '2', a: 2.0, b: 8.6, s: 1 },       // 3 remAIn is opened and sits in the menu bar
+    { id: '2', a: 13.4, b: 17.0, s: 1 },     // 4 an agent works: awake only while it works
+    { id: '2', a: 22.4, b: 27.4, s: 1 },     // 5 finished, back to normal
+    { id: '3', a: 1.0, b: 5.8, s: 1 },       // 6 any agent, all at once
+    { id: '3', a: 20.4, b: 25.6, s: 1 },     // 7 stopped halfway: it notices
+    { id: '7', a: 2.8, b: 7.0, s: 1 },       // 8 AI settles; download
   ],
+
 };
 SHORT.starts = []; SHORT.total = 0;
 for (const sg of SHORT.segments) { SHORT.starts.push(SHORT.total); SHORT.total += (sg.b - sg.a) / sg.s; }

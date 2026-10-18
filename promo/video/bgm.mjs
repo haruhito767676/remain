@@ -82,7 +82,7 @@ const K = {
   sound: { s0: 0.3, s1: 0.3, s2: 0.25, s3: 0.25, s5: 0.25, s7: 0.3, arp: 0 },
 }[style];
 const CH = style === 'pulse' ? 5 : 6;                          // chord length in seconds
-const OFF = style === 'short' ? SHORT.at('1', 42.8) : at('1', 42.8);   // the moment the power is gone
+const OFF = style === 'short' ? SHORT.starts[3] - SHORT.dip : at('1', 42.8);   // the moment the power is gone
 // ---- Chords (MIDI) ----
 const Dm9 = [50, 53, 57, 64], Dm7 = [50, 53, 57, 60], Dsus = [50, 55, 57, 60], Dcluster = [50, 51, 57, 58];
 const Dmaj9 = [50, 54, 57, 61, 64], Dmaj7 = [50, 54, 57, 61], Gmaj7 = [55, 59, 62, 66], Bm7 = [47, 54, 57, 62], A69 = [45, 52, 57, 61, 66], Gm6 = [43, 50, 58, 64];
@@ -293,20 +293,17 @@ if (style === 'short') {
   // hook
   pad(0, 7.5, 38, 0.22, { attack: 2.2 }); pad(0.4, 7, 45, 0.12, { attack: 2.2 }); chord(0.5, 6.2, Dm9, 0.2, { attack: 1.8 });
   bell(1.1, 69, 0.1); bell(2.0, 81, 0.09, { pan: 0.3 }); arp(2.8, [74, 77, 81, 86], 0.13, 0.1); bell(4.8, 86, 0.08, { pan: -0.2 });
-  // trouble
-  const t1 = st[1], dim0 = m('1', 7.8), dim1 = m('1', 9.2), wake = m('1', 10.8), seg2 = st[2], seg3 = st[3];
+  // trouble: the sound sinks with the screen, wakes uneasy, and keeps humming while the Mac stays up for nothing
+  const t1 = st[1], dim0 = m('1', 7.8), dim1 = m('1', 9.2), wake = m('1', 10.8), seg2 = st[2];
   pad(t1 - 0.3, OFF - t1 + 0.3, 38, 0.2, { attack: 1.2, release: 0.2 });
   const sinkS = (T) => 1 - 0.86 * clamp01((T - dim0) / (dim1 - dim0)) + 0.86 * clamp01((T - wake) / 0.8);
   chord(t1, dim0 - t1 + 0.8, Dm7, 0.17, { attack: 1.2, release: 1, bright: sinkS });
   add(dim0, 1.6, (t) => 0.13 * Math.sin(2 * Math.PI * (220 * Math.exp(-t * 0.9)) * t) * clamp01(t / 0.15) * clamp01(1 - (t - 1) / 0.6));
   chord(wake, seg2 - wake + 0.2, Dcluster, 0.14, { attack: 0.5, release: 0.6 });
-  chord(seg2, seg3 - seg2 + 0.2, Dsus, 0.12, { attack: 0.6, release: 0.4 });
-  for (let t = seg2 + 0.4; t < seg3; t += 1.1) thump(t, 0.1);
-  bell(m('1', 27.6) ?? seg2 + 0.6, 74, 0.07);
-  add(seg3, OFF - seg3, (t, T) => { const k = (T - seg3) / (OFF - seg3); return (0.02 + 0.11 * k * k) * (Math.sin(2 * Math.PI * 196 * Math.pow(2.2, k) * t) + 0.8 * Math.sin(2 * Math.PI * 196 * Math.pow(2.2, k) * 1.007 * t)); });
-  for (let t = seg3; t < OFF; t += Math.max(0.25, 1.0 - 0.8 * (t - seg3) / (OFF - seg3))) thump(t, 0.12, 31);
-  // remAIn arrives: warm D major, the beat starts when the terminal opens
-  const t4 = st[4] + 0.2, t5 = st[5], drop = m('3', 20.0), calm = m('3', 25.4);
+  chord(seg2, OFF - seg2 + 0.2, Dsus, 0.12, { attack: 0.6, release: 0.4 });
+  for (let t = seg2 + 0.3; t < OFF; t += 1.0) thump(t, 0.1);
+  // remAIn arrives after a breath of silence: warm D major; the beat starts when the agent starts working
+  const t4 = st[3] + 0.35, t5 = st[4], drop = st[7], calm = st[7] + 3.6;
   pad(t4, total - t4 + 1, 38, 0.2, { attack: 1.8 }); pad(t4 + 0.4, total - t4, 45, 0.11, { attack: 1.8 });
   chord(t4, 8, Dmaj9, 0.2, { attack: 1.8, release: 1.5 });
   const ic = m('2', 4.9); if (ic != null) arp(ic, [74, 78, 81, 86, 90], 0.14, 0.1);
@@ -329,11 +326,8 @@ if (style === 'short') {
   const n = m('3', 23.5); if (n != null) bell(n, 70, 0.07);
   chord(drop - 0.1, 3.6, Gm6, 0.15, { attack: 0.4, release: 1.4 });           // the agent drops: the chord turns, the beat stops
   chord(calm, st[8] - calm + 1.2, Dmaj9, 0.18, { attack: 1.0, release: 1.2 });
-  // the lid closes, then the end
-  const lidT = st[8], lidBright = (T) => 1 - 0.55 * clamp01((T - lidT) / 2.0);
-  chord(lidT, st[9] - lidT + 0.8, Dmaj9, 0.14, { attack: 0.6, release: 0.8, bright: lidBright });
-  const b39 = m('5', 3.9); if (b39 != null) bell(b39, 74, 0.07);
-  const t9 = st[9];
+  // the end
+  const t9 = st[8];
   chord(t9, total - t9 + 1, [50, 54, 57, 62, 64], 0.2, { attack: 1.2, release: 2.5 });
   const ai0 = m('7', 3.2); if (ai0 != null) { bell(ai0, 69, 0.07); bell(ai0 + 0.7, 74, 0.1); bell(ai0 + 0.75, 86, 0.05); }
   const ai1 = m('7', 4.8); if (ai1 != null) arp(ai1, [74, 78, 81], 0.3, 0.06);
@@ -360,7 +354,7 @@ const wl = reverb(L, 0), wr = reverb(R, 23);
 // Master gain: silence when the power is gone (the cut is sudden on purpose), fades at both ends.
 const gain = (T) => {
   let g = 1;
-  const resume = style === 'short' ? SHORT.starts[4] + 0.2 : at('2', 0.4);
+  const resume = style === 'short' ? SHORT.starts[3] + 0.35 : at('2', 0.4);
   g *= T < OFF ? 1 : T < OFF + 0.03 ? 1 - (T - OFF) / 0.03 : T < resume ? 0 : clamp01((T - resume) / (style === 'short' ? 0.5 : 1.0));
   g *= clamp01(T / 1.2);
   g *= clamp01((total - T) / 3.0);

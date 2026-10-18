@@ -3,14 +3,15 @@
 const SHORT = {
   dip: 0.18,                         // a short dip to black between two stretches
   segments: [
-    { id: '0', a: 0.0, b: 5.7, s: 1 },       // 0 the hook: Just remain awake. -> remAIn
-    { id: '2', a: 2.0, b: 8.6, s: 1 },       // 1 remAIn is opened from Finder and sits in the menu bar
-    { id: '2', a: 12.4, b: 16.6, s: 1 },     // 2 an agent works: awake only while it works
-    { id: '2', a: 22.4, b: 27.0, s: 1 },     // 3 finished, back to normal
-    { id: '3', a: 20.4, b: 25.6, s: 1 },     // 4 stopped halfway: it notices
-    { id: '5', a: 0.9, b: 6.6, s: 1 },       // 5 the lid closes, it keeps going
-    { id: '7', a: 2.8, b: 7.0, s: 1 },       // 6 AI settles; download
+    { id: '0', a: 0.0, b: 6.3, s: 1 },       // 0 the hook: Just remain awake. -> remAIn
+    { id: '2', a: 1.5, b: 9.2, s: 1 },       // 1 remAIn is opened from Finder and sits in the menu bar
+    { id: '2', a: 12.2, b: 17.2, s: 1 },     // 2 an agent works: awake only while it works
+    { id: '2', a: 22.2, b: 27.6, s: 1 },     // 3 finished, back to normal
+    { id: '3', a: 20.2, b: 26.2, s: 1 },     // 4 stopped halfway: it notices
+    { id: '5', a: 0.8, b: 6.6, s: 1 },       // 5 the lid closes, it keeps going
+    { id: '7', a: 2.6, b: 7.2, s: 1 },       // 6 AI settles; download
   ],
+
 
 
 

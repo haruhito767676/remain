@@ -22,6 +22,8 @@ const order = ['0', '1', '2', '3', '5', '7'];
 const start = {};
 let total = 0;
 for (const id of order) { start[id] = total; total += durations[id]; }
+const SHORT = new Function(`${readFileSync(resolve(here, 'short-plan.js'), 'utf8')}; return SHORT;`)();   // the 45-second cut for X
+if (style === 'short') total = SHORT.total;
 const N = Math.ceil(total * SR);
 const L = new Float32Array(N), R = new Float32Array(N);
 
@@ -80,12 +82,27 @@ const K = {
   sound: { s0: 0.3, s1: 0.3, s2: 0.25, s3: 0.25, s5: 0.25, s7: 0.3, arp: 0 },
 }[style];
 const CH = style === 'pulse' ? 5 : 6;                          // chord length in seconds
-const OFF = at('1', 42.8);                                       // the moment the power is gone
+const OFF = style === 'short' ? SHORT.at('1', 42.8) : at('1', 42.8);   // the moment the power is gone
 // ---- Chords (MIDI) ----
 const Dm9 = [50, 53, 57, 64], Dm7 = [50, 53, 57, 60], Dsus = [50, 55, 57, 60], Dcluster = [50, 51, 57, 58];
 const Dmaj9 = [50, 54, 57, 61, 64], Dmaj7 = [50, 54, 57, 61], Gmaj7 = [55, 59, 62, 66], Bm7 = [47, 54, 57, 62], A69 = [45, 52, 57, 61, 66], Gm6 = [43, 50, 58, 64];
 const DD = [38, 45];                                         // the low D and A that hold everything together
 
+// ---- helpers shared by the styles
+G = 1;
+const box = (t, m, a = 0.07, o = {}) => bell(t, m, a, { decay: 1.5, ...o });          // a music-box note
+const tick = (t, a = 0.05, f = 1800) => add(t, 0.06, (x) => a * Math.exp(-x * 70) * Math.sin(2 * Math.PI * f * x));
+function noiseBurst(t0, dur, amp, hp = 0.25, pan = 0) {
+  let lp = 0;
+  add(t0, dur, (t) => { const n = rnd() * 2 - 1; lp += hp * (n - lp); return (n - lp) * amp * Math.exp(-t / (dur / 4)); }, pan);
+}
+const kick = (t, amp = 0.2) => add(t, 0.5, (x) => amp * Math.exp(-x * 9) * Math.sin(2 * Math.PI * (45 + 75 * Math.exp(-x * 30)) * x));
+const bassNote = (t, m, amp, len = 0.5) => add(t, len + 0.2, (x) => amp * clamp01(x / 0.01) * Math.exp(-x / len) * (Math.sin(2 * Math.PI * hz(m) * x) + 0.3 * Math.sin(4 * Math.PI * hz(m) * x)));
+const T_MAJ = [74, 69, 66, 64], T_MIN = [74, 69, 65, 64];                                // the theme, in major and in minor
+const roots = [50, 43, 47, 45];                                                         // D G B A, an octave up from the bass
+
+
+if (style !== 'short') {
 // ================= Scene 0: the hook =================
 G = K.s0;
 const s0 = start['0'];
@@ -188,18 +205,6 @@ arp(at('7', 4.8), [74, 78, 81], 0.3, 0.06);
 
 
 // ================= Style layers (everything above is the shared ambient bed) =================
-G = 1;
-const box = (t, m, a = 0.07, o = {}) => bell(t, m, a, { decay: 1.5, ...o });          // a music-box note
-const tick = (t, a = 0.05, f = 1800) => add(t, 0.06, (x) => a * Math.exp(-x * 70) * Math.sin(2 * Math.PI * f * x));
-function noiseBurst(t0, dur, amp, hp = 0.25, pan = 0) {
-  let lp = 0;
-  add(t0, dur, (t) => { const n = rnd() * 2 - 1; lp += hp * (n - lp); return (n - lp) * amp * Math.exp(-t / (dur / 4)); }, pan);
-}
-const kick = (t, amp = 0.2) => add(t, 0.5, (x) => amp * Math.exp(-x * 9) * Math.sin(2 * Math.PI * (45 + 75 * Math.exp(-x * 30)) * x));
-const bassNote = (t, m, amp, len = 0.5) => add(t, len + 0.2, (x) => amp * clamp01(x / 0.01) * Math.exp(-x / len) * (Math.sin(2 * Math.PI * hz(m) * x) + 0.3 * Math.sin(4 * Math.PI * hz(m) * x)));
-const T_MAJ = [74, 69, 66, 64], T_MIN = [74, 69, 65, 64];                                // the theme, in major and in minor
-const roots = [50, 43, 47, 45];                                                         // D G B A, an octave up from the bass
-
 if (style === 'lullaby') {
   const beat = 60 / 66;
   arp(s0 + 1.2, T_MAJ, 0.62, 0.07, box); arp(s0 + 4.2, T_MAJ.map((m) => m + 12), 0.5, 0.05, box);
@@ -277,6 +282,63 @@ if (style === 'sound') {
   ping(at('7', 3.5), 74, 0.07);
 }
 
+}
+
+
+// ================= The 45-second cut for X: its own short arc (hook, trouble, power cut, groove, drop, end) =================
+if (style === 'short') {
+  const m = (id, rel) => SHORT.at(id, rel);
+  const st = SHORT.starts, beat = 60 / 96;
+  G = 1;
+  // hook
+  pad(0, 7.5, 38, 0.22, { attack: 2.2 }); pad(0.4, 7, 45, 0.12, { attack: 2.2 }); chord(0.5, 6.2, Dm9, 0.2, { attack: 1.8 });
+  bell(1.1, 69, 0.1); bell(2.0, 81, 0.09, { pan: 0.3 }); arp(2.8, [74, 77, 81, 86], 0.13, 0.1); bell(4.8, 86, 0.08, { pan: -0.2 });
+  // trouble
+  const t1 = st[1], dim0 = m('1', 7.8), dim1 = m('1', 9.2), wake = m('1', 10.8), seg2 = st[2], seg3 = st[3];
+  pad(t1 - 0.3, OFF - t1 + 0.3, 38, 0.2, { attack: 1.2, release: 0.2 });
+  const sinkS = (T) => 1 - 0.86 * clamp01((T - dim0) / (dim1 - dim0)) + 0.86 * clamp01((T - wake) / 0.8);
+  chord(t1, dim0 - t1 + 0.8, Dm7, 0.17, { attack: 1.2, release: 1, bright: sinkS });
+  add(dim0, 1.6, (t) => 0.13 * Math.sin(2 * Math.PI * (220 * Math.exp(-t * 0.9)) * t) * clamp01(t / 0.15) * clamp01(1 - (t - 1) / 0.6));
+  chord(wake, seg2 - wake + 0.2, Dcluster, 0.14, { attack: 0.5, release: 0.6 });
+  chord(seg2, seg3 - seg2 + 0.2, Dsus, 0.12, { attack: 0.6, release: 0.4 });
+  for (let t = seg2 + 0.4; t < seg3; t += 1.1) thump(t, 0.1);
+  bell(m('1', 27.6) ?? seg2 + 0.6, 74, 0.07);
+  add(seg3, OFF - seg3, (t, T) => { const k = (T - seg3) / (OFF - seg3); return (0.02 + 0.11 * k * k) * (Math.sin(2 * Math.PI * 196 * Math.pow(2.2, k) * t) + 0.8 * Math.sin(2 * Math.PI * 196 * Math.pow(2.2, k) * 1.007 * t)); });
+  for (let t = seg3; t < OFF; t += Math.max(0.25, 1.0 - 0.8 * (t - seg3) / (OFF - seg3))) thump(t, 0.12, 31);
+  // remAIn arrives: warm D major, the beat starts when the terminal opens
+  const t4 = st[4] + 0.2, t5 = st[5], drop = m('3', 20.0), calm = m('3', 25.4);
+  pad(t4, total - t4 + 1, 38, 0.2, { attack: 1.8 }); pad(t4 + 0.4, total - t4, 45, 0.11, { attack: 1.8 });
+  chord(t4, 8, Dmaj9, 0.2, { attack: 1.8, release: 1.5 });
+  const ic = m('2', 4.9); if (ic != null) arp(ic, [74, 78, 81, 86, 90], 0.14, 0.1);
+  for (const r of [3.2, 3.7]) { const x = m('2', r); if (x != null) pluck(x, 74, 0.07); }
+  const grooveBars = (t0, t1b, full) => {
+    for (let k = 0; t0 + k * 8 * beat < t1b; k++) {
+      const r = roots[k % 4], t = t0 + k * 8 * beat, tri = [r + 12, r + 16 - (k % 4 === 2 ? 1 : 0), r + 19];
+      bassNote(t, r - 12, 0.1, 0.9); bassNote(t + 3 * beat, r - 12, 0.07, 0.5); bassNote(t + 6 * beat, r - 5, 0.06, 0.4);
+      chord(t, 5.4, [r + 12, r + 16 - (k % 4 === 2 ? 1 : 0), r + 19, r + 24], 0.16, { attack: 1.0, release: 1.2 });
+      for (let b = 0; b < 8; b++) {
+        const tb = t + b * beat; if (tb >= t1b) break;
+        kick(tb, 0.16); noiseBurst(tb + beat / 2, 0.06, full ? 0.06 : 0.045, 0.5, 0.2);
+        if (full && b % 2 === 1) noiseBurst(tb, 0.12, 0.05, 0.12, -0.2);
+        for (let j = 0; j < 4; j++) pluck(tb + j * beat / 4, tri[(b * 4 + j) % 3] + 12 * (j === 3 ? 1 : 0), full ? 0.036 : 0.028, { decay: 0.25, pan: Math.sin(b + j) * 0.4 });
+      }
+    }
+  };
+  grooveBars(t5, drop - 0.1, true);
+  const f = m('2', 22.8); if (f != null) { bell(f, 81, 0.09); bell(f + 0.15, 86, 0.08); }
+  const n = m('3', 23.5); if (n != null) bell(n, 70, 0.07);
+  chord(drop - 0.1, 3.6, Gm6, 0.15, { attack: 0.4, release: 1.4 });           // the agent drops: the chord turns, the beat stops
+  chord(calm, st[8] - calm + 1.2, Dmaj9, 0.18, { attack: 1.0, release: 1.2 });
+  // the lid closes, then the end
+  const lidT = st[8], lidBright = (T) => 1 - 0.55 * clamp01((T - lidT) / 2.0);
+  chord(lidT, st[9] - lidT + 0.8, Dmaj9, 0.14, { attack: 0.6, release: 0.8, bright: lidBright });
+  const b39 = m('5', 3.9); if (b39 != null) bell(b39, 74, 0.07);
+  const t9 = st[9];
+  chord(t9, total - t9 + 1, [50, 54, 57, 62, 64], 0.2, { attack: 1.2, release: 2.5 });
+  const ai0 = m('7', 3.2); if (ai0 != null) { bell(ai0, 69, 0.07); bell(ai0 + 0.7, 74, 0.1); bell(ai0 + 0.75, 86, 0.05); }
+  const ai1 = m('7', 4.8); if (ai1 != null) arp(ai1, [74, 78, 81], 0.3, 0.06);
+}
+
 // ================= Reverb (Freeverb-like) and mix =================
 function reverb(x, spread) {
   const combs = [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617].map((n) => n + spread);
@@ -298,7 +360,8 @@ const wl = reverb(L, 0), wr = reverb(R, 23);
 // Master gain: silence when the power is gone (the cut is sudden on purpose), fades at both ends.
 const gain = (T) => {
   let g = 1;
-  g *= T < OFF ? 1 : T < OFF + 0.03 ? 1 - (T - OFF) / 0.03 : T < at('2', 0.4) ? 0 : clamp01((T - at('2', 0.4)) / 1.0);
+  const resume = style === 'short' ? SHORT.starts[4] + 0.2 : at('2', 0.4);
+  g *= T < OFF ? 1 : T < OFF + 0.03 ? 1 - (T - OFF) / 0.03 : T < resume ? 0 : clamp01((T - resume) / (style === 'short' ? 0.5 : 1.0));
   g *= clamp01(T / 1.2);
   g *= clamp01((total - T) / 3.0);
   return g;
@@ -328,5 +391,5 @@ const suffix = `${style === 'ambient' ? '' : `-${style}`}`;
 const wav = resolve(here, `out/bgm${suffix}.wav`);
 writeFileSync(wav, Buffer.concat([header, data]));
 console.log(`bgm${suffix}.wav: ${total.toFixed(1)} s`);
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', resolve(here, `out/remain-intro-${lang}.mp4`), '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', resolve(here, `out/remain-intro-${lang}-bgm${suffix}.mp4`)]);
-console.log(`remain-intro-${lang}-bgm${suffix}.mp4 written`);
+execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', resolve(here, style === 'short' ? `out/clip-short-${lang}.mp4` : `out/remain-intro-${lang}.mp4`), '-i', wav, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', resolve(here, style === 'short' ? `out/remain-short-${lang}.mp4` : `out/remain-intro-${lang}-bgm${suffix}.mp4`)]);
+console.log(style === 'short' ? `remain-short-${lang}.mp4 written` : `remain-intro-${lang}-bgm${suffix}.mp4 written`);
